@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Editing form view-->
+    <data>
+        <record model="ir.ui.view" id="account_payment_register_form_inh_ottreasury">
+            <field name="name">account.payment.register.form</field>
+            <field name="model">account.payment.register</field>
+            <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='group1']" position="inside">
+                    <field name="send_email" invisible="payment_type == 'inbound'"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

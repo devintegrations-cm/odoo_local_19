@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <!--
+        Odoo 19 settings layout: every option is a <setting> inside a <block>.
+        The 17 version of this file injected bare <div class="mt16"> nodes after
+        pos_amount_authorized_diff, which nested our options inside the
+        "Authorized Difference" setting.  They are now siblings of it, inside the
+        Payment block.
+    -->
+    <record id="res_config_settings_view_form_pos_closing_validation" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.pos.closing.validation</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//setting[@id='set_maximum_difference']" position="after">
+                <setting string="Máximo de movimientos de efectivo"
+                         help="Número máximo de movimientos Cash In/Out permitidos por sesión.">
+                    <div class="content-group mt16">
+                        <label for="pos_maximum_cash_in_out_moves" class="col-lg-8 o_light_label"/>
+                        <field name="pos_maximum_cash_in_out_moves" class="w-25"/>
+                    </div>
+                </setting>
+                <setting string="Mensaje de diferencia de efectivo"
+                         help="Texto que se muestra cuando la diferencia de efectivo supera el máximo autorizado al cerrar la sesión. Escriba sólo el texto: la diferencia y el máximo autorizado se añaden automáticamente al final. Déjelo vacío para usar el mensaje por defecto.">
+                    <div class="content-group mt16">
+                        <field name="pos_cash_difference_exceeded_message"
+                               placeholder="Se usará el mensaje por defecto si se deja vacío."/>
+                    </div>
+                </setting>
+                <setting string="Validar sesiones de rescate"
+                         help="Advierte al responsable y bloquea al cajero cuando quedan sesiones de rescate pendientes.">
+                    <field name="pos_enable_rescue_session_validation"/>
+                </setting>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

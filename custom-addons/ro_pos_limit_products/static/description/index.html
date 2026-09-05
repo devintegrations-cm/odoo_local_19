@@ -1,0 +1,61 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">De fábrica, todo producto marcado como <strong>Point of Sale</strong> aparece en la pantalla de productos
+de <strong>todas</strong> las cajas de la compañía. Con varios locales en la misma base —una tienda, un
+restaurante, un kiosco— el cajero termina viendo un catálogo que no vende.</p>
+<p style="margin:0 0 12px;">Este módulo agrega al producto el campo <strong>Puntos de venta</strong>. El punto de venta carga y
+muestra solo los productos que lo tienen a él en ese campo. No hay ajuste que activar ni
+pantalla de configuración aparte: la relación se define producto por producto y rige de
+inmediato en la siguiente apertura de la sesión. Funciona sobre Odoo 19.0.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">El módulo no agrega ajustes al punto de venta ni a los Ajustes generales: toda la
+configuración es la asignación de cada producto a sus cajas.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Entrá a <em>Punto de Venta › Productos › Productos</em>.</li>
+<li style="margin-bottom:7px;">Abrí el producto y pasá a la pestaña <strong>Point of Sale</strong>.</li>
+<li style="margin-bottom:7px;">Junto a la categoría del POS está el campo <strong>Puntos de venta</strong>: agregá las cajas que tienen
+  que mostrar ese producto.</li>
+<li style="margin-bottom:7px;">Guardá.</li>
+</ul>
+<p style="margin:0 0 12px;">La pestaña <strong>Point of Sale</strong> solo existe si el producto tiene tildada la casilla <strong>Point of
+Sale</strong> de la cabecera. Esa casilla es del núcleo de Odoo, no de este módulo, y es la que
+habilita el producto para el punto de venta.</p>
+<p style="margin:0 0 12px;">Después de cambiar las asignaciones no alcanza con recargar la pestaña del POS: hay que
+volver a entrar al punto de venta desde el backend (<em>Abrir caja</em> / <em>Continue Selling</em>) para
+que la sesión cargue la nueva lista de productos.</p>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">La asignación se hace en la ficha del producto, pestaña <strong>Point of Sale</strong>, campo <strong>Puntos de
+venta</strong>.</p>
+<div class="lc-fig"><img alt="Formulario de producto, pestaña Point of Sale, con el campo Puntos de venta resaltado" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Formulario de producto, pestaña Point of Sale, con el campo Puntos de venta resaltado</p></div>
+<p style="margin:0 0 12px;">El cajero no hace nada distinto: abre su caja y la grilla ya viene recortada. En el ejemplo,
+el punto de venta <strong>Kiosk</strong> tenía asignados los 40 productos de la base de demostración
+—muebles, ropa, panadería y bebidas, todo junto—.</p>
+<div class="lc-fig"><img alt="Pantalla de productos del punto de venta Kiosk con los 40 productos asignados" src="02_pos_antes.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de productos del punto de venta Kiosk con los 40 productos asignados</p></div>
+<p style="margin:0 0 12px;">Se le quitó el punto de venta <strong>Kiosk</strong> del campo <strong>Puntos de venta</strong> a todo lo que no fuera
+pastelería ni bebidas, y se volvió a entrar a la misma caja. Quedan diez productos, y las
+categorías vacías también desaparecen de la barra superior.</p>
+<div class="lc-fig"><img alt="La misma pantalla de productos mostrando solo los diez productos asignados al punto de venta" src="03_pos_filtrado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">La misma pantalla de productos mostrando solo los diez productos asignados al punto de venta</p></div>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Requisito de despliegue: asigná productos antes de instalar.</strong> Con el módulo instalado, un
+  punto de venta que no tenga ni un producto asignado <strong>deja de abrir</strong>: el intento termina en
+  un error (<em>«There is no product linked to your PoS»</em>, que desde el navegador se ve como un
+  error 422). Antes de instalarlo en producción hay que recorrer todas las cajas y dejar cada
+  una con su lista de productos.</li>
+<li style="margin-bottom:7px;"><strong>El filtro es visual.</strong> Oculta de la pantalla de productos lo que no corresponde a esa
+  caja, pero no impide que un producto ajeno llegue al pedido por otras vías del núcleo de
+  Odoo: un ítem de combo, un pedido ya abierto en una mesa, un código de barras. Es
+  deliberado: esos productos tienen que seguir cargados en la sesión, porque quitarlos del
+  todo dejaría sin registro a los pedidos en curso y rompería la mesa. El objetivo del módulo
+  es que el cajero no vea lo que no vende, no bloquear la venta.</li>
+<li style="margin-bottom:7px;"><strong>Convive con el límite de categorías del núcleo.</strong> Si el punto de venta tiene categorías
+  restringidas en sus ajustes, se aplican los dos filtros a la vez: se muestra lo que esté
+  asignado a esa caja <em>y</em> pertenezca a una categoría permitida.</li>
+<li style="margin-bottom:7px;"><strong>El campo es por plantilla de producto.</strong> Todas las variantes de un producto siguen la
+  asignación de su plantilla; no se puede habilitar una variante en una caja y otra en otra.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>: el módulo se muestra con el icono genérico de Odoo.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Roaya</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><a href="https://www.roayadm.com" style="color:#4338ca;">Roaya</a></li>
+</ul></div>
+</div>

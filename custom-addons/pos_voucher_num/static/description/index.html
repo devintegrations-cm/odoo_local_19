@@ -1,0 +1,57 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Pide el número de aprobación (voucher) al cobrar con tarjeta y lo guarda en la
+línea de pago del punto de venta. Cuando un método de pago del POS tiene
+activada la casilla <strong>«Ask for approval number»</strong>, el POS abre un diálogo y pide
+el número de voucher <em>antes</em> de crear la línea de pago: valida que sean como
+máximo 11 caracteres alfanuméricos, y si el cajero descarta el diálogo o el dato
+no cumple, la línea de pago no se agrega.</p>
+<p style="margin:0 0 12px;">El número queda visible en la línea de pago junto al importe durante todo el
+cobro, se guarda en el pedido y después se consulta desde el backend. Los
+métodos de pago que no tienen la casilla marcada siguen funcionando como
+siempre: el módulo no interfiere con ellos.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Ir a <em>Punto de Venta &gt; Configuración &gt; Métodos de pago</em>, abrir el método con el
+que se cobra con tarjeta y marcar <strong>«Ask for approval number»</strong>. La casilla está
+debajo de «Identify Customer», en el formulario del método.</p>
+<p style="margin:0 0 12px;">Odoo <strong>no permite guardar</strong> la configuración de un método de pago mientras haya
+una sesión de POS abierta: para cambiar esta casilla hay que <strong>cerrar la caja</strong>
+primero.</p>
+<p style="margin:0 0 12px;">Después de guardar, recargar la pantalla del POS no alcanza: hay que volver a
+entrar desde el backend (botón <em>Continue Selling</em> / <em>Open Register</em>) para que la
+caja tome la nueva configuración.</p>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">La casilla está en el formulario del método de pago:</p>
+<div class="lc-fig"><img alt="Casilla Ask for approval number en el método de pago del POS" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Casilla Ask for approval number en el método de pago del POS</p></div>
+<p style="margin:0 0 12px;">En la pantalla de pago, al elegir el método configurado, el POS pide el número
+de aprobación. Se escribe el voucher del datáfono y se confirma con <strong>«Apply»</strong>:</p>
+<div class="lc-fig"><img alt="Diálogo del POS pidiendo el número de aprobación" src="02_pos_dialogo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Diálogo del POS pidiendo el número de aprobación</p></div>
+<p style="margin:0 0 12px;">El número aparece entre corchetes junto al importe, tanto en la línea
+seleccionada como en las demás. Un pedido puede tener varias líneas del mismo
+método, cada una con su propio voucher:</p>
+<div class="lc-fig"><img alt="Líneas de pago del POS mostrando el número de voucher junto al importe" src="03_pos_lineas.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Líneas de pago del POS mostrando el número de voucher junto al importe</p></div>
+<p style="margin:0 0 12px;">Una vez validado el pedido, el número se consulta en <em>Punto de Venta &gt;
+Pedidos</em>, pestaña <strong>«Payments»</strong>, columna <strong>«Voucher Number»</strong>. El mismo campo
+está en el formulario del pago del POS (<em>Punto de Venta &gt; Pedidos &gt; Pagos</em>) y
+como columna opcional en la conciliación bancaria:</p>
+<div class="lc-fig"><img alt="Pedido del POS en el backend con la columna Voucher Number" src="04_backend_pedido.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pedido del POS en el backend con la columna Voucher Number</p></div>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">El campo que guarda el número se llama <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">vaucher_num</code> en la base de datos, con
+  esa <strong>errata heredada</strong> («vaucher» en vez de «voucher»). Renombrarlo obligaría
+  a migrar los datos existentes, así que se mantuvo tal cual.</li>
+<li style="margin-bottom:7px;"><strong>Depende de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account_accountant</code> (Odoo Enterprise)</strong>: el módulo extiende una
+  vista de la conciliación bancaria. Sin Enterprise no se instala.</li>
+<li style="margin-bottom:7px;">El núcleo <strong>no permite guardar</strong> la casilla del método de pago con una sesión
+  de POS abierta: hay que cerrar la caja para poder cambiarla.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>. El módulo se publica sin icono propio.</li>
+<li style="margin-bottom:7px;">La validación acepta hasta 11 caracteres alfanuméricos, sin espacios ni
+  signos. El límite no es configurable.</li>
+<li style="margin-bottom:7px;">Probado sobre Odoo 19.0. No es compatible con versiones anteriores.</li>
+<li style="margin-bottom:7px;">El módulo se instala automáticamente (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">auto_install</code>) cuando están presentes
+  sus dependencias.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Osmar Toloza</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Osmar Toloza \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#100;&#101;&#115;&#97;&#114;&#114;&#111;&#108;&#108;&#111;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#100;&#101;&#115;&#97;&#114;&#114;&#111;&#108;&#108;&#111;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>

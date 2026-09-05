@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <record id="res_config_settings_view_form_cash_in_out_message" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.cash.in.out.message</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//block[@id='pos_interface_section']" position="inside">
+                <setting id="pos_cash_in_out_message_setting"
+                         string="Mensaje en movimientos de efectivo"
+                         help="Muestra un mensaje configurable y pide confirmación antes de registrar un Cash In/Out.">
+                    <field name="pos_cash_in_out_message_enabled"/>
+                    <div class="content-group mt8" invisible="not pos_cash_in_out_message_enabled">
+                        <field name="pos_cash_in_out_message"
+                               placeholder="Mensaje que verá el cajero al confirmar el movimiento."/>
+                    </div>
+                </setting>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

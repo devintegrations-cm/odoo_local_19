@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates id="template" xml:space="preserve">
+
+    <!--
+        Closing popup extension.
+
+        Odoo 19 already displays the theoretical cash amount, the opening
+        balance, the Cash In/Out breakdown, the counted amount and the
+        difference, so repeating "efectivo esperado" here would only add a
+        second number to reconcile.  What the standard popup does not show is
+        this module's own rule: how many Cash In/Out movements were used out of
+        the configured maximum.  That is the row added below.
+
+        The data comes from the snapshot cached by pos_store_patch.js before the
+        popup opens; when it is missing the row is simply not rendered.
+    -->
+    <t t-name="pos_closing_validation.ClosePosPopupExtension"
+       t-inherit="point_of_sale.ClosePosPopup"
+       t-inherit-mode="extension">
+
+        <xpath expr="//PaymentMethodBreakdown" position="after">
+            <div t-if="pos.closingValidationInfo &amp;&amp; pos.closingValidationInfo.cash_move_limit"
+                 class="d-flex align-items-center justify-content-between text-muted border-start ps-2"
+                 t-att-class="{ 'text-danger fw-bold': pos.closingValidationInfo.cash_move_count &gt; pos.closingValidationInfo.cash_move_limit }">
+                <span>Movimientos de efectivo</span>
+                <span>
+                    <t t-esc="pos.closingValidationInfo.cash_move_count"/>/<t t-esc="pos.closingValidationInfo.cash_move_limit"/>
+                </span>
+            </div>
+        </xpath>
+
+    </t>
+
+</templates>

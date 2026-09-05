@@ -1,0 +1,32 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Guarda la fecha del <strong>primer</strong> pedido del Punto de Venta y no la modifica despues. Agrega el campo
+<em>First order</em> al pedido del Punto de Venta: el valor se fija cuando el pedido se crea y <strong>no se
+vuelve a tocar</strong>, aunque despues cambie la fecha del pedido.</p>
+<p style="margin:0 0 12px;">Sirve para saber cuando entro originalmente una venta, con independencia de correcciones
+posteriores. No requiere ninguna configuracion: con instalar el modulo alcanza, el campo aparece
+solo y se llena solo.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">Entra a <em>Punto de Venta › Pedidos</em> y abri cualquier pedido. El campo <strong>First order</strong> esta justo
+debajo de <em>Date</em>.</p>
+<div class="lc-fig"><img alt="Campo First order en el formulario del pedido de Punto de Venta" src="01_campo_first_order.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Campo First order en el formulario del pedido de Punto de Venta</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">El campo es de solo lectura: se calcula, no se escribe a mano.</li>
+<li style="margin-bottom:7px;">Solo se llena si estaba vacio, asi que un pedido ya registrado nunca pierde su valor original.</li>
+<li style="margin-bottom:7px;">El modulo trae un <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pre_init_hook</code> que migra los identificadores externos del nombre viejo del
+  modulo (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">firstTimeOrder</code>) al actual. Es idempotente.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>El campo almacenado se calcula desde un metodo decorado con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">@api.constrains</code> en vez de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">@api.depends</code>.</strong> Se midio en Odoo 19 que <strong>funciona</strong>: el campo se llena al crear el pedido y al
+  escribir el disparador (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">date_order</code>), que es el comportamiento que hay hoy en produccion. Aun
+  asi no es la forma canonica de declarar un campo calculado almacenado. Cambiar el decorador
+  recalcularia los datos historicos, asi que queda como decision pendiente del usuario.</li>
+<li style="margin-bottom:7px;"><strong>Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>.</strong> En la ficha de Apps se ve el cubo generico de Odoo. Hace
+  falta arte, no se inventa.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>David Tosse</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">David Tosse</li>
+</ul></div>
+</div>

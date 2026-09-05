@@ -1,0 +1,44 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Fuerza a facturar todos los pedidos de un punto de venta. Cada punto de venta
+gana un interruptor, <strong>Facturacion obligatoria</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">enable_obin</code>): cuando esta
+activo, al abrir la pantalla de pago el pedido queda marcado para facturar sin
+que el cajero toque nada, y si el cajero pulsa <strong>Invoice</strong> para desmarcarlo la
+opcion vuelve a marcarse sola, con un aviso en pantalla.</p>
+<p style="margin:0 0 12px;">Los puntos de venta que no tengan el interruptor activo siguen comportandose
+como siempre: facturar sigue siendo opcional.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;"><em>Ajustes &gt; Punto de Venta</em>, bloque <strong>Contabilidad</strong>, casilla <strong>Facturacion
+obligatoria</strong>. Es una configuracion <strong>por punto de venta</strong>: primero se elige el
+punto de venta arriba y despues se marca la casilla. No olvidar <strong>Guardar</strong>.</p>
+<p style="margin:0 0 12px;">Para que el cambio llegue a la caja <strong>no alcanza con recargar</strong> la pantalla del
+POS: hay que volver a entrar desde el backend (boton <em>Continue Selling</em> /
+<em>Open Register</em>).</p>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">La casilla esta en los ajustes del punto de venta:</p>
+<div class="lc-fig"><img alt="Casilla Facturacion obligatoria en los ajustes del punto de venta" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Casilla Facturacion obligatoria en los ajustes del punto de venta</p></div>
+<p style="margin:0 0 12px;">Con el interruptor activo, cualquier pedido de ese punto de venta llega a la
+pantalla de pago con <strong>Invoice</strong> ya marcado:</p>
+<div class="lc-fig"><img alt="Pantalla de pago del POS con la opcion Invoice marcada automaticamente" src="02_pantalla_pago.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de pago del POS con la opcion Invoice marcada automaticamente</p></div>
+<p style="margin:0 0 12px;">Si el cajero intenta desmarcarla, la opcion se restablece sola y el POS lo
+avisa con el mensaje <em>"Este punto de venta exige facturar todos los pedidos."</em>:</p>
+<div class="lc-fig"><img alt="Aviso del POS al intentar desmarcar la opcion Invoice" src="03_no_se_puede_desmarcar.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aviso del POS al intentar desmarcar la opcion Invoice</p></div>
+<p style="margin:0 0 12px;">Los pedidos ya finalizados no se tocan: el modulo solo actua sobre el pedido en
+curso.</p>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Hace falta un diario de facturas.</strong> Si el punto de venta no puede facturar
+  (sin diario de facturas configurado en <em>Contabilidad &gt; Diarios por defecto</em>),
+  el modulo no fuerza nada: forzar el flag dejaria pedidos imposibles de
+  validar.</li>
+<li style="margin-bottom:7px;"><strong>Facturar exige cliente.</strong> Odoo pide un cliente en el pedido antes de
+  validar una venta facturada; con este modulo activo, todos los pedidos van a
+  necesitarlo.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>. El modulo se publica sin icono propio.</li>
+<li style="margin-bottom:7px;">La configuracion es <strong>por punto de venta</strong>, no por compania ni global.</li>
+<li style="margin-bottom:7px;">El modulo se instala solo (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">auto_install</code>) en cuanto esta <em>point_of_sale</em>.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Osmar Toloza</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Osmar Toloza \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#100;&#101;&#115;&#97;&#114;&#114;&#111;&#108;&#108;&#111;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#100;&#101;&#115;&#97;&#114;&#114;&#111;&#108;&#108;&#111;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>

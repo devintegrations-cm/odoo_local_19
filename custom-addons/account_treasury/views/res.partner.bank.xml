@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Editing form view-->
+    <data>
+        <record model="ir.ui.view" id="account_view_partner_bank_form_inherit_account_inh_acc_treasury">
+            <field name="name">res.partner.bank.form.inherit.account.ottreasury</field>
+            <field name="model">res.partner.bank</field>
+            <field name="inherit_id" ref="account.view_partner_bank_form_inherit_account"/>
+            <field name="arch" type="xml">
+                <field name="acc_number" position="after">
+                    <field name="bank_account_type_col" string="Tipo de Cuenta Bancaria" placeholder="Seleccione una opción"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="base_view_partner_bank_tree_inh_ottreasury">
+            <field name="name">res.partner.bank.tree.inherit.account.treasury</field>
+            <field name="model">res.partner.bank</field>
+            <field name="inherit_id" ref="base.view_partner_bank_tree"/>
+            <field name="arch" type="xml">
+                <field name="acc_number" position="after">
+                    <field name="bank_account_type_col" readonly="1"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

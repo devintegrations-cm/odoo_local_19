@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="view_pos_payment_inherited_voucher">
+            <field name="name">pos.payment.method.form.inh.voucher</field>
+            <field name="model">pos.payment.method</field>
+            <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_form"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="split_transactions" position="after">
+                        <field name="ask_for_approval_number"/>
+                    </field>
+                </data>
+            </field>
+        </record>
+    </data>
+</odoo>

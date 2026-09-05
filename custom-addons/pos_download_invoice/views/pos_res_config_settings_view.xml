@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="view_res_config_settings_view_form_inh_obg_msg">
+        <field name="name">res.config.settings.view.form.inherit.pos.download.invoice</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Bloque "Accounting" de la app Punto de Venta -->
+            <block id="pos_accounting_section" position="inside">
+                <setting id="en_pos_invoice_download" string="Enable Download Invoice"
+                         help="Set if you want to download the PDF invoice">
+                    <field name="pos_enable_download_invoice"/>
+                </setting>
+            </block>
+        </field>
+    </record>
+</odoo>

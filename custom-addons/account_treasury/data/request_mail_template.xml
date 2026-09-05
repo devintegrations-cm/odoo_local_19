@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Editing form view-->
+    <data noupdate="0">
+        <record id="account_treasury.email_request_template_pay_not" model="mail.template">
+        	<field name="name">AP: Payment Notification</field>
+        	<field name="model_id" ref="account.model_account_payment"/>
+        	<field name="subject">Notificación de Pago: {{ (object.name) }}</field>
+        	<!--	Sender email    	-->
+        	<field name="email_from">{{ (object.company_id.email) }}</field>
+        	<!--   Recipient email     	-->
+        	<!-- <field name="email_to">{{ (object.partner_id.email_edi) }}</field> -->
+        	<field name="auto_delete" eval="False"/>
+        	<field name="body_html" type="html">
+            	<div>
+                    Cordial saludo,<br/><br/>
+                    Se ha programado un pago parcial/total de
+                    <strong t-out="format_amount(object.amount, object.currency_id) or ''">$ 143,750.00</strong> a las siguientes ordenes de compra:
+                    <ol t-if="object.reconciled_bill_ids">
+                        <t t-set="po_ids" t-value="[]"/>
+                        <t t-foreach="object.reconciled_bill_ids" t-as="invoice_info">
+                            <!-- Recorrer líneas de factura -->
+                            <t t-foreach="invoice_info.invoice_line_ids" t-as="line">
+                                <t t-if="line.purchase_line_id and line.purchase_line_id.order_id and line.purchase_line_id.order_id.id not in po_ids">
+                                    <!-- Guardar ID para evitar duplicados -->
+                                    <t t-set="po_ids" t-value="po_ids + [line.purchase_line_id.order_id.id]"/>
+                                    <!-- Guardar objeto PO actual -->
+                                    <t t-set="po" t-value="line.purchase_line_id.order_id"/>
+                                    <!-- Mostrar PO -->
+                                    <li>
+                                        Orden de Compra: 
+                                        <strong>
+                                            <a t-attf-href="/web#id={{ po.id }}&amp;model=purchase.order&amp;view_type=form" target="_blank">
+                                                <t t-out="po.name"/>
+                                            </a>
+                                        </strong>
+                                        
+                                        <ul>
+                                            <li>Proveedor: <t t-out="po.partner_id.name"/></li>
+                                            <li>Factura: 
+                                                <a t-attf-href="/web#id={{ invoice_info.id }}&amp;model=account.move&amp;view_type=form" target="_blank">
+                                                    <t t-out="invoice_info.name"/>
+                                                </a>
+                                            </li>
+                                            <li>Total PO: <t t-out="format_amount(po.amount_total, po.currency_id)"/></li>
+                                        </ul>
+                                    </li>
+                                </t>
+                            </t>
+                        </t>
+                    </ol><br/>
+                    Saludos.                    
+                    <br/><br/>
+                    <t t-out="object.company_id.name"/>
+            	</div>
+        	</field>
+    	</record>
+    </data>
+</odoo>

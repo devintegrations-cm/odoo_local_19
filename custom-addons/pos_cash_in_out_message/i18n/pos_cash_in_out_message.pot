@@ -1,0 +1,165 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* pos_cash_in_out_message
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0-20260817\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-04 20:44+0000\n"
+"PO-Revision-Date: 2026-09-04 20:44+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,help:pos_cash_in_out_message.field_pos_config__cash_in_out_message_enabled
+msgid ""
+"Ask for confirmation before registering a Cash In/Out movement and show the "
+"message below in that confirmation."
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/js/cash_move_confirm_popup.js:0
+#: code:addons/pos_cash_in_out_message/static/src/js/cash_move_popup_patch.js:0
+msgid "Cancelar"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,field_description:pos_cash_in_out_message.field_pos_config__cash_in_out_message
+msgid "Cash In/Out Message"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model,name:pos_cash_in_out_message.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/js/cash_move_confirm_popup.js:0
+msgid "Confirmar movimiento"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/js/cash_move_popup_patch.js:0
+msgid "Confirmar movimiento de efectivo"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,field_description:pos_cash_in_out_message.field_pos_config__display_name
+#: model:ir.model.fields,field_description:pos_cash_in_out_message.field_res_config_settings__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,field_description:pos_cash_in_out_message.field_pos_config__cash_in_out_message_enabled
+msgid "Enable Cash In/Out Message"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/xml/cash_move_confirm_popup.xml:0
+msgid ""
+"Este será el último movimiento de efectivo que podrá\n"
+"                            registrar en esta sesión. No podrá realizar más\n"
+"                            movimientos Cash In/Out después de este."
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/xml/cash_move_confirm_popup.xml:0
+msgid "Está a punto de registrar un"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,field_description:pos_cash_in_out_message.field_pos_config__id
+#: model:ir.model.fields,field_description:pos_cash_in_out_message.field_res_config_settings__id
+msgid "ID"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,field_description:pos_cash_in_out_message.field_res_config_settings__pos_cash_in_out_message
+msgid "Mensaje de Cash In/Out"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,field_description:pos_cash_in_out_message.field_res_config_settings__pos_cash_in_out_message_enabled
+msgid "Mensaje en Cash In/Out"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model_terms:ir.ui.view,arch_db:pos_cash_in_out_message.res_config_settings_view_form_cash_in_out_message
+msgid "Mensaje en movimientos de efectivo"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model_terms:ir.ui.view,arch_db:pos_cash_in_out_message.res_config_settings_view_form_cash_in_out_message
+msgid "Mensaje que verá el cajero al confirmar el movimiento."
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,help:pos_cash_in_out_message.field_pos_config__cash_in_out_message
+msgid "Message displayed in the Cash In/Out confirmation popup."
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model_terms:ir.ui.view,arch_db:pos_cash_in_out_message.res_config_settings_view_form_cash_in_out_message
+msgid ""
+"Muestra un mensaje configurable y pide confirmación antes de registrar un "
+"Cash In/Out."
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,help:pos_cash_in_out_message.field_res_config_settings__pos_cash_in_out_message_enabled
+msgid ""
+"Muestra un mensaje configurable y pide confirmación antes de registrar un "
+"movimiento de efectivo."
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model,name:pos_cash_in_out_message.model_pos_config
+msgid "Point of Sale Configuration"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/js/cash_move_confirm_popup.js:0
+#: code:addons/pos_cash_in_out_message/static/src/js/cash_move_popup_patch.js:0
+msgid "Sí, registrar"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#: model:ir.model.fields,help:pos_cash_in_out_message.field_res_config_settings__pos_cash_in_out_message
+msgid ""
+"Texto mostrado en el popup de confirmación de los movimientos de efectivo."
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/js/cash_move_confirm_popup.js:0
+msgid "entrada de efectivo"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/js/cash_move_confirm_popup.js:0
+msgid "salida de efectivo"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/xml/cash_move_confirm_popup.xml:0
+msgid "¿Desea continuar?"
+msgstr ""
+
+#. module: pos_cash_in_out_message
+#. odoo-javascript
+#: code:addons/pos_cash_in_out_message/static/src/xml/cash_move_confirm_popup.xml:0
+msgid "Último movimiento permitido"
+msgstr ""

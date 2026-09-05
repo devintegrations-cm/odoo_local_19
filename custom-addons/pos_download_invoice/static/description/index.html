@@ -1,0 +1,52 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Out of the box, Odoo downloads the PDF invoice every time a Point of Sale order
+marked as <strong>Invoice</strong> is validated. On a shop counter that PDF is usually noise:
+the customer gets the printed receipt and the invoice is e-mailed or fetched
+later from the backend.</p>
+<p style="margin:0 0 12px;">This module adds a single checkbox, <strong>Enable Download Invoice</strong>, to the Point of
+Sale settings. When it is off, the order is <em>still invoiced</em> exactly as before,
+only the PDF download is skipped. When it is on, Odoo keeps its standard
+behaviour and downloads the PDF. The option is stored on each point of sale, so
+one shop can download and another one not.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Go to <em>Point of Sale &gt; Configuration &gt; Settings</em> (or <em>Settings &gt; Point of
+Sale</em>), pick the point of sale at the top of the page, scroll to the
+<strong>Accounting</strong> block and tick <strong>Enable Download Invoice</strong>. Press <strong>Save</strong>.</p>
+<p style="margin:0 0 12px;">Notes about this setting:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">The checkbox is <strong>unset by default</strong>: after installing, no PDF is downloaded
+  on validation until you enable it.</li>
+<li style="margin-bottom:7px;">The setting belongs to <strong>each point of sale</strong>, not to the company. Repeat it
+  for every shop that needs it.</li>
+<li style="margin-bottom:7px;">After saving, reloading the POS screen is <strong>not enough</strong>: you have to enter
+  the POS again from the backend (<em>Continue Selling</em> / <em>Open Register</em>) so the
+  new configuration is loaded.</li>
+</ul>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">Nothing changes for the cashier. Take an order, press <strong>Payment</strong>, choose a
+customer, leave the <strong>Invoice</strong> button active and validate. The invoice is
+created either way; the PDF download is what the setting controls. The same
+applies to the quick payment flow.</p>
+<p style="margin:0 0 12px;">The checkbox lives in the <strong>Accounting</strong> block of the Point of Sale settings:</p>
+<div class="lc-fig"><img alt="Enable Download Invoice checkbox in the Point of Sale settings, Accounting block" src="01_configuration.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Enable Download Invoice checkbox in the Point of Sale settings, Accounting block</p></div>
+<p style="margin:0 0 12px;">And this is the payment screen with the <strong>Invoice</strong> button active, right before
+validating the order:</p>
+<div class="lc-fig"><img alt="POS payment screen with the Invoice button active, before validating the order" src="02_payment_screen.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">POS payment screen with the Invoice button active, before validating the order</p></div>
+<p style="margin:0 0 12px;">The setting only controls the <strong>download</strong>. The invoice itself is always created
+for orders marked as Invoice, and stays available in Accounting and in the
+customer portal.</p>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">The <strong>Invoice</strong> button on the POS order list (ticket screen) still downloads
+  the PDF even when the checkbox is off. That path was never covered by this
+  module, it behaved the same way in Odoo 17, so it is not a regression of the
+  migration, but it is worth knowing before you rely on the setting.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> weighs about 900 KB and is 1024x1024 pixels,
+  while Odoo core icons are 100x100. It should be replaced by a properly sized
+  icon.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Desarrollo Libertario</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Desarrollo Libertario \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#101;&#103;&#105;&#111;&#110;&#97;&#108;&#105;&#116;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#114;&#101;&#103;&#105;&#111;&#110;&#97;&#108;&#105;&#116;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Editing form view-->
+    <data>
+        <record model="ir.ui.view" id="account_view_partner_property_form_inh_ottreasury">
+            <field name="name">res.partner.form.inherit.account.ottreasury</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="account.view_partner_property_form"/>
+            <field name="arch" type="xml">
+                <field name="acc_number" position="before">
+                    <field name="bank_account_type_col"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

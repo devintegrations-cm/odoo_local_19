@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="pos_order_form_inherit">
+        <field name="name">pos.order.form.inherit</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='order_fields']//field[@name='date_order']" position="after">
+                <field name="first_order" readonly="1" widget="datetime"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

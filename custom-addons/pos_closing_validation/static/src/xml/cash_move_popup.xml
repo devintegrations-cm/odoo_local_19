@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates id="template" xml:space="preserve">
+
+    <!--
+        Cash In/Out popup extension.
+
+        Anchors verified against point_of_sale 19: a single div.form-floating
+        and a button.confirm in the footer (which already carries
+        t-att-disabled="!isValidCashMove()", so it is re-declared merged
+        instead of replaced).
+    -->
+    <t t-name="pos_closing_validation.CashMovePopupExtension"
+       t-inherit="point_of_sale.CashMovePopup"
+       t-inherit-mode="extension">
+
+        <xpath expr="//div[contains(@class, 'form-floating')]" position="before">
+
+            <!-- The server answered and refused the data: block and explain -->
+            <div t-if="state.loadError" class="alert alert-danger mt-2 mb-2" role="alert">
+                <strong>No se pudo cargar la información.</strong>
+                Cierre esta ventana y vuelva a intentarlo. Si el problema
+                persiste, contacte a un administrador del Punto de Venta.
+            </div>
+
+            <!-- No connection: the limit cannot be verified, not that it is reached -->
+            <div t-if="state.offline" class="alert alert-warning mt-2 mb-2" role="alert">
+                <strong>Sin conexión con el servidor.</strong>
+                El límite de movimientos no se pudo verificar; se comprobará
+                cuando haya conexión.
+            </div>
+
+            <!-- Cash summary, when the store already fetched it for this action -->
+            <div t-if="closingValidation" class="mt-2 mb-2 p-2 border rounded">
+                <div class="fw-bold mb-1 small">Resumen de efectivo</div>
+                <div class="d-flex justify-content-between small">
+                    <span class="text-muted">Apertura:</span>
+                    <span t-esc="env.utils.formatCurrency(closingValidation.opening_cash || 0)"/>
+                </div>
+                <div class="d-flex justify-content-between small" t-if="closingValidation.cash_sales &gt; 0">
+                    <span class="text-muted">Ventas en efectivo:</span>
+                    <span t-esc="env.utils.formatCurrency(closingValidation.cash_sales || 0)"/>
+                </div>
+                <div class="d-flex justify-content-between small text-success" t-if="closingValidation.cash_in &gt; 0">
+                    <span class="text-muted">Cash In:</span>
+                    <span t-esc="env.utils.formatCurrency(closingValidation.cash_in || 0)"/>
+                </div>
+                <div class="d-flex justify-content-between small text-danger" t-if="closingValidation.cash_out &gt; 0">
+                    <span class="text-muted">Cash Out:</span>
+                    <span t-esc="env.utils.formatCurrency(closingValidation.cash_out || 0)"/>
+                </div>
+                <div class="d-flex justify-content-between small fw-bold border-top mt-1 pt-1">
+                    <span>Efectivo esperado:</span>
+                    <span t-esc="env.utils.formatCurrency(closingValidation.expected_cash || 0)"/>
+                </div>
+            </div>
+
+            <!-- Limit reached: only when the count is actually known -->
+            <div t-if="state.isLimitReached &amp;&amp; !state.loadError"
+                 class="alert alert-danger mt-2 mb-2" role="alert">
+                <strong>Límite alcanzado:</strong>
+                Se han registrado los
+                <t t-esc="cashMoveControl.count"/>/<t t-esc="cashMoveControl.limit"/>
+                movimientos permitidos para esta sesión.
+            </div>
+
+        </xpath>
+
+        <xpath expr="//div[contains(@class, 'form-floating')]" position="after">
+            <div class="text-muted small mt-2 text-end">
+                Movimientos:
+                <t t-esc="cashMoveControl.count === null ? '—' : cashMoveControl.count"/>
+                /
+                <t t-esc="cashMoveControl.limit"/>
+            </div>
+        </xpath>
+
+        <xpath expr="//button[contains(@class, 'confirm')]" position="attributes">
+            <attribute name="t-att-disabled">
+                !isValidCashMove() || isCashMoveBlocked()
+            </attribute>
+        </xpath>
+
+    </t>
+
+</templates>

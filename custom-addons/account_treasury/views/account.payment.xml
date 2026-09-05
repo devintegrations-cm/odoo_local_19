@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Editing form view-->
+    <data>
+        <record model="ir.ui.view" id="view_account_payment_form_inh_ottreasury">
+            <field name="name">account.payment.form.inh.ottreasury</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form"/>
+            <field name="arch" type="xml">
+                <!--<field name="ref" position="after">
+                    <field name="payment_image" widget="image" options="{'zoom': true, 'zoom_delay':1000, 'original_size': true}"/>
+                    <field name="payment_image" widget="image_viewer" string=""/>                    
+                </field>
+                <field name="state" position="before">
+                    <button name="send_payment_image" string="Enviar comprobante" type="object" class="oe_highlight"/>
+                </field>-->
+                <field name="state" position="before">
+                    <button name="send_partner_email" string="Notificar Proveedor" type="object" class="oe_highlight"/>
+                </field>
+                <xpath expr="//group[@name='group2']" position="inside">
+                    <field name="email_notification" string="Notificacion por correo"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_account_supplier_payment_tree_inh_ottreasury">
+            <field name="name">account.payment.tree.inh.ottreasury</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_supplier_payment_tree"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="email_notification" string="Notificacion por correo"/>
+                </field>
+            </field>
+        </record>
+
+        <!--<record id="action_payment_txt_ge" model="ir.actions.server">
+            <field name="name">Generar TXT</field>
+            <field name="model_id" ref="account.model_account_payment"/>
+            <field name="binding_model_id" ref="account.model_account_payment"/>
+            <field name="state">code</field>
+            <field name="code"> action = records.create_txt_file()</field>
+        </record>-->
+    </data>
+</odoo>

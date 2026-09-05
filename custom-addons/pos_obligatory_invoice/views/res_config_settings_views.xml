@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_res_config_settings_view_form_inh_obin" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.obin</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <!-- point_of_sale/views/res_config_settings_views.xml:197 -->
+            <block id="pos_accounting_section" position="inside">
+                <setting id="en_obligatory_invoice"
+                         string="Facturacion obligatoria"
+                         help="Fuerza a facturar todos los pedidos: en la pantalla de pago la opcion Facturar queda marcada y no se puede desmarcar.">
+                    <field name="pos_enable_obin"/>
+                </setting>
+            </block>
+        </field>
+    </record>
+</odoo>

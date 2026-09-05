@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <!--
+        Muestra el numero de voucher junto al importe de la linea de pago.
+        La plantilla de Odoo 19 (point_of_sale/static/src/app/screens/payment_screen/
+        payment_lines/payment_lines.xml) tiene DOS bloques con class="payment-amount":
+        el de la linea seleccionada y el de las no seleccionadas.
+        `locate_node` devuelve solo el PRIMER nodo que matchea cada xpath
+        (odoo/tools/template_inheritance.py:93), asi que hace falta un xpath
+        distinto y univoco para cada bloque.
+    -->
+    <t t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension">
+
+        <!-- Linea seleccionada: es la unica que tiene <span class="payment-name"/> -->
+        <xpath expr="//span[hasclass('payment-name')]/following-sibling::div[hasclass('payment-amount')]" position="before">
+            <span class="payment-voucher pe-2" t-if="line.vaucher_num">
+                [<t t-esc="line.vaucher_num"/>]
+            </span>
+        </xpath>
+
+        <!-- Lineas no seleccionadas: su contenedor lleva class="... bg-view ..." -->
+        <xpath expr="//div[hasclass('bg-view')]//div[hasclass('payment-amount')]" position="before">
+            <span class="payment-voucher pe-2" t-if="line.vaucher_num">
+                [<t t-esc="line.vaucher_num"/>]
+            </span>
+        </xpath>
+
+    </t>
+</templates>

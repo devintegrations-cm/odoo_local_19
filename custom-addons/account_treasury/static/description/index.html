@@ -1,0 +1,74 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Avisa por correo al proveedor y a los solicitantes de compra cada vez que se registra un pago, y
+deja a la vista quién pidió lo que se está pagando. Al confirmar el pago de una factura de
+proveedor envía un correo al proveedor con el detalle de las facturas cubiertas, y otro a los
+contactos que se hayan indicado en la orden de compra relacionada.</p>
+<p style="margin:0 0 12px;">Para eso agrega tres cosas: el campo <em>Notificar pago a</em> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">notify_requester_ids</code>) en la orden de
+compra, con el listado de correos calculado al lado; el campo <em>Solicitantes de Compra</em>
+(<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">buyers_invoice_ids</code>) en la factura de proveedor, que muestra los usuarios que crearon las órdenes
+de compra que se están facturando; y la trazabilidad del aviso en el pago, con la marca
+<em>Notificación por correo</em> —visible también como columna en la lista de pagos a proveedor— y un
+botón <em>Notificar Proveedor</em> para reenviarlo. El módulo está marcado como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">auto_install</code>: se instala
+solo cuando ya están instalados <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">contacts</code>.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">El módulo no agrega ninguna opción en Ajustes: se configura orden por orden. En <strong>Compras ›
+Órdenes › Órdenes de compra</strong>, debajo de la referencia del proveedor, se indican los contactos que
+deben enterarse cuando esa compra se pague.</p>
+<div class="lc-fig"><img alt="Campo Notificar pago a en la orden de compra" src="01_configuracion_orden_compra.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Campo Notificar pago a en la orden de compra</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><em>Notificar pago a</em> acepta cualquier contacto de tipo <em>contacto</em>, no solo los del proveedor.</li>
+<li style="margin-bottom:7px;"><em>Correos a notificar pago</em> es de solo lectura: se arma con el correo de cada contacto elegido,
+  así que un contacto sin correo simplemente no recibe nada.</li>
+<li style="margin-bottom:7px;">Para que el correo llegue de verdad hace falta un servidor de correo saliente configurado en
+  <strong>Ajustes › Técnico › Servidores de correo saliente</strong>. Sin él el mensaje queda registrado en el
+  historial del pago, pero no sale.</li>
+<li style="margin-bottom:7px;">La línea del método de pago del diario tiene que tener <strong>cuenta de pagos pendientes</strong>
+  configurada. Ver <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ROADMAP</code> antes de registrar el primer pago.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Registrar el pago avisando</h2>
+<p style="margin:0 0 12px;">En la factura de proveedor se pulsa <strong>Pay</strong> y en el asistente aparece la casilla <em>Enviar
+Notificación de pago</em>. Con la casilla marcada, al pulsar <strong>Create Payment</strong> el correo sale solo. La
+casilla se oculta en los cobros de cliente: solo aplica a pagos salientes.</p>
+<div class="lc-fig"><img alt="Casilla Enviar Notificación de pago en el asistente" src="02_asistente_de_pago.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Casilla Enviar Notificación de pago en el asistente</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">El pago queda marcado y el correo registrado</h2>
+<p style="margin:0 0 12px;">El pago creado muestra <em>Notificación por correo</em> marcado y los correos enviados en su historial:
+uno al proveedor con el detalle de las facturas y otro a los contactos de la orden de compra. El
+botón <strong>Notificar Proveedor</strong> permite reenviar el aviso en cualquier momento.</p>
+<div class="lc-fig"><img alt="Pago con botón Notificar Proveedor y correos enviados" src="03_pago_notificado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pago con botón Notificar Proveedor y correos enviados</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Quién pidió lo que se factura</h2>
+<p style="margin:0 0 12px;">En la factura de proveedor, justo debajo de <em>Bill Reference</em>, el campo <em>Solicitantes de Compra</em>
+lista los usuarios responsables de las órdenes de compra facturadas. Es de solo lectura y se
+calcula solo; si la factura no viene de una orden de compra, el campo no se muestra.</p>
+<div class="lc-fig"><img alt="Campo Solicitantes de Compra en la factura de proveedor" src="04_factura_solicitantes.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Campo Solicitantes de Compra en la factura de proveedor</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">A tener en cuenta durante el uso</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Todo proveedor con factura seleccionada necesita correo.</strong> Si alguno no lo tiene, el asistente
+  corta el registro del pago con el mensaje «Contactos in correo electrónico: …», marque o no la
+  casilla de notificación.</li>
+<li style="margin-bottom:7px;"><strong>El aviso a los solicitantes depende de la orden de compra.</strong> Solo se envía si la factura pagada
+  proviene de una orden de compra y esa orden tiene contactos en <em>Notificar pago a</em>. El correo al
+  proveedor, en cambio, sale siempre.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>La línea del método de pago necesita cuenta de pagos pendientes.</strong> En Odoo 19 se puede
+  confirmar un pago cuya línea de método de pago no tiene cuenta de pagos pendientes configurada, y
+  ese pago queda <strong>sin asiento contable</strong> (en Odoo 17 era imposible). Sin asiento no hay
+  conciliación, y sin conciliación el módulo no encuentra las facturas cubiertas: el correo sale
+  sin el detalle de facturas y los solicitantes no se notifican. Hay que configurar la cuenta en el
+  método de pago del diario <strong>antes</strong> de registrar pagos.</li>
+<li style="margin-bottom:7px;"><strong>Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>.</strong> En la ficha de Apps se ve el cubo genérico de Odoo. Hace
+  falta arte, no se inventa.</li>
+<li style="margin-bottom:7px;"><strong>Tipo de cuenta bancaria, desactivado en 19.0.</strong> Las vistas que agregaban <em>Tipo de cuenta
+  bancaria</em> (ahorros / corriente) al partner y a su cuenta están comentadas en el manifiesto: en
+  Odoo 19 el formulario de contacto ya no expone <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">acc_number</code> directamente. Quien lo necesite tiene
+  que rehacerlas contra el widget de cuentas bancarias de 19.</li>
+<li style="margin-bottom:7px;"><strong>Textos en español.</strong> Las etiquetas de los campos y las plantillas de correo están escritas en
+  español, sin traducción a otros idiomas.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Osmar Toloza</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Osmar Toloza</li>
+</ul></div>
+</div>
