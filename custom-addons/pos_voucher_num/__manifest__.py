@@ -15,14 +15,14 @@
     'website': "desarrollo@libertariocoffee.com",
     'category': 'POS',
     'version': '19.0.1.0.0',
-    'depends': ['base', 'point_of_sale', 'account_accountant'],
+    'depends': ['base', 'point_of_sale'],
     'license': 'OPL-1',
     'data': [
         # 'security/ir.model.access.csv',
         'views/pos_order.xml',
         'views/pos_payment.xml',
         'views/pos_payment_method.xml',
-        'views/account_move_line_list.xml',
+        #'views/account_move_line_list.xml',
     ],
     'images': [
         'static/description/01_configuracion.png',

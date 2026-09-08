@@ -937,7 +937,12 @@ class TestClosingValidation(TransactionCase):
     # ==================================================================
 
     def test_opening_blocked_with_pending_rescue(self):
-        """A pending rescue stops a new session from opening."""
+        """A pending rescue stops a new session from opening.
+
+        The rule is asserted through its own method: other addons also validate in
+        ``open_ui`` (a POS without assigned products, for instance), and which
+        message wins then depends on installation order rather than on this rule.
+        """
         parent = self._create_session(opening=1000.0)
         rescue = self._create_session(opening=1000.0, rescue=True)
         self._create_order(rescue, self._product(50.0), 50.0)
@@ -945,10 +950,32 @@ class TestClosingValidation(TransactionCase):
         parent.action_pos_session_closing_control()
 
         with self.assertRaises(UserError) as ctx:
-            self.pos_config.open_ui()
+            self.pos_config._check_rescue_sessions_before_open_ui()
         message = ctx.exception.args[0].lower()
         self.assertIn("rescate", message)
         self.assertIn("tablero", message)
+
+    def test_opening_block_happens_before_any_session_is_created(self):
+        """The real guarantee: a blocked open leaves no orphan session behind."""
+        parent = self._create_session(opening=1000.0)
+        rescue = self._create_session(opening=1000.0, rescue=True)
+        self._create_order(rescue, self._product(50.0), 50.0)
+        parent.cash_register_balance_end_real = 1050.0
+        parent.action_pos_session_closing_control()
+        sessions_before = self.env["pos.session"].search_count([
+            ("config_id", "=", self.pos_config.id),
+        ])
+
+        with self.assertRaises(UserError):
+            self.pos_config.open_ui()
+
+        self.assertEqual(
+            self.env["pos.session"].search_count([
+                ("config_id", "=", self.pos_config.id),
+            ]),
+            sessions_before,
+            "open_ui must refuse before creating the session",
+        )
 
     def test_opening_allowed_when_no_rescue(self):
         """Nothing is pending for a clean config."""
@@ -960,15 +987,12 @@ class TestClosingValidation(TransactionCase):
         self.assertEqual(len(pending), 0)
 
     def test_opening_allowed_when_rescue_validation_disabled(self):
-        """The flag really gates open_ui."""
+        """The flag really gates the rule."""
         self.pos_config.enable_rescue_session_validation = False
         rescue = self._create_session(opening=1000.0, rescue=True)
         self._create_order(rescue, self._product(50.0), 50.0)
 
-        try:
-            self.pos_config.open_ui()
-        except UserError as error:
-            self.assertNotIn("rescate", error.args[0].lower())
+        self.pos_config._check_rescue_sessions_before_open_ui()
 
     def test_opening_allowed_when_rescue_closed(self):
         """A closed rescue no longer counts as pending."""

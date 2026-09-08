@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit_number_customers" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pos_restaurant.ask_number_customers</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <setting id="iface_splitbill" position="after">
+                <setting id="have_to_ask_number_customers"
+                         string="Número de clientes"
+                         help="Al entrar a la pantalla de pago se pregunta el número de clientes del pedido, antes de procesar el cobro."
+                         invisible="not pos_module_pos_restaurant or is_kiosk_mode">
+                    <field name="pos_enable_obligatory_ask_number_customers"/>
+                    <div class="content-group mt8"
+                         invisible="not pos_enable_obligatory_ask_number_customers">
+                        <div class="row">
+                            <label for="pos_number_customers_min"
+                                   string="Mínimo"
+                                   class="col-lg-4 o_light_label"/>
+                            <field name="pos_number_customers_min" class="w-25"/>
+                        </div>
+                        <div class="row">
+                            <label for="pos_number_customers_max"
+                                   string="Máximo"
+                                   class="col-lg-4 o_light_label"/>
+                            <field name="pos_number_customers_max" class="w-25"/>
+                        </div>
+                    </div>
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

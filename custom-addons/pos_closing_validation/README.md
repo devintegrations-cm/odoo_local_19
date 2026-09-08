@@ -67,6 +67,8 @@ Con la validación activada, si el POS tiene una sesión `rescue=True` en estado
 
 Se usa `UserError` y no `RedirectWarning` a propósito: `open_ui()` es llamado desde el controlador `/pos/ui`, que descarta su valor de retorno, así que una acción adjunta a la excepción nunca se renderizaría como botón.
 
+La regla vive en `_check_rescue_sessions_before_open_ui()`, no incrustada en `open_ui()`, porque otros addons también validan ahí (por ejemplo `ro_pos_limit_products` rechaza abrir un POS sin productos asignados). Qué mensaje ve el cajero depende entonces del orden de instalación, y la propia regla tiene que poder probarse aislada. Lo que sí está garantizado y probado es que el bloqueo ocurre **antes** de crear la sesión: no quedan sesiones huérfanas.
+
 ### Regla 2 — Rescates no generan Cash In/Out
 
 El frontend advierte y el backend lanza `UserError` con el mismo texto si se ignora la validación (RPC directo).

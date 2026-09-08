@@ -1,0 +1,7 @@
+/* Forzar que las notificaciones estén por encima del overlay */
+.o_notification_manager {
+    z-index: 5000 !important;
+}
+.o_notification {
+    z-index: 5001 !important;
+}

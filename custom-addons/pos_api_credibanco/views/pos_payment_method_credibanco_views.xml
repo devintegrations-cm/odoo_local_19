@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+    <!--
+        The Credibanco parameters belong to Odoo 19's own payment-terminal
+        integration ("Integración: Terminal" + "Use a Payment Terminal:
+        Credibanco"), which is what the interface reads to instantiate the
+        terminal and what blocks a second electronic payment while one is in
+        progress. The old enable_pos_credibanco flag is migrated into it.
+    -->
+    <record id="pos_payment_method_view_form_credibanco_inherit" model="ir.ui.view">
+        <field name="name">pos.payment.method.form.credibanco.inherit</field>
+        <field name="model">pos.payment.method</field>
+        <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='Payment methods']/group[last()]" position="after">
+                <group name="credibanco_terminal"
+                       string="Datáfono Credibanco"
+                       invisible="use_payment_terminal != 'credibanco'">
+                    <field name="pos_payment_terminal_name"
+                           string="Nombre de la terminal"
+                           placeholder="p. ej. dataf001"
+                           required="use_payment_terminal == 'credibanco'"/>
+                    <field name="pos_ip_host"
+                           string="Host del datáfono"
+                           placeholder="192.168.1.50"
+                           required="use_payment_terminal == 'credibanco'"/>
+                    <field name="pos_websocket_port"
+                           string="Puerto"
+                           required="use_payment_terminal == 'credibanco'"/>
+                    <div class="w-100 text-muted">
+                        El número de caja (posición 42 del protocolo) no se
+                        configura: se compone al cobrar como id de sesión + id de
+                        cajero, igual que en la integración certificada de
+                        Odoo 17. Lo que el datáfono recibió queda guardado en
+                        cada pago para poder anularlo o recuperarlo.
+                    </div>
+                    <field name="credibanco_timeout" string="Espera de respuesta (s)"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

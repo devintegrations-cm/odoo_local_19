@@ -39,11 +39,17 @@ class PosConfig(models.Model):
                 )
 
     def open_ui(self):
-        """Validate pending rescue sessions before opening a new session.
+        """Validate pending rescue sessions before opening a new session."""
+        self.ensure_one()
+        self._check_rescue_sessions_before_open_ui()
+        return super().open_ui()
+
+    def _check_rescue_sessions_before_open_ui(self):
+        """Raise if pending rescue sessions should block opening a new session.
 
         This runs on the backend when the operator clicks "Open" from the
-        dashboard, BEFORE the session is created and BEFORE the browser
-        is redirected to the POS UI.
+        dashboard, BEFORE the session is created and BEFORE the browser is
+        redirected to the POS UI.
 
         The check fires when:
         - ``enable_rescue_session_validation`` is enabled for this POS, AND
@@ -55,37 +61,43 @@ class PosConfig(models.Model):
         Blocking here gives operators a clear message instead of the Odoo
         controller's silent dashboard redirect.
 
-        ``UserError`` is used on purpose rather than ``RedirectWarning``: the
-        /pos/ui controller calls ``open_ui()`` for its side effects and drops
-        the return value (point_of_sale/controllers/main.py), so an action
-        attached to the exception would never be rendered as a button.  The
-        message therefore spells out where to go: the POS dashboard exposes an
-        "outstanding rescue session" link that calls
-        ``open_opened_rescue_session_form``.
+        Kept as its own method because other addons validate in ``open_ui`` as
+        well (for instance a POS without any assigned product), and which message
+        the operator sees then depends on installation order.  The rule itself must
+        stay testable on its own.
+
+        ``UserError`` is used rather than ``RedirectWarning`` on purpose: the
+        /pos/ui controller calls ``open_ui()`` for its side effects and drops the
+        return value (point_of_sale/controllers/main.py), so an action attached to
+        the exception would never be rendered as a button.  The message therefore
+        spells out where to go: the POS dashboard exposes an "outstanding rescue
+        session" link that calls ``open_opened_rescue_session_form``.
         """
         self.ensure_one()
 
-        if self.enable_rescue_session_validation:
-            pending = self.env["pos.session"]._get_pending_rescue_sessions_for_config(
-                self.id
-            )
-            if pending and (
-                not self.current_session_id or self.current_session_id.rescue
-            ):
-                names = ", ".join(pending.mapped("name"))
-                raise UserError(_(
-                    "No puede abrir una nueva sesión porque existe(n) "
-                    "%(count)s sesión(es) de rescate pendiente(s) "
-                    "para este Punto de Venta.\n\n"
-                    "Sesiones pendientes: %(names)s\n\n"
-                    "Para resolverlas: abra el tablero de este Punto de Venta "
-                    "y pulse el enlace de sesiones de rescate pendientes; "
-                    "revise y cierre cada una antes de continuar.",
-                    count=len(pending),
-                    names=names,
-                ))
+        if not self.enable_rescue_session_validation:
+            return
 
-        return super().open_ui()
+        pending = self.env["pos.session"]._get_pending_rescue_sessions_for_config(
+            self.id
+        )
+        if not pending or (
+            self.current_session_id and not self.current_session_id.rescue
+        ):
+            return
+
+        names = ", ".join(pending.mapped("name"))
+        raise UserError(_(
+            "No puede abrir una nueva sesión porque existe(n) "
+            "%(count)s sesión(es) de rescate pendiente(s) "
+            "para este Punto de Venta.\n\n"
+            "Sesiones pendientes: %(names)s\n\n"
+            "Para resolverlas: abra el tablero de este Punto de Venta "
+            "y pulse el enlace de sesiones de rescate pendientes; "
+            "revise y cierre cada una antes de continuar.",
+            count=len(pending),
+            names=names,
+        ))
 
 
 class ResConfigSettings(models.TransientModel):

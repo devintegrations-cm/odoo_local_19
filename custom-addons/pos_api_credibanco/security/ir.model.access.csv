@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pos_payment_credibanco_user,pos.payment.credibanco user,model_pos_payment_credibanco,point_of_sale.group_pos_user,1,1,1,0
+access_pos_payment_credibanco_manager,pos.payment.credibanco manager,model_pos_payment_credibanco,point_of_sale.group_pos_manager,1,1,1,1
+access_credibanco_extra_info_wizard_manager,credibanco.extra.info.wizard manager,model_credibanco_extra_info_wizard,point_of_sale.group_pos_manager,1,1,1,1

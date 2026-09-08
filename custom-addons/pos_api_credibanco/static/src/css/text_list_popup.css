@@ -1,0 +1,7 @@
+.text-list-popup .text-list-container {
+    max-height: 400px;
+}
+
+.text-list-popup .text-list-item:last-child {
+    margin-bottom: 0 !important;
+}

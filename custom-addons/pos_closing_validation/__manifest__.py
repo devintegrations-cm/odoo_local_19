@@ -1,6 +1,6 @@
 {
     "name": "Pos Closing Validation",
-    "version": "19.0.0.0.0",
+    "version": "19.0.1.0.0",
     "category": "Sales/Point of Sale",
     "summary": "Controls POS cash movements and session closing",
     "description": """

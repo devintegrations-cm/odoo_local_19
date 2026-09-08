@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--
+        contentClass keeps the .text-list-popup scope, so the existing CSS
+        (max-height of the list, spacing) still applies once the dialog is
+        rendered by the web Dialog component instead of the removed POS popup
+        chrome.
+    -->
+    <t t-name="pos_api_credibanco.TextListPopup">
+        <Dialog title="props.title" size="'md'" contentClass="'text-list-popup'">
+            <p t-if="props.body" class="text-muted mb-3" t-esc="props.body"/>
+
+            <div class="text-list-container overflow-y-auto">
+                <t t-foreach="props.list" t-as="item" t-key="item_index">
+                    <div class="text-list-item d-flex align-items-center p-3 mb-2 bg-white border-start border-3 border-info rounded">
+                        <span t-esc="item"/>
+                    </div>
+                </t>
+            </div>
+
+            <t t-set-slot="footer">
+                <div class="d-flex w-100 gap-2 justify-content-end">
+                    <button t-if="props.cancelText"
+                            type="button"
+                            class="button cancel btn btn-lg btn-secondary"
+                            t-on-click="cancel"
+                            t-esc="props.cancelText"/>
+                    <button t-if="props.confirmText"
+                            type="button"
+                            class="button confirm btn btn-lg btn-primary"
+                            t-on-click="confirm"
+                            t-esc="props.confirmText"/>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>
