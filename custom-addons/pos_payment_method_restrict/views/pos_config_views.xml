@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Vistas para pos.payment.customer.restriction ────────────────────── -->
+
+    <record id="view_pos_payment_customer_restriction_list" model="ir.ui.view">
+        <field name="name">pos.payment.customer.restriction.list</field>
+        <field name="model">pos.payment.customer.restriction</field>
+        <field name="arch" type="xml">
+            <list string="Restricciones de pago por cliente">
+                <field name="sequence" widget="handle"/>
+                <field name="config_id"/>
+                <field name="payment_method_id"/>
+                <field name="partner_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="create_delivery" widget="boolean_toggle"/>
+                <field name="to_invoice" widget="boolean_toggle"/>
+                <field name="to_ei_invoice" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_pos_payment_customer_restriction_form" model="ir.ui.view">
+        <field name="name">pos.payment.customer.restriction.form</field>
+        <field name="model">pos.payment.customer.restriction</field>
+        <field name="arch" type="xml">
+            <form string="Restricción de método de pago">
+                <sheet>
+                    <group>
+                        <group string="Configuración POS y método">
+                            <field name="config_id" options="{'no_create': True}"/>
+                            <field name="payment_method_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Clientes autorizados">
+                            <field name="partner_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"
+                                   placeholder="Agregar clientes…"
+                                   nolabel="1"
+                                   colspan="2"/>
+                        </group>
+                    </group>
+                    <group string="Acciones automáticas">
+                        <field name="create_delivery"/>
+                        <field name="to_invoice"/>
+                        <field name="to_ei_invoice"/>
+                    </group>
+                    <notebook>
+                        <page string="Campos del popup" name="popup_fields"
+                              help="Campos que el cajero debe completar al seleccionar este método de pago.">
+                            <field name="restriction_field_ids">
+                                <list editable="bottom" string="Campos">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" string="Etiqueta"/>
+                                    <field name="field_key" readonly="1"/>
+                                    <field name="field_type"/>
+                                    <field name="required"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_pos_payment_customer_restriction" model="ir.actions.act_window">
+        <field name="name">Restricciones de pago por cliente</field>
+        <field name="res_model">pos.payment.customer.restriction</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay restricciones configuradas.
+            </p>
+            <p>
+                Crea una restricción para limitar el uso de un método de pago
+                a clientes específicos en el punto de venta.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_pos_payment_customer_restriction"
+        name="Restricciones de pago"
+        parent="point_of_sale.menu_point_config_product"
+        action="action_pos_payment_customer_restriction"
+        sequence="4"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <!-- ── Sección en res.config.settings ───────────────────────────────────── -->
+
+    <record id="view_res_config_settings_pos_payment_restrict" model="ir.ui.view">
+        <field name="name">res.config.settings.pos.payment.restrict</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='payment_methods_new']" position="after">
+                <setting string="Restricciones por cliente"
+                         help="Define qué clientes pueden usar cada método de pago. Los métodos no listados aquí están disponibles para todos.">
+                    <field name="pos_payment_restrict_enabled"/>
+                    <div class="content-group mt8"
+                         invisible="not pos_payment_restrict_enabled">
+                        <field name="pos_payment_customer_restriction_ids"
+                               nolabel="1"
+                               colspan="4">
+                            <list string="Restricciones">
+                                <field name="sequence" widget="handle"/>
+                                <field name="payment_method_id"
+                                       options="{'no_create': True}"
+                                       domain="[('id', 'in', parent.pos_payment_method_ids)]"/>
+                                <field name="partner_ids"
+                                       widget="many2many_tags"
+                                       options="{'no_create': True}"
+                                       placeholder="Agregar clientes autorizados…"/>
+                                <field name="create_delivery" widget="boolean_toggle"/>
+                                <field name="to_invoice" widget="boolean_toggle"/>
+                                <field name="to_ei_invoice" widget="boolean_toggle"/>
+                                <field name="restriction_field_ids" widget="many2many_tags"
+                                       string="Campos popup"
+                                       options="{'no_open': True, 'no_create': True}"
+                                       readonly="1"/>
+                            </list>
+                            <form string="Restricción de método de pago">
+                                <group>
+                                    <group string="Método y clientes">
+                                        <field name="payment_method_id"
+                                               options="{'no_create': True}"/>
+                                        <field name="partner_ids"
+                                               widget="many2many_tags"
+                                               options="{'no_create': True}"
+                                               placeholder="Agregar clientes autorizados…"/>
+                                    </group>
+                                    <group string="Acciones automáticas">
+                                        <field name="create_delivery"/>
+                                        <field name="to_invoice"/>
+                                        <field name="to_ei_invoice"/>
+                                    </group>
+                                </group>
+                                <notebook>
+                                    <page string="Campos del popup"
+                                          name="popup_fields"
+                                          help="Campos que el cajero debe completar al seleccionar este método de pago.">
+                                        <field name="restriction_field_ids">
+                                            <list editable="bottom" string="Campos">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="name" string="Etiqueta"/>
+                                                <field name="field_key" readonly="1"/>
+                                                <field name="field_type"/>
+                                                <field name="required"/>
+                                            </list>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </form>
+                        </field>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

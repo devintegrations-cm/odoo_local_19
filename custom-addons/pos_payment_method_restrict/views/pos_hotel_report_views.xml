@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         SECCIÓN EN FORMULARIO DE ORDEN POS
+         Muestra la restricción aplicada y los datos del popup.
+         La pestaña solo aparece cuando la orden tiene una restricción asociada.
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_pos_order_form_restriction_section" model="ir.ui.view">
+        <field name="name">pos.order.form.restriction.section</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Datos de restricción" name="restriction_data_page"
+                      invisible="not restriction_id">
+                    <group>
+                        <field name="restriction_id" readonly="1"
+                               options="{'no_open': False}"/>
+                    </group>
+                    <group string="Datos capturados en el popup">
+                        <field name="restriction_data_display"
+                               readonly="1"
+                               nolabel="1"
+                               colspan="2"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         VISTA DE BÚSQUEDA — pos.order (órdenes con restricción)
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_pos_hotel_order_search" model="ir.ui.view">
+        <field name="name">pos.restriction.order.search</field>
+        <field name="model">pos.order</field>
+        <field name="arch" type="xml">
+            <search string="Buscar órdenes con restricción">
+                <field name="name" string="# Orden"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="restriction_id" string="Restricción"/>
+
+                <filter string="Hoy" name="today"
+                    domain="[
+                        ('date_order', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
+                        ('date_order', '&lt;',  datetime.datetime.combine(context_today() + relativedelta(days=1), datetime.time(0,0,0)))
+                    ]"/>
+                <filter string="Esta semana" name="this_week"
+                    domain="[
+                        ('date_order', '&gt;=', datetime.datetime.combine(context_today() - relativedelta(days=context_today().weekday()), datetime.time(0,0,0))),
+                        ('date_order', '&lt;',  datetime.datetime.combine(context_today() - relativedelta(days=context_today().weekday()) + relativedelta(weeks=1), datetime.time(0,0,0)))
+                    ]"/>
+                <filter string="Este mes" name="this_month"
+                    domain="[
+                        ('date_order', '&gt;=', datetime.datetime.combine(context_today().replace(day=1), datetime.time(0,0,0))),
+                        ('date_order', '&lt;',  datetime.datetime.combine(context_today().replace(day=1) + relativedelta(months=1), datetime.time(0,0,0)))
+                    ]"/>
+
+                <separator/>
+                <filter string="Pagadas" name="paid" domain="[('state', '=', 'paid')]"/>
+                <filter string="Facturadas" name="invoiced" domain="[('state', '=', 'invoiced')]"/>
+
+                <group>
+                    <filter string="Restricción" name="group_restriction"
+                        context="{'group_by': 'restriction_id'}"/>
+                    <filter string="Cliente" name="group_partner"
+                        context="{'group_by': 'partner_id'}"/>
+                    <filter string="Fecha" name="group_date"
+                        context="{'group_by': 'date_order:day'}"/>
+                    <filter string="Mes" name="group_month"
+                        context="{'group_by': 'date_order:month'}"/>
+                    <filter string="Estado" name="group_state"
+                        context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         VISTA LISTA — Órdenes con restricción (pos.order)
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_pos_hotel_order_list" model="ir.ui.view">
+        <field name="name">pos.restriction.order.list</field>
+        <field name="model">pos.order</field>
+        <field name="arch" type="xml">
+            <list string="Órdenes con restricción de pago"
+                  decoration-muted="state == 'cancel'"
+                  decoration-success="state == 'invoiced'"
+                  default_order="date_order desc">
+                <field name="date_order" string="Fecha y hora"/>
+                <field name="name" string="# Orden"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="restriction_id" string="Restricción"/>
+                <field name="restriction_data_display" string="Datos del popup"
+                       optional="show"/>
+                <field name="amount_total" string="Total" sum="Total"/>
+                <field name="state" string="Estado"
+                       decoration-success="state == 'invoiced'"
+                       decoration-warning="state == 'paid'"
+                       decoration-muted="state == 'cancel'"/>
+                <field name="account_move" string="Factura" optional="show"/>
+                <field name="session_id" string="Sesión" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         ACCIONES — Reportes de órdenes con restricción
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <record id="action_pos_hotel_breakfast_daily" model="ir.actions.act_window">
+        <field name="name">Órdenes del día – con restricción</field>
+        <field name="res_model">pos.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_pos_hotel_order_list"/>
+        <field name="search_view_id" ref="view_pos_hotel_order_search"/>
+        <field name="domain">[('restriction_id', '!=', False)]</field>
+        <field name="context">{'search_default_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay órdenes con restricción de pago registradas hoy.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_pos_hotel_breakfast_monthly" model="ir.actions.act_window">
+        <field name="name">Reporte mensual – órdenes con restricción</field>
+        <field name="res_model">pos.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_pos_hotel_order_list"/>
+        <field name="search_view_id" ref="view_pos_hotel_order_search"/>
+        <field name="domain">[('restriction_id', '!=', False)]</field>
+        <field name="context">{'search_default_this_month': 1, 'search_default_group_date': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay órdenes con restricción de pago en este periodo.
+            </p>
+            <p>Use los filtros de fecha para consultar otros periodos.
+               Puede agrupar por Restricción para comparar convenios.</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         VISTA DE BÚSQUEDA — pos.order.line (Consumo de productos)
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_pos_hotel_product_line_search" model="ir.ui.view">
+        <field name="name">pos.restriction.product.line.search</field>
+        <field name="model">pos.order.line</field>
+        <field name="arch" type="xml">
+            <search string="Buscar consumo de productos">
+                <field name="product_id" string="Producto"/>
+                <field name="order_id" string="# Orden"/>
+
+                <filter string="Hoy" name="today"
+                    domain="[
+                        ('order_id.date_order', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
+                        ('order_id.date_order', '&lt;',  datetime.datetime.combine(context_today() + relativedelta(days=1), datetime.time(0,0,0)))
+                    ]"/>
+                <filter string="Esta semana" name="this_week"
+                    domain="[
+                        ('order_id.date_order', '&gt;=', datetime.datetime.combine(context_today() - relativedelta(days=context_today().weekday()), datetime.time(0,0,0))),
+                        ('order_id.date_order', '&lt;',  datetime.datetime.combine(context_today() - relativedelta(days=context_today().weekday()) + relativedelta(weeks=1), datetime.time(0,0,0)))
+                    ]"/>
+                <filter string="Este mes" name="this_month"
+                    domain="[
+                        ('order_id.date_order', '&gt;=', datetime.datetime.combine(context_today().replace(day=1), datetime.time(0,0,0))),
+                        ('order_id.date_order', '&lt;',  datetime.datetime.combine(context_today().replace(day=1) + relativedelta(months=1), datetime.time(0,0,0)))
+                    ]"/>
+
+                <group>
+                    <filter string="Producto" name="group_product"
+                        context="{'group_by': 'product_id'}"/>
+                    <filter string="Orden" name="group_order"
+                        context="{'group_by': 'order_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         VISTA LISTA — Consumo de productos (pos.order.line)
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_pos_hotel_product_line_list" model="ir.ui.view">
+        <field name="name">pos.restriction.product.line.list</field>
+        <field name="model">pos.order.line</field>
+        <field name="arch" type="xml">
+            <list string="Consumo de productos – convenios"
+                  default_order="order_id desc">
+                <field name="order_id" string="# Orden"/>
+                <field name="product_id" string="Producto"/>
+                <field name="qty" string="Cantidad" sum="Total unidades"/>
+                <field name="price_unit" string="Precio unitario"/>
+                <field name="discount" string="Desc. %" optional="show"/>
+                <field name="price_subtotal_incl" string="Total" sum="Total"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_pos_hotel_product_report" model="ir.actions.act_window">
+        <field name="name">Consumo de productos – convenios</field>
+        <field name="res_model">pos.order.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_pos_hotel_product_line_list"/>
+        <field name="search_view_id" ref="view_pos_hotel_product_line_search"/>
+        <field name="domain">[('order_id.restriction_id', '!=', False)]</field>
+        <field name="context">{'search_default_this_month': 1, 'search_default_group_product': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay líneas de productos para órdenes con restricción.
+            </p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         MENÚS — Sección "Convenios y restricciones" bajo Reporting del POS
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <menuitem
+        id="menu_pos_hotel_root"
+        name="Convenios y restricciones"
+        parent="point_of_sale.menu_point_rep"
+        sequence="50"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem
+        id="menu_pos_hotel_daily"
+        name="Órdenes del día"
+        parent="menu_pos_hotel_root"
+        action="action_pos_hotel_breakfast_daily"
+        sequence="10"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem
+        id="menu_pos_hotel_monthly"
+        name="Reporte mensual"
+        parent="menu_pos_hotel_root"
+        action="action_pos_hotel_breakfast_monthly"
+        sequence="20"
+        groups="point_of_sale.group_pos_manager"/>
+
+    <menuitem
+        id="menu_pos_hotel_products"
+        name="Consumo de productos"
+        parent="menu_pos_hotel_root"
+        action="action_pos_hotel_product_report"
+        sequence="30"
+        groups="point_of_sale.group_pos_manager"/>
+
+</odoo>

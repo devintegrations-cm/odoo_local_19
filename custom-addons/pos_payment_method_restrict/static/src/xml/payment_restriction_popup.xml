@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--
+        contentClass mantiene el scope .payment-restriction-popup por si la
+        plantilla CSS del POS aún aplica; el diálogo lo renderiza ahora el
+        componente web Dialog (el chrome `popup` del POS fue eliminado en 19).
+    -->
+    <t t-name="pos_payment_method_restrict.PaymentRestrictionPopup">
+        <Dialog title="props.title" size="'md'" contentClass="'payment-restriction-popup'">
+            <t t-foreach="props.fields" t-as="field" t-key="field.key">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        <t t-esc="field.name"/>
+                        <span t-if="field.required" class="text-danger ms-1">*</span>
+                    </label>
+                    <textarea t-if="field.type === 'text'"
+                              class="form-control"
+                              rows="3"
+                              t-att-value="state.values[field.key]"
+                              t-on-input="(ev) => this.updateValue(field.key, ev.target.value)"/>
+                    <input t-else=""
+                           class="form-control"
+                           t-att-type="field.type === 'integer' ? 'number' : 'text'"
+                           t-att-value="state.values[field.key]"
+                           t-on-input="(ev) => this.updateValue(field.key, ev.target.value)"/>
+                    <div t-if="state.errors[field.key]" class="text-danger small mt-1">
+                        Este campo es requerido.
+                    </div>
+                </div>
+            </t>
+
+            <t t-set-slot="footer">
+                <div class="d-flex w-100 gap-2 justify-content-end">
+                    <button type="button"
+                            class="button cancel btn btn-lg btn-secondary"
+                            t-on-click="cancel">
+                        Cancelar
+                    </button>
+                    <button type="button"
+                            class="button confirm btn btn-lg btn-primary"
+                            t-on-click="confirm">
+                        Confirmar
+                    </button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

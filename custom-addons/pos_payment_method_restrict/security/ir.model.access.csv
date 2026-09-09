@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pos_payment_customer_restriction_manager,pos.payment.customer.restriction manager,model_pos_payment_customer_restriction,point_of_sale.group_pos_manager,1,1,1,1
+access_pos_payment_customer_restriction_user,pos.payment.customer.restriction user,model_pos_payment_customer_restriction,point_of_sale.group_pos_user,1,0,0,0
+access_pos_payment_restriction_field_manager,pos.payment.restriction.field manager,model_pos_payment_restriction_field,point_of_sale.group_pos_manager,1,1,1,1
+access_pos_payment_restriction_field_user,pos.payment.restriction.field user,model_pos_payment_restriction_field,point_of_sale.group_pos_user,1,0,0,0
