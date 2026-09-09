@@ -6,8 +6,8 @@ class PosPaymentMethod(models.Model):
     _inherit = 'pos.payment.method'
 
     ask_for_approval_number = fields.Boolean(
-        string="Ask for approval number",
-        help="Set if you want ask in pos the approval number",
+        string="Pedir número de aprobación",
+        help="Confirma si se debe pedir el número de aprobación al registrar un pago con este método de pago.",
     )
 
     @api.model

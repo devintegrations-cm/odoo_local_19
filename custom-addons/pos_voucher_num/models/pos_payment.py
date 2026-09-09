@@ -8,7 +8,7 @@ class PosPayment(models.Model):
     # OJO: el nombre del campo tiene una errata historica ("vaucher" en vez de
     # "voucher"). NO se renombra: hay datos en la columna y renombrarlo exige
     # una migracion aparte. El JS del POS escribe exactamente este nombre.
-    vaucher_num = fields.Char(string="Numero Vaucher")
+    vaucher_num = fields.Char(string="Numero Voucher")
 
     # Odoo 19: `pos.payment` NO define `_load_pos_data_fields`, hereda el default
     # de `pos.load.mixin` ([]), y `read([])` devuelve TODOS los campos. Por eso

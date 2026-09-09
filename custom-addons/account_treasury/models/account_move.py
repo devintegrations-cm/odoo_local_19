@@ -11,7 +11,7 @@ class AccountMove(models.Model):
         string='Solicitantes de Compra', 
         readonly=True,
         compute='_compute_responsible_user_id', 
-        help='List of user that create the related order purchase'
+        help='Lista de usuarios que han solicitado la compra de los productos en esta factura.'
     )
 
                 

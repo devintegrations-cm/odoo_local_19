@@ -7,24 +7,24 @@ class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
 
     pos_cash_move = fields.Boolean(
-        string="POS Cash In/Out",
+        string="Pos Cash In/Out",
         default=False,
         readonly=True,
         copy=False,
         index=True,
-        help="Indicates that this statement line was created as a POS Cash In/Out movement.",
+        help="Indica si esta línea de estado de cuenta fue creada como un movimiento de efectivo en el punto de venta.",
     )
     pos_cash_move_uuid = fields.Char(
-        string="POS Cash In/Out Ref",
+        string="Pos Cash In/Out Ref",
         readonly=True,
         copy=False,
-        help="Client-generated identifier of the Cash In/Out request.  The "
-             "Point of Sale retries a queued movement with the same value when "
-             "the connection drops, so the retry can be recognised and ignored "
-             "instead of writing a second movement.",
+        help="Identificador generado por el cliente de la solicitud de Entrada/Salida de efectivo. El "
+            "Punto de Venta reintenta un movimiento en cola con el mismo valor cuando "
+            "se pierde la conexión, de modo que el reintento pueda reconocerse e ignorarse "
+            "en lugar de registrar un segundo movimiento.",
     )
 
     _pos_cash_move_uuid_uniq = models.Constraint(
         "unique(pos_session_id, pos_cash_move_uuid)",
-        "This cash movement has already been registered.",
+        "Este movimiento de efectivo ya ha sido registrado.",
     )

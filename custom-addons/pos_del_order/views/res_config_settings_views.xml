@@ -12,11 +12,11 @@
             <xpath expr="//field[@name='pos_advanced_employee_ids'][@widget='many2many_tags']" position="after">
                 <div class="row">
                     <label for="pos_del_able_employee_ids"
-                           string="Allowed to delete orders"
+                           string="Borrar pedidos POS "
                            class="col-lg-4 o_light_label"/>
                     <field name="pos_del_able_employee_ids"
                            widget="many2many_tags"
-                           placeholder="All Employees"
+                           placeholder="Todos los empleados "
                            domain="[('company_id', '=', company_id)]"/>
                 </div>
             </xpath>
