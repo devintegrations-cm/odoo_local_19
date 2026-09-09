@@ -1,0 +1,58 @@
+/* Contenedor general */
+.pos .ordered-qty-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+/* Zona de botones y número */
+.pos .ordered-qty-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f4f4f5;
+    /* fondito suave */
+}
+
+/* Número de unidades en preparación */
+.pos .ordered-qty-value {
+    font-weight: 700;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* Botones + / - */
+.pos .ordered-qty-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pos .ordered-qty-btn i {
+    font-size: 14px;
+}
+
+/* Colores para plus / minus (ajusta a tu paleta Libertario) */
+.pos .ordered-qty-btn.plus i {
+    color: #16a34a;
+    /* verde */
+}
+
+.pos .ordered-qty-btn.minus i {
+    color: #dc2626;
+    /* rojo */
+}
+
+/* Texto “En preparación” */
+.pos .ordered-qty-label {
+    font-size: 11px;
+    color: #6b7280;
+}

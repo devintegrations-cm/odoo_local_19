@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="pos_order_form_inh_restrict">
+        <field name="name">pos.order.form.inh.restrict</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list[@editable='bottom']/field[@name='qty']" position="after">
+                <field name="ordered_quantities" optional="hide" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

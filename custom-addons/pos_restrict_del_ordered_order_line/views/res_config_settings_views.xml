@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <record id="res_config_settings_view_form_inh_pos_del_order_17" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.pos_del_order.employees</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//setting[@id='multiple_employee_session']" position="inside">
+                    <div class="content-group mt16" invisible="not pos_module_pos_hr">
+                        <div class="row">
+                            <label for="pos_able_del_pol_employee_ids"
+                                   string="Able to erase ordered POS Order Lines"
+                                   class="col-lg-4 o_light_label"/>
+                            <field name="pos_able_del_pol_employee_ids"
+                                   widget="many2many_tags"
+                                   domain="[('company_id', '=', company_id)]"/>
+                        </div>
+                        <div class="text-muted">
+                            Employees allowed to delete or reduce order lines already sent to the kitchen.
+                            Leave blank to allow all employees.
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
