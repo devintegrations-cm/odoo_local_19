@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.purchase.price.validation</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='product_setting_container']" position="inside">
+                <setting id="purchase_price_validation" title="Validar variación de precios en productos" help="Valida que el precio unitario no exceda la variación permitida del producto">
+                    <field name="enable_purchase_price_validation"/>
+                </setting>
+                <setting id="stock_price_validation" title="Validar variación de precios en productos" help="Valida que el precio unitario no exceda la variación permitida del producto">
+                    <field name="enable_stock_price_validation"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

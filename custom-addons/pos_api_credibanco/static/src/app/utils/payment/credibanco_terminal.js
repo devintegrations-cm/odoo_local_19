@@ -415,9 +415,20 @@ export class PaymentCredibanco extends PaymentInterface {
             return taxes;
         }
 
+        // The datáfono siempre cobra 40 (TOTAL) + 81 (PROPINA): el TOTAL es la
+        // venta sin propina y la propina se envía por su lado. En Odoo 19 la
+        // propina es una línea del pedido, así que `priceIncl` y el monto de la
+        // línea de pago (remainingDue) ya la incluyen. Pero una propina
+        // elegida antes de que exista una línea pendiente seleccionada no se
+        // pliega en la línea, y ahí `monto - propina` restaría la propina dos
+        // veces (el datáfono cobraría la venta sin propina). Solo se resta la
+        // propina del TOTAL cuando la línea ya la incluye, i.e. cuando cubre el
+        // pedido completo.
         const tip = order.getTip() || 0;
+        const orderTotal = order.priceIncl || 0;
+        const total = amount >= orderTotal - 1 ? amount - tip : amount;
         const fields = {
-            total: protocolAmount(_t("total"), references.charge - tip, FIELD_LIMITS.total),
+            total: protocolAmount(_t("total"), total, FIELD_LIMITS.total),
             iva: protocolAmount(_t("IVA"), taxes.vat, FIELD_LIMITS.iva),
             iac: protocolAmount(_t("IAC"), taxes.iac, FIELD_LIMITS.iac),
             tip: protocolAmount(_t("propina"), tip, FIELD_LIMITS.tip),
@@ -448,7 +459,7 @@ export class PaymentCredibanco extends PaymentInterface {
             };
         }
 
-        const charged = references.charge;
+        const charged = total + tip;
         if (taxes.vat >= charged || taxes.iac >= charged || tip >= charged) {
             return {
                 ok: false,

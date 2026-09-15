@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if=&quot;line.payment_status == 'pending'&quot;]/div[hasclass('send_payment_request')]" position="replace">
+            <div class="button send_payment_request highlight text-bg-primary"
+                 role="button"
+                 title="Send Payment Request"
+                 t-on-click="() => this.props.sendPaymentRequest(line)">
+                <t t-esc="this.getSendButtonLabel(line)"/>
+            </div>
+        </xpath>
+        <xpath expr="//t[@t-elif=&quot;line.payment_status == 'retry'&quot;]/div[hasclass('send_payment_request')]" position="replace">            <div class="button send_payment_request highlight text-bg-primary"
+                 role="button"
+                 title="Send Payment Request"
+                 t-on-click="() => this.props.sendPaymentRequest(line)">
+                <t t-esc="this.getSendButtonLabel(line)"/>
+            </div>
+        </xpath>
+    </t>
+</templates>

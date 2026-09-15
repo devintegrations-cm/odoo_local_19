@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+purchase_order,purchase_order,model_purchase_order,base.group_user,1,0,1,0
+access_confirmation_variation_wizard,access_confirmation_variation_wizard,model_confirmation_variation_wizard,base.group_user,1,0,1,0
+access_warning_variation_wizard,access_warning_variation_wizard,model_warning_variation_wizard,base.group_user,1,0,1,0

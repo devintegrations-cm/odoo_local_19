@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Los bloques heredan la compañía de su punto de venta: una tienda nunca
+         debe ver ni cargar la configuración de ticket de otra compañía. -->
+    <record id="pos_receipt_custom_block_company_rule" model="ir.rule">
+        <field name="name">pos.receipt.custom.block multi-compañía</field>
+        <field name="model_id" ref="model_pos_receipt_custom_block"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        <field name="global" eval="True"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--
+        Sub-plantilla reutilizada en las tres posiciones del ticket.
+        Espera la variable `blocks`: la lista ya resuelta por
+        `PosStore.getCustomReceiptBlocks()`.
+    -->
+    <t t-name="pos_ticket_customization.CustomReceiptBlocks">
+        <t t-foreach="blocks or []" t-as="block" t-key="block.id">
+            <div class="o_ptc_block" t-attf-class="o_ptc_align_{{block.alignment}}">
+
+                <t t-if="block.type === 'separator'">
+                    <div class="o_ptc_separator"/>
+                </t>
+
+                <t t-else="">
+                    <div t-if="block.label" class="o_ptc_label" t-esc="block.label"/>
+
+                    <div t-if="block.text"
+                         t-attf-class="o_ptc_text {{ block.type === 'legal_text' ? 'o_ptc_legal' : '' }}"
+                         t-esc="block.text"/>
+
+                    <!--
+                        Ancho explícito: evita el reflow al rasterizar el ticket para
+                        la impresora térmica (htmlToCanvas) y que la imagen salga
+                        recortada o en blanco. El alto lo decide el `height: auto` del
+                        SCSS, que conserva la proporción de las imágenes no cuadradas.
+
+                        `t-on-error` cubre la vista en pantalla: si el POS está sin
+                        conexión y el código no estaba incrustado, se oculta el hueco
+                        roto y se muestra el texto de respaldo. Al imprimir no hace
+                        falta, porque `resolveCustomReceiptBlockImages()` ya ha dejado
+                        `imgSrc` a `null` en ese caso.
+                    -->
+                    <t t-if="block.imgSrc">
+                        <img class="o_ptc_code"
+                             t-att-src="block.imgSrc"
+                             t-att-width="block.width"
+                             t-on-error="(ev) => ev.target.parentElement.classList.add('o_ptc_code_failed')"
+                             alt=""/>
+                        <div t-if="block.fallbackText"
+                             class="o_ptc_text o_ptc_fallback"
+                             t-esc="block.fallbackText"/>
+                    </t>
+
+                    <div t-elif="block.fallbackText"
+                         class="o_ptc_text"
+                         t-esc="block.fallbackText"/>
+
+                    <img t-if="block.imageData"
+                         class="o_ptc_image"
+                         t-att-src="block.imageData"
+                         t-att-width="block.width"
+                         alt=""/>
+                </t>
+
+            </div>
+        </t>
+    </t>
+
+    <t t-name="pos_ticket_customization.OrderReceipt"
+       t-inherit="point_of_sale.OrderReceipt"
+       t-inherit-mode="extension">
+
+        <!-- Cabecera: justo debajo de los datos de la compañía. -->
+        <xpath expr="//ReceiptHeader" position="after">
+            <t t-call="pos_ticket_customization.CustomReceiptBlocks">
+                <t t-set="blocks" t-value="customReceiptBlocks?.header"/>
+            </t>
+        </xpath>
+
+        <!-- Antes del pie: tras los totales e impuestos, antes del pie configurable. -->
+        <xpath expr="//div[hasclass('before-footer')]" position="before">
+            <t t-call="pos_ticket_customization.CustomReceiptBlocks">
+                <t t-set="blocks" t-value="customReceiptBlocks?.before_footer"/>
+            </t>
+        </xpath>
+
+        <!-- Final del ticket: después del pie y de los comprobantes del datáfono. -->
+        <xpath expr="//div[hasclass('after-footer')]" position="inside">
+            <t t-call="pos_ticket_customization.CustomReceiptBlocks">
+                <t t-set="blocks" t-value="customReceiptBlocks?.footer"/>
+            </t>
+        </xpath>
+
+    </t>
+
+</templates>

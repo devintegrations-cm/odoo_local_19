@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="telegram_alert_config_demo" model="telegram.alerts.config">
+        <field name="name">Alertas Costos</field>
+        <field name="identifier">cost_alert</field>
+        <field name="token">6456588938:AAFzs0dbt1J694ftqzSg9fHWsqyiLo6o0iY</field>
+        <field name="user_ids">1563529894, -4596522657</field>
+        <field name="msg_test">Mensaje de prueba para Alertas Costos</field>
+    </record>
+</odoo>

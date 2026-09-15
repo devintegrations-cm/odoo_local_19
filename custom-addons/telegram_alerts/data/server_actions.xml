@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_calculate_difference_percentage" model="ir.actions.server">
+        <field name="name">Calculate Difference Percentage</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">records.calculate_difference_percentage()</field>
+    </record>
+
+    <record id="action_send_cost_differences" model="ir.actions.server">
+        <field name="name">Send Cost Differences</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">model.send_cost_differences('cost_alert')</field>
+    </record>
+
+    <record id="scheduled_action_send_cost_differences" model="ir.cron">
+        <field name="name">Send Cost Differences</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="state">code</field>
+        <field name="code">model.send_cost_differences('cost_alert')</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="action_send_telegram_alert" model="ir.actions.server">
+        <field name="name">Send Telegram Alert</field>
+        <field name="model_id" ref="model_telegram_alerts_config"/>
+        <field name="binding_model_id" ref="model_telegram_alerts_config"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">records.send_alert_test()</field>
+    </record>
+</odoo>

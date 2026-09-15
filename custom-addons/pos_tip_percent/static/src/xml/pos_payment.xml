@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_tip_percent.PaymentScreenButtons" t-inherit="point_of_sale.PaymentScreenButtons" t-inherit-mode="extension">
+        <xpath expr="//button[@t-on-click='addTip']" position="replace">
+            <t t-set="tippercent" t-value="pos.config.iface_tippercent"/>
+            <t t-set="tip1" t-value="pos.config.tip_percent1"/>
+            <t t-set="tip2" t-value="pos.config.tip_percent2"/>
+            <t t-set="tip3" t-value="pos.config.tip_percent3"/>
+
+            <div t-if="pos.config.tip_product_id and tippercent and (!tip1 and !tip2 and !tip3)"
+                 class="d-flex flex-column gap-1 w-100">
+                <button class="button btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
+                        t-att-class="{ 'highlight active text-action': currentOrder.getTip() }"
+                        t-on-click="addTip">
+                    <span t-attf-class="{{ currentOrder.getTip() ? 'me-auto' : 'mx-auto' }}">
+                        <i class="fa fa-heart me-2" />Tip
+                    </span>
+                    <t t-if="currentOrder.getTip() != 0">
+                        <t t-esc="env.utils.formatCurrency(currentOrder.getTip())" />
+                    </t>
+                </button>
+            </div>
+
+            <div t-if="pos.config.tip_product_id and tippercent and (tip1 or tip2 or tip3)"
+                 class="d-flex flex-column gap-1 w-100">
+                <button t-if="tip1" class="button btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
+                        t-att-class="{ 'highlight active text-action': this.shouldHighlight(tip1) }"
+                        t-on-click="addTip1">
+                    <span class="me-auto"><i class="fa fa-percent me-2" />Tip <t t-esc="tip1"/> %</span>
+                    <t t-if="currentOrder.getTip() != 0">
+                        <t t-esc="env.utils.formatCurrency(this.getTipX(tip1))" />
+                    </t>
+                </button>
+                <button t-if="tip2" class="button btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
+                        t-att-class="{ 'highlight active text-action': this.shouldHighlight(tip2) }"
+                        t-on-click="addTip2">
+                    <span class="me-auto"><i class="fa fa-percent me-2" />Tip <t t-esc="tip2"/> %</span>
+                    <t t-if="currentOrder.getTip() != 0">
+                        <t t-esc="env.utils.formatCurrency(this.getTipX(tip2))" />
+                    </t>
+                </button>
+                <button t-if="tip3" class="button btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
+                        t-att-class="{ 'highlight active text-action': this.shouldHighlight(tip3) }"
+                        t-on-click="addTip3">
+                    <span class="me-auto"><i class="fa fa-percent me-2" />Tip <t t-esc="tip3"/> %</span>
+                    <t t-if="currentOrder.getTip() != 0">
+                        <t t-esc="env.utils.formatCurrency(this.getTipX(tip3))" />
+                    </t>
+                </button>
+            </div>
+
+        </xpath>
+    </t>
+</templates>

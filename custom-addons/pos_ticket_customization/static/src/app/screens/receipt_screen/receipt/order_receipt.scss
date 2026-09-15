@@ -1,0 +1,76 @@
+// Estilos de los bloques de información adicional del ticket.
+//
+// Se anidan bajo `.pos-receipt` para heredar el contexto tanto en la pantalla de
+// recibo como en `.pos-receipt-print` (el clon de 512 px que `htmlToCanvas`
+// rasteriza para la impresora térmica).
+.pos-receipt {
+    .o_ptc_block {
+        margin: 0.4em 0;
+
+        // El core solo define `pos-receipt-center-align` y
+        // `pos-receipt-right-align` (esta última es `float: right`, pensada para
+        // importes en línea, no para bloques). Definimos las nuestras.
+        &.o_ptc_align_left {
+            text-align: left;
+        }
+
+        &.o_ptc_align_center {
+            text-align: center;
+        }
+
+        &.o_ptc_align_right {
+            text-align: right;
+        }
+    }
+
+    .o_ptc_label {
+        white-space: pre-line;
+    }
+
+    .o_ptc_text {
+        // Respeta los saltos de línea del campo Text sin permitir que una
+        // palabra larga (una URL) desborde el ancho del papel.
+        white-space: pre-line;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .o_ptc_legal {
+        font-size: 75%;
+        line-height: 1.2;
+    }
+
+    .o_ptc_separator {
+        border-top: 1px dashed currentColor;
+        margin: 0.5em 0;
+    }
+
+    // `max-width` protege el papel de 58 mm si alguien configura un código
+    // demasiado ancho; `height: auto` mantiene la proporción al reescalar.
+    .o_ptc_code,
+    .o_ptc_image {
+        display: inline-block;
+        max-width: 100%;
+        height: auto;
+    }
+
+    // Respaldo cuando el código no se puede generar (POS sin conexión).
+    //
+    // En estado normal el texto sobra, porque el QR ya lleva la misma información.
+    // Solo aparece si la imagen falla al cargarse en pantalla, momento en el que
+    // `t-on-error` marca el bloque. Al imprimir no se llega aquí: el bloque va
+    // directamente sin `imgSrc` y la plantilla imprime el texto sin ocultarlo.
+    .o_ptc_fallback {
+        display: none;
+    }
+
+    .o_ptc_block.o_ptc_code_failed {
+        .o_ptc_code {
+            display: none;
+        }
+
+        .o_ptc_fallback {
+            display: block;
+        }
+    }
+}

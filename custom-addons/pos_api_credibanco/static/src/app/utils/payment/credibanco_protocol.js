@@ -57,7 +57,7 @@ export const ANSWER = {
     AUTHORIZATION_CODE: "1",
     TRANSACTION_ID: "2",
     TOTAL: "40",
-    TIP: "81",
+    TIP: "80",
     TERMINAL_ID: "42",
     REFERENCE: "43",
     TRANSACTION_NUMBER: "53",

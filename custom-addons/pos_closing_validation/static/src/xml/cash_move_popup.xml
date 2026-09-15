@@ -81,6 +81,9 @@
             </attribute>
         </xpath>
 
+        <xpath expr="//button[@t-on-click='() => this.openDetails()']" position="replace">
+            <!-- vacio: elimina el boton del DOM -->
+        </xpath>
     </t>
 
 </templates>

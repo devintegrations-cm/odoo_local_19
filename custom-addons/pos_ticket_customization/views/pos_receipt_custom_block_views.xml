@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista de lista embebida en pos.config -->
+    <record id="pos_receipt_custom_block_view_list" model="ir.ui.view">
+        <field name="name">pos.receipt.custom.block.list</field>
+        <field name="model">pos.receipt.custom.block</field>
+        <field name="arch" type="xml">
+
+            <list string="Bloques del ticket" editable="bottom">
+
+                <field name="sequence" widget="handle"/>
+                <field name="block_type"/>
+                <field name="position"/>
+                <field name="alignment"/>
+                <field name="label"/>
+
+                <field name="content"
+                       invisible="block_type in ('separator', 'image', 'whatsapp_qr', 'wifi_qr', 'vcard_qr')"
+                       required="block_type in ('text', 'legal_text', 'url_qr', 'qr_text', 'barcode', 'review_qr', 'payment_qr')"/>
+
+                <field name="barcode_type"
+                       invisible="block_type != 'barcode'"
+                       required="block_type == 'barcode'"/>
+
+                <field name="date_start" optional="show"/>
+                <field name="date_stop" optional="show"/>
+                <field name="min_amount" optional="hide"/>
+                <field name="frequency" optional="show"/>
+
+                <field name="frequency_offset"
+                       optional="hide"
+                       invisible="frequency &lt;= 1"/>
+
+                <field name="active" widget="boolean_toggle"/>
+
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- Vista de lista global -->
+    <record id="pos_receipt_custom_block_view_list_global" model="ir.ui.view">
+        <field name="name">pos.receipt.custom.block.list.global</field>
+        <field name="model">pos.receipt.custom.block</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+
+            <list string="Bloques del ticket">
+
+                <field name="sequence" widget="handle"/>
+                <field name="config_id"/>
+                <field name="block_type"/>
+                <field name="position"/>
+                <field name="alignment"/>
+                <field name="label"/>
+                <field name="content" optional="show"/>
+                <field name="date_start" optional="hide"/>
+                <field name="date_stop" optional="hide"/>
+                <field name="min_amount" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+
+            </list>
+
+        </field>
+    </record>
+
+
+    <!-- Formulario -->
+    <record id="pos_receipt_custom_block_view_form" model="ir.ui.view">
+        <field name="name">pos.receipt.custom.block.form</field>
+        <field name="model">pos.receipt.custom.block</field>
+        <field name="arch" type="xml">
+
+            <form string="Bloque del ticket">
+
+                <sheet>
+
+                    <widget name="web_ribbon"
+                            title="Archivado"
+                            bg_color="text-bg-danger"
+                            invisible="active"/>
+
+                    <field name="active" invisible="1"/>
+
+                    <group>
+
+                        <group string="Definición">
+                            <field name="config_id"
+                                   options="{'no_create': True}"/>
+                            <field name="block_type"/>
+                            <field name="position"/>
+                            <field name="alignment"/>
+                            <field name="sequence"/>
+                        </group>
+
+                        <group string="Cuándo se imprime">
+                            <field name="date_start"/>
+                            <field name="date_stop"/>
+                            <field name="min_amount"/>
+                            <field name="frequency"/>
+
+                            <field name="frequency_offset"
+                                   invisible="frequency &lt;= 1"/>
+
+                            <div colspan="2"
+                                 class="text-muted"
+                                 invisible="frequency &lt;= 1">
+                                El conteo usa el número de pedido dentro de la sesión
+                                de caja, que se reinicia al abrir caja. Al reimprimir
+                                un ticket salen los mismos bloques que se imprimieron
+                                la primera vez.
+                            </div>
+                        </group>
+
+                    </group>
+
+
+                    <group string="Contenido"
+                           invisible="block_type == 'separator'">
+
+                        <field name="label"
+                               invisible="block_type == 'separator'"/>
+
+                        <field name="content"
+                               invisible="block_type in ('separator', 'image', 'whatsapp_qr', 'wifi_qr', 'vcard_qr')"
+                               required="block_type in ('text', 'legal_text', 'url_qr', 'qr_text', 'barcode', 'review_qr', 'payment_qr')"
+                               placeholder="Texto, URL o valor del código. Admite {order_name}, {total}, {date}, {cashier}, {table}, {partner_name}, {tracking_number}, {store_name}."/>
+
+                        <field name="image"
+                               widget="image"
+                               class="oe_avatar"
+                               invisible="block_type != 'image'"
+                               required="block_type == 'image'"/>
+
+                    </group>
+
+
+                    <group string="WhatsApp"
+                           invisible="block_type != 'whatsapp_qr'">
+
+                        <field name="wa_number"
+                               required="block_type == 'whatsapp_qr'"
+                               placeholder="573001234567"/>
+
+                        <field name="wa_message"
+                               placeholder="Hola, mi pedido es {order_name}"/>
+
+                    </group>
+
+
+                    <group string="WiFi"
+                           invisible="block_type != 'wifi_qr'">
+
+                        <field name="wifi_ssid"
+                               required="block_type == 'wifi_qr'"/>
+
+                        <field name="wifi_security"/>
+
+                        <field name="wifi_password"
+                               invisible="wifi_security == 'nopass'"/>
+
+                        <field name="wifi_hidden"/>
+
+                    </group>
+
+
+                    <group string="Contacto (vCard)"
+                           invisible="block_type != 'vcard_qr'">
+
+                        <field name="vcard_name"
+                               required="block_type == 'vcard_qr'"/>
+
+                        <field name="vcard_org"/>
+                        <field name="vcard_phone"/>
+                        <field name="vcard_email"/>
+                        <field name="vcard_website"/>
+                        <field name="vcard_address"/>
+
+                    </group>
+
+
+                    <group string="Tamaño"
+                           invisible="block_type in ('text', 'legal_text', 'separator')">
+
+                        <field name="barcode_type"
+                               invisible="block_type != 'barcode'"
+                               required="block_type == 'barcode'"/>
+
+                        <field name="barcode_humanreadable"
+                               invisible="block_type != 'barcode'"/>
+
+                        <field name="barcode_width"/>
+
+                        <field name="barcode_height"
+                               invisible="block_type == 'image'"/>
+
+                        <div colspan="2"
+                             class="text-muted">
+                            En impresión térmica el ticket se rasteriza a 512 px de ancho.
+                            Mantén los QR entre 120 y 200 px para que sean legibles tanto
+                            en 58 mm como en 80 mm.
+                        </div>
+
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+
+    <!-- Búsqueda -->
+    <record id="pos_receipt_custom_block_view_search" model="ir.ui.view">
+        <field name="name">pos.receipt.custom.block.search</field>
+        <field name="model">pos.receipt.custom.block</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="label"/>
+                <field name="content"/>
+                <field name="config_id"/>
+
+                <filter string="Archivado"
+                        name="inactive"
+                        domain="[('active', '=', False)]"/>
+
+                <group>
+                    <filter string="Punto de venta"
+                            name="group_config"
+                            context="{'group_by': 'config_id'}"/>
+
+                    <filter string="Tipo"
+                            name="group_type"
+                            context="{'group_by': 'block_type'}"/>
+
+                    <filter string="Posición"
+                            name="group_position"
+                            context="{'group_by': 'position'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
+    <!-- Acción -->
+    <record id="pos_receipt_custom_block_action" model="ir.actions.act_window">
+
+        <field name="name">Ticket – Información adicional</field>
+        <field name="res_model">pos.receipt.custom.block</field>
+        <field name="view_mode">list,form</field>
+
+        <field name="search_view_id"
+               ref="pos_receipt_custom_block_view_search"/>
+
+        <field name="view_ids"
+               eval="[(5, 0, 0),
+                   (0, 0, {
+                       'sequence': 10,
+                       'view_mode': 'list',
+                       'view_id': ref('pos_receipt_custom_block_view_list_global')
+                   }),
+                   (0, 0, {
+                       'sequence': 20,
+                       'view_mode': 'form',
+                       'view_id': ref('pos_receipt_custom_block_view_form')
+                   })]"/>
+
+        <field name="context">
+            {'active_test': False}
+        </field>
+
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Añade un bloque de información al ticket
+            </p>
+
+            <p>
+                Texto, códigos QR (URL, WiFi, reseña de Google, WhatsApp, pago)
+                o códigos de barras, configurables de forma independiente por tienda.
+            </p>
+        </field>
+
+    </record>
+
+
+    <!-- Menú -->
+    <menuitem id="menu_pos_receipt_custom_block"
+              name="Ticket – Información adicional"
+              parent="point_of_sale.menu_point_config_product"
+              action="pos_receipt_custom_block_action"
+              groups="point_of_sale.group_pos_manager"
+              sequence="90"/>
+
+</odoo>

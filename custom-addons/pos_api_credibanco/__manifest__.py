@@ -32,6 +32,7 @@ sale:
             # and it is what register_payment_method plugs into the core.
             'pos_api_credibanco/static/src/app/utils/payment/credibanco_protocol.js',
             'pos_api_credibanco/static/src/app/utils/payment/credibanco_transport.js',
+            'pos_api_credibanco/static/src/app/screens/payment_screen/payment_lines/**',
             'pos_api_credibanco/static/src/app/components/popups/text_list_popup/text_list_popup.js',
             'pos_api_credibanco/static/src/app/components/popups/text_list_popup/text_list_popup.xml',
             'pos_api_credibanco/static/src/app/utils/payment/credibanco_terminal.js',

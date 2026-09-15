@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- List view -->
+    <record id="view_telegram_alerts_config_tree" model="ir.ui.view">
+        <field name="name">telegram.alerts.config.tree</field>
+        <field name="model">telegram.alerts.config</field>
+        <field name="arch" type="xml">
+            <list string="Telegram Alerts Configuration">
+                <field name="identifier"/>
+                <field name="name"/>
+                <field name="token" password="true"/>
+                <field name="user_ids"/>
+                <field name="msg_test"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view -->
+    <record id="view_telegram_alerts_config_form" model="ir.ui.view">
+        <field name="name">telegram.alerts.config.form</field>
+        <field name="model">telegram.alerts.config</field>
+        <field name="arch" type="xml">
+            <form string="Telegram Alerts Configuration">
+                <sheet>
+                    <group>
+                        <field name="identifier"/>
+                        <field name="name"/>
+                        <field name="token" password="true"/>
+                        <field name="user_ids"/>
+                        <field name="msg_test"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action
+         Relaciona el menú con las vistas
+    -->
+    <record id="action_telegram_alerts_config" model="ir.actions.act_window">
+        <field name="name">Configuración de Alertas Telegram</field>
+        <field name="res_model">telegram.alerts.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_telegram_alerts_config_tree"/>
+    </record>
+
+    <!-- Menu Declaration -->
+    <menuitem id="menu_telegram_alerts_root" name="Telegram Alerts" sequence="10" web_icon="telegram_alerts,static/description/icon.png" />
+    <menuitem id="menu_telegram_alerts_config" name="Configuration" parent="menu_telegram_alerts_root" sequence="10" action="action_telegram_alerts_config"/>
+</odoo>

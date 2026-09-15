@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_res_config_settings_view_form_inh" model="ir.ui.view">
+            <field name="name">Settings form - pos_tip_percent</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//setting[@id='iface_tipproduct']" position="after">
+                    <setting id="iface_tippercent" invisible="not pos_iface_tipproduct" string="Add buttons with percentage for tip" help="Show configurable tip percentage buttons on the payment screen" groups="point_of_sale.group_pos_manager">
+                        <field name="pos_iface_tippercent"/>
+                        <div class="content-group mt16" invisible="not pos_iface_tippercent">
+                            <div class="row mt16" id="tip_percentages">
+                                <label string="Tip % (Option 1)" for="pos_tip_percent1" class="col-lg-3 o_light_label"/>
+                                <field name="pos_tip_percent1"/>
+                            </div>
+                            <div class="row mt16">
+                                <label string="Tip % (Option 2)" for="pos_tip_percent2" class="col-lg-3 o_light_label"/>
+                                <field name="pos_tip_percent2"/>
+                            </div>
+                            <div class="row mt16">
+                                <label string="Tip % (Option 3)" for="pos_tip_percent3" class="col-lg-3 o_light_label"/>
+                                <field name="pos_tip_percent3"/>
+                            </div>
+                        </div>
+                    </setting>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
