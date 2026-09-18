@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_maintenance_request">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <h2>
+                            Orden de mantenimiento
+                            <span t-if="o.reference" t-esc="o.reference"/>
+                            <span t-else="" t-esc="o.name"/>
+                        </h2>
+
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <strong>Equipo:</strong>
+                                <span t-field="o.equipment_id"/><br/>
+                                <strong>Categoría:</strong>
+                                <span t-field="o.category_id"/><br/>
+                                <strong>Tipo:</strong>
+                                <span t-if="o.maintenance_type == 'preventive'">Preventivo</span>
+                                <span t-else="">Correctivo</span><br/>
+                                <strong>Ubicación del mantenimiento:</strong>
+                                <span t-field="o.maintenance_location_id"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Solicitado:</strong>
+                                <span t-field="o.request_date"/><br/>
+                                <strong>Programado:</strong>
+                                <span t-field="o.schedule_date"/><br/>
+                                <strong>Cerrado:</strong>
+                                <span t-field="o.close_date"/><br/>
+                                <strong>Técnico responsable:</strong>
+                                <span t-field="o.user_id"/><br/>
+                                <strong>Estado:</strong>
+                                <span t-field="o.stage_id"/>
+                            </div>
+                        </div>
+
+                        <div class="mb32">
+                            <strong>Condición del equipo:</strong>
+                            <span t-if="o.equipment_condition" t-field="o.equipment_condition"/>
+                            <span t-else="">Sin registrar</span>
+                        </div>
+
+                        <h4>Checklist</h4>
+                        <t t-if="o.checklist_line_ids">
+                            <table class="table table-sm o_report_table">
+                                <thead>
+                                    <tr>
+                                        <th>Ítem</th>
+                                        <th class="text-center">Realizado</th>
+                                        <th>Nota</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="o.checklist_line_ids" t-as="line">
+                                        <td t-esc="line.name"/>
+                                        <td class="text-center">
+                                            <span t-if="line.is_done">X</span>
+                                            <span t-else="">-</span>
+                                        </td>
+                                        <td t-esc="line.note or ''"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+                        <p t-else="" class="text-muted">No se registraron ítems de checklist.</p>
+
+                        <h4>Costos</h4>
+                        <t t-if="o.cost_line_ids">
+                            <table class="table table-sm o_report_table">
+                                <thead>
+                                    <tr>
+                                        <th>Detalle</th>
+                                        <th>Producto</th>
+                                        <th class="text-end">Cantidad</th>
+                                        <th class="text-end">Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="o.cost_line_ids" t-as="cost_line">
+                                        <td t-esc="cost_line.name"/>
+                                        <td t-esc="cost_line.product_id.name or ''"/>
+                                        <td class="text-end" t-esc="cost_line.quantity"/>
+                                        <td class="text-end"><span t-field="cost_line.amount"/></td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-end"><strong>Total</strong></td>
+                                        <td class="text-end"><strong t-field="o.total_cost"/></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+                        <p t-else="" class="text-muted">No se registraron costos.</p>
+
+                        <h4>Observaciones / Acciones realizadas</h4>
+                        <p t-field="o.action_taken">Sin observaciones.</p>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_maintenance_request" model="ir.actions.report">
+        <field name="name">Orden de Mantenimiento</field>
+        <field name="model">maintenance.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">maintenance_management.report_maintenance_request</field>
+        <field name="report_file">maintenance_management.report_maintenance_request</field>
+        <field name="binding_model_id" ref="maintenance.model_maintenance_request"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Orden de Mantenimiento - %s' % (object.reference or object.name)</field>
+    </record>
+
+</odoo>

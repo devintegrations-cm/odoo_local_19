@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_equipment_hoja_vida" name="Hoja de Vida del Equipo">
+        <t t-call="portal.portal_layout">
+            <div class="container my-4">
+                <div class="card shadow-sm">
+
+                    <!-- Cabecera -->
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0"><t t-esc="equipment.name"/></h4>
+                            <small t-if="equipment.asset_number">
+                                Activo: <t t-esc="equipment.asset_number"/>
+                            </small>
+                            <br t-if="equipment.category_id and equipment.asset_number"/>
+                            <small t-if="equipment.category_id" t-esc="equipment.category_id.name"/>
+                        </div>
+                        <img t-if="equipment.qr_image"
+                             t-att-src="'data:image/png;base64,' + equipment.qr_image.decode()"
+                             style="width:64px;height:64px;background:#fff;padding:4px;border-radius:6px;"/>
+                    </div>
+
+                    <div class="card-body">
+
+                        <!-- Ficha técnica -->
+                        <h5 class="text-muted">Ficha técnica</h5>
+                        <table class="table table-sm">
+                            <tr t-if="equipment.asset_number">
+                                <th style="width:40%">Número de activo</th>
+                                <td t-esc="equipment.asset_number"/>
+                            </tr>
+                            <tr t-if="equipment.serial_no">
+                                <th>Número de serie</th>
+                                <td t-esc="equipment.serial_no"/>
+                            </tr>
+                            <tr t-if="equipment.category_id">
+                                <th>Categoría</th>
+                                <td t-esc="equipment.category_id.name"/>
+                            </tr>
+                            <tr t-if="equipment.warehouse_id">
+                                <th>Tienda / Almacén</th>
+                                <td t-esc="equipment.warehouse_id.name"/>
+                            </tr>
+                            <tr t-if="equipment.customer_id">
+                                <th>Cliente</th>
+                                <td t-esc="equipment.customer_id.name"/>
+                            </tr>
+                            <tr t-if="equipment.model">
+                                <th>Modelo</th>
+                                <td t-esc="equipment.model"/>
+                            </tr>
+                            <tr t-if="equipment.partner_id">
+                                <th>Proveedor</th>
+                                <td t-esc="equipment.partner_id.name"/>
+                            </tr>
+                            <tr t-if="equipment.technician_user_id">
+                                <th>Técnico responsable</th>
+                                <td t-esc="equipment.technician_user_id.name"/>
+                            </tr>
+                            <tr t-if="equipment.assign_date">
+                                <th>Fecha de asignación</th>
+                                <td><span t-field="equipment.assign_date"/></td>
+                            </tr>
+                            <tr t-if="equipment.warranty_date">
+                                <th>Vencimiento de garantía</th>
+                                <td><span t-field="equipment.warranty_date"/></td>
+                            </tr>
+                        </table>
+
+                        <!-- Indicadores -->
+                        <h5 class="text-muted mt-4">Indicadores</h5>
+                        <div class="row text-center">
+                            <div class="col">
+                                <div class="border rounded p-2">
+                                    <div class="h4 mb-0" t-esc="equipment.maintenance_count"/>
+                                    <small class="text-muted">Mantenimientos</small>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="border rounded p-2">
+                                    <div class="h4 mb-0" t-esc="equipment.mtbf"/>
+                                    <small class="text-muted">MTBF (días)</small>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="border rounded p-2">
+                                    <div class="h4 mb-0" t-esc="equipment.mttr"/>
+                                    <small class="text-muted">MTTR (días)</small>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="border rounded p-2">
+                                    <div class="h4 mb-0" t-field="equipment.maintenance_total_cost"/>
+                                    <small class="text-muted">Costo acumulado</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Historial de mantenimientos -->
+                        <h5 class="text-muted mt-4">Historial de mantenimientos</h5>
+                        <t t-if="equipment.maintenance_ids">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Solicitud</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                        <th>Ubicación</th>
+                                        <th>Condición</th>
+                                        <th>Costo</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="equipment.maintenance_ids.sorted(lambda r: r.request_date or '', reverse=True)" t-as="req">
+                                        <td t-esc="req.reference or req.name"/>
+                                        <td>
+                                            <span t-if="req.maintenance_type == 'preventive'">Preventivo</span>
+                                            <span t-else="">Correctivo</span>
+                                        </td>
+                                        <td><span t-field="req.request_date"/></td>
+                                        <td t-esc="req.maintenance_location_id.name or '-'"/>
+                                        <td>
+                                            <span t-if="req.equipment_condition == 'good'">Bueno</span>
+                                            <span t-elif="req.equipment_condition == 'regular'">Regular</span>
+                                            <span t-elif="req.equipment_condition == 'bad'">Malo</span>
+                                            <span t-else="">-</span>
+                                        </td>
+                                        <td><span t-field="req.total_cost"/></td>
+                                        <td t-esc="req.stage_id.name"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
+                        <p t-else="" class="text-muted">
+                            Este equipo aún no tiene solicitudes de mantenimiento registradas.
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

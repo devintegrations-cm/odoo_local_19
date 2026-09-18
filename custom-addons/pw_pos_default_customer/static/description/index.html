@@ -1,0 +1,57 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">This module lets you set a default customer per Point of Sale. Every new order is created
+with that customer already assigned, so the cashier does not have to open the customer list
+for the usual walk-in sale, and the receipt and the resulting POS order are attributed to
+that partner.</p>
+<p style="margin:0 0 12px;">The default is only a starting point: the cashier can replace the customer at any time, as
+usual, and that choice stays on the order. The module also makes sure the configured customer
+is always loaded into the POS session. It works on Odoo 19.0, Community and Enterprise.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Go to <em>Point of Sale › Configuration › Settings</em>.</li>
+<li style="margin-bottom:7px;">Pick the shop in the <strong>Point of Sale</strong> selector at the top.</li>
+<li style="margin-bottom:7px;">Fill <strong>Default Customer</strong> in the <em>PoS Interface</em> block.</li>
+<li style="margin-bottom:7px;">Press <strong>Save</strong>.</li>
+</ul>
+<p style="margin:0 0 12px;">The setting is stored on the point of sale (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>), not globally, so it has to be set
+on each shop that needs it. Shops without a Default Customer keep behaving exactly like
+standard Odoo.</p>
+<p style="margin:0 0 12px;">After changing the setting, reopen the Point of Sale from the backend (<em>Open Register</em> /
+<em>Continue Selling</em>). Reloading the POS tab is not enough for the new value to reach the
+session.</p>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">The customer is picked in the Point of Sale settings, in the <em>PoS Interface</em> block.</p>
+<div class="lc-fig"><img alt="Default Customer field in the Point of Sale settings" src="01_configuration.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Default Customer field in the Point of Sale settings</p></div>
+<p style="margin:0 0 12px;"><strong>A new order already has the customer.</strong> Open the Point of Sale and start an order: the
+customer button at the bottom of the ticket already shows the configured customer. Nobody
+opened the customer list.</p>
+<div class="lc-fig"><img alt="New POS order with the default customer already assigned" src="02_new_order.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">New POS order with the default customer already assigned</p></div>
+<p style="margin:0 0 12px;"><strong>The cashier can still change it.</strong> Tapping the customer button opens the usual customer
+list; once another customer is selected, that choice stays on the order — adding more lines
+does not bring the default customer back.</p>
+<div class="lc-fig"><img alt="The cashier replaces the default customer by hand" src="03_manual_override.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">The cashier replaces the default customer by hand</p></div>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>The default customer must be among the contacts the POS loads.</strong> A POS session only loads
+  about 100 partners (the most used ones), so a customer outside that list cannot be resolved
+  in the session. This module forces the configured customer into that list; without it the
+  order would simply start with no customer and no visible symptom at all.</li>
+<li style="margin-bottom:7px;"><strong>Refund orders inherit the default customer too.</strong> A refund created from the Orders screen
+  starts with the configured customer, so the refund may end up attributed to the generic
+  customer instead of the original buyer. Check the customer before validating a refund. This
+  is the inherited behaviour of the feature, not something the migration changed.</li>
+<li style="margin-bottom:7px;">Saving the Settings page may log a server warning about <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_customer_id</code> not being properly
+  saved. The value <em>is</em> saved (through the related field); the warning comes from the generic
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_*</code> prefix handling in Odoo's POS settings and is harmless.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> is 512x512 px, while the core modules use 100x100 px. It
+  should be resized or replaced.</li>
+<li style="margin-bottom:7px;">The help text shown under the <strong>Default Customer</strong> setting is written in Spanish
+  ("Cliente asignado automaticamente a cada pedido nuevo", in <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_config_view.xml</code>)
+  inside an otherwise English module. It should be written in English and translated through
+  the <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">i18n</code> files.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Preway IT Solutions</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Preway IT Solutions \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#114;&#101;&#119;&#97;&#121;&#105;&#116;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#112;&#114;&#101;&#119;&#97;&#121;&#105;&#116;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>

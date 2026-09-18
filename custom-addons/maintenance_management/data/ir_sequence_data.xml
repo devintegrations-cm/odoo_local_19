@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_maintenance_management_asset" model="ir.sequence">
+        <field name="name">Mantenimiento: Número de Activo</field>
+        <field name="code">maintenance.management.asset</field>
+        <field name="prefix">ACT</field>
+        <field name="padding">5</field>
+        <field name="implementation">no_gap</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_maintenance_management_incident" model="ir.sequence">
+        <field name="name">Mantenimiento: Incidencia/Solicitud</field>
+        <field name="code">maintenance.management.incident</field>
+        <field name="prefix">INC</field>
+        <field name="padding">5</field>
+        <field name="implementation">no_gap</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

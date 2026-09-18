@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================= Formulario de Equipo ================= -->
+    <record id="view_maintenance_equipment_form_management" model="ir.ui.view">
+        <field name="name">maintenance.equipment.form.management</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Smart buttons: Hoja de vida / Imprimir QR / Costo total -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_hoja_vida" type="object"
+                        class="oe_stat_button" icon="fa-id-card-o">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Hoja de</span>
+                        <span class="o_stat_text">Vida</span>
+                    </div>
+                </button>
+                <button name="action_print_qr_label" type="object"
+                        class="oe_stat_button" icon="fa-qrcode">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Imprimir</span>
+                        <span class="o_stat_text">QR</span>
+                    </div>
+                </button>
+                <button name="action_view_maintenance_costs" type="object"
+                        class="oe_stat_button" icon="fa-money">
+                    <field name="maintenance_total_cost" widget="statinfo" string="Costo total"/>
+                </button>
+            </xpath>
+
+<!-- Imagen del QR dentro de la ficha, con botón de descarga -->
+            <xpath expr="//sheet" position="inside">
+                <field name="qr_filename" invisible="1"/>
+                <div class="oe_avatar" name="qr_box">
+                    <field name="qr_image" widget="image" options="{'zoom': true}"/>
+                    <button name="action_download_qr" type="object"
+                            string="Descargar QR" icon="fa-download"
+                            class="btn btn-link" invisible="not qr_image"/>
+                </div>
+            </xpath>
+
+            <!-- Ficha técnica: grupo pensado para crecer con nuevos campos -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Ficha técnica" name="ficha_tecnica">
+                    <group>
+                        <group name="ficha_tecnica_identificacion">
+                            <field name="asset_number"/>
+                            <field name="serial_no"/>
+                            <field name="category_id"/>
+                        </group>
+                        <group name="ficha_tecnica_ubicacion">
+                            <field name="warehouse_id"/>
+                            <field name="customer_id"/>
+                        </group>
+                        <!-- TODO: agregar aquí nuevos campos de ficha técnica
+                             (marca, potencia, voltaje, dimensiones, etc.) sin
+                             tocar el resto de la vista. -->
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ================= Búsqueda de Equipo ================= -->
+    <record id="view_maintenance_equipment_search_management" model="ir.ui.view">
+        <field name="name">maintenance.equipment.search.management</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_search"/>
+        <field name="arch" type="xml">
+
+            <field name="owner_user_id" position="after">
+                <field name="asset_number"/>
+                <field name="warehouse_id"/>
+                <field name="customer_id"/>
+            </field>
+
+<!-- El grupo "Group by..." base ya trae Categoría; agregamos Tienda y Cliente
+                 anclando al filtro 'vendor' (por nombre, no por string, requisito de Odoo 17). -->
+            <filter name="vendor" position="after">
+                <filter string="Tienda" name="group_by_warehouse_management"
+                        domain="[]" context="{'group_by': 'warehouse_id'}"/>
+                <filter string="Cliente" name="group_by_customer_management"
+                        domain="[]" context="{'group_by': 'customer_id'}"/>
+            </filter>
+
+        </field>
+    </record>
+
+</odoo>

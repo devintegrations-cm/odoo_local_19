@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem
+        id="menu_maintenance_checklist_template"
+        name="Plantillas de Checklist"
+        parent="maintenance.menu_maintenance_configuration"
+        action="action_maintenance_checklist_template"
+        groups="maintenance.group_equipment_manager"
+        sequence="4"/>
+
+</odoo>

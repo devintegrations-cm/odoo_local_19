@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Acción de servidor: aparece en el menú "Acción" del listado/ficha de
+         equipos. Asigna Nº de activo, token de QR y serial por defecto a los
+         registros seleccionados que aún no los tengan (idempotente). -->
+    <record id="action_backfill_asset_data" model="ir.actions.server">
+        <field name="name">Asignar Nº de activo, QR y serial</field>
+        <field name="model_id" ref="maintenance.model_maintenance_equipment"/>
+        <field name="binding_model_id" ref="maintenance.model_maintenance_equipment"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">records.action_backfill_asset_data()</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,70 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">This module gives every point of sale an <strong>Analytic Account</strong> and lets it flow to the
+accounting records the Point of Sale produces. Once the account is set on the shop, the
+module writes the matching analytic distribution (100 % to that account) on the sale lines
+of the session closing entry, on the stock expense and stock valuation lines of that entry,
+and on the customer invoice when a POS order is invoiced. When the session is closed and
+posted, every line of the moves related to the session carries the distribution.</p>
+<p style="margin:0 0 12px;">The analytic account is also shown on the POS order, on its lines and on the POS session, so
+the link between a register and its analytic account can be checked without opening the
+journal entries. The module is entirely back office: nothing changes in the POS front end.
+It works on Odoo 19.0, Community and Enterprise, and depends on <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code> and
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">analytic</code>.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">The analytic fields are only visible with the <strong>Analytic Accounting</strong> group enabled. Turn on
+the <em>Analytic Accounting</em> option of the Accounting settings, or grant the group from
+<em>Settings › Users &amp; Companies › Users</em>. Without that group the setting simply does not appear
+and the module looks like it does nothing.</p>
+<p style="margin:0 0 12px;">To set the account:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Go to <em>Settings › Point of Sale</em>.</li>
+<li style="margin-bottom:7px;">Pick the point of sale in the selector at the top of the page.</li>
+<li style="margin-bottom:7px;">Fill <strong>Analytic Account</strong> in the <strong>Accounting</strong> block.</li>
+<li style="margin-bottom:7px;">Press <strong>Save</strong>.</li>
+</ul>
+<p style="margin:0 0 12px;">The value is stored per point of sale, so it has to be repeated for every shop that needs
+analytic tracking.</p>
+<p style="margin:0 0 12px;">After changing the setting, reopen the Point of Sale from the backend (<em>Open Register</em> /
+<em>Continue Selling</em>). Reloading the POS tab is not enough for the new value to reach the
+session.</p>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">The account is picked in the Point of Sale settings, in the <strong>Accounting</strong> block.</p>
+<div class="lc-fig"><img alt="Analytic Account field in the Point of Sale settings" src="01_configuration.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Analytic Account field in the Point of Sale settings</p></div>
+<p style="margin:0 0 12px;"><strong>1. POS order.</strong> Every order of a session inherits the analytic account of the point of sale.
+The field is read-only: it follows the session, it is not typed order by order.</p>
+<div class="lc-fig"><img alt="Analytic account on the POS order and its lines" src="02_pos_order.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Analytic account on the POS order and its lines</p></div>
+<p style="margin:0 0 12px;"><strong>2. Invoiced order.</strong> When the customer asks for an invoice, the invoice lines are created
+with the analytic distribution already set. There is no manual step at invoicing time.</p>
+<div class="lc-fig"><img alt="Analytic column filled on the invoice generated from a POS order" src="03_invoice.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Analytic column filled on the invoice generated from a POS order</p></div>
+<p style="margin:0 0 12px;"><strong>3. POS session.</strong> The session shows the same analytic account next to the journal entry
+created when the register is closed.</p>
+<div class="lc-fig"><img alt="Analytic account on the POS session form" src="04_session.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Analytic account on the POS session form</p></div>
+<p style="margin:0 0 12px;"><strong>4. Session closing entry.</strong> This is the result: the closing journal entry of the session
+carries the analytic distribution on its lines.</p>
+<div class="lc-fig"><img alt="Session closing journal entry with the analytic distribution filled" src="05_session_entry.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Session closing journal entry with the analytic distribution filled</p></div>
+<p style="margin:0 0 12px;">Journal entries are only visible to users with accounting access rights; the point of sale
+cashier does not need them.</p>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>The analytic fields are only visible with the "Analytic Accounting" group enabled.</strong> This
+  is standard Odoo behaviour, but without that group the setting does not appear at all and
+  the module looks like it does nothing.</li>
+<li style="margin-bottom:7px;"><strong>On session closing the analytic distribution is written on every line of the related
+  moves</strong>, receivable and cash lines included. That produces analytic items that offset each
+  other (for example +67.48 and -67.48 on the receivable account). It is inherited behaviour
+  from the previous version and it was kept on purpose; if you only want analytic on revenue
+  lines, the analytic items of the balance-sheet accounts have to be filtered out in the
+  analytic reports.</li>
+<li style="margin-bottom:7px;">The account is taken from the point of sale at the moment the session and the orders are
+  created. Changing the analytic account of a point of sale does not rewrite the entries
+  already posted.</li>
+<li style="margin-bottom:7px;">Combo section lines of an invoice (display lines, no amount) do not receive any analytic
+  distribution.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> is 446x446 px, while the core modules use 100x100 px. It
+  should be resized or replaced.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Preway IT Solutions</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Preway IT Solutions \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#114;&#101;&#119;&#97;&#121;&#105;&#116;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#112;&#114;&#101;&#119;&#97;&#121;&#105;&#116;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>

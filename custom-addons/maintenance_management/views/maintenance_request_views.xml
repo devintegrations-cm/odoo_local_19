@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_maintenance_request_form_management" model="ir.ui.view">
+        <field name="name">maintenance.request.form.management</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Referencia (secuencia interna) -->
+            <field name="request_date" position="before">
+                <field name="reference" readonly="1"/>
+            </field>
+
+            <!-- Condición del equipo, junto al tipo de mantenimiento -->
+            <field name="maintenance_type" position="after">
+                <field name="equipment_condition"/>
+            </field>
+
+            <!-- Ubicación donde se realiza el mantenimiento -->
+            <field name="maintenance_team_id" position="after">
+                <field name="maintenance_location_id"/>
+            </field>
+
+            <!-- Pestañas nuevas: Checklist, Costos, Diagnóstico -->
+            <notebook position="inside">
+
+                <page string="Checklist" name="checklist">
+                    <field name="checklist_line_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="is_done" widget="boolean_toggle"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                </page>
+
+                <page string="Costos" name="costos">
+                    <group>
+                        <group>
+                            <field name="purchase_order_id"/>
+                        </group>
+                        <group>
+                            <button name="action_bring_costs_from_po" type="object"
+                                    string="Traer costos de OC" class="btn-secondary"
+                                    invisible="not purchase_order_id"/>
+                        </group>
+                    </group>
+                    <field name="cost_line_ids">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount" sum="Total"/>
+                        </list>
+                    </field>
+                    <group class="oe_subtotal_footer">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="total_cost" widget="monetary" readonly="1"/>
+                    </group>
+                </page>
+
+                <page string="Diagnóstico" name="diagnostico">
+                    <field name="action_taken" placeholder="Observaciones y acciones realizadas durante el mantenimiento..."/>
+                </page>
+
+            </notebook>
+
+        </field>
+    </record>
+
+</odoo>

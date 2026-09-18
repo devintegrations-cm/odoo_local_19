@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Categorías de equipo de demostración -->
+    <record id="demo_equipment_category_neveras" model="maintenance.equipment.category">
+        <field name="name">Neveras</field>
+    </record>
+
+    <record id="demo_equipment_category_molinos" model="maintenance.equipment.category">
+        <field name="name">Molinos</field>
+    </record>
+
+    <record id="demo_equipment_category_espresso" model="maintenance.equipment.category">
+        <field name="name">Máquinas de espresso</field>
+    </record>
+
+    <!-- Plantilla de checklist: Nevera -->
+    <record id="demo_checklist_template_nevera" model="maintenance.checklist.template">
+        <field name="name">Checklist Nevera</field>
+        <field name="category_id" ref="demo_equipment_category_neveras"/>
+    </record>
+
+    <record id="demo_checklist_template_nevera_line_1" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_nevera"/>
+        <field name="name">Equipo limpio</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="demo_checklist_template_nevera_line_2" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_nevera"/>
+        <field name="name">Empaques revisados</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="demo_checklist_template_nevera_line_3" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_nevera"/>
+        <field name="name">Temperatura verificada</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <!-- Plantilla de checklist: Molino -->
+    <record id="demo_checklist_template_molino" model="maintenance.checklist.template">
+        <field name="name">Checklist Molino</field>
+        <field name="category_id" ref="demo_equipment_category_molinos"/>
+    </record>
+
+    <record id="demo_checklist_template_molino_line_1" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_molino"/>
+        <field name="name">Equipo limpio</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="demo_checklist_template_molino_line_2" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_molino"/>
+        <field name="name">Filtro revisado</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="demo_checklist_template_molino_line_3" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_molino"/>
+        <field name="name">Cuchillas revisadas</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <!-- Plantilla de checklist: Máquina de espresso -->
+    <record id="demo_checklist_template_espresso" model="maintenance.checklist.template">
+        <field name="name">Checklist Máquina de Espresso</field>
+        <field name="category_id" ref="demo_equipment_category_espresso"/>
+    </record>
+
+    <record id="demo_checklist_template_espresso_line_1" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_espresso"/>
+        <field name="name">Equipo limpio</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="demo_checklist_template_espresso_line_2" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_espresso"/>
+        <field name="name">Filtro revisado</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="demo_checklist_template_espresso_line_3" model="maintenance.checklist.template.line">
+        <field name="template_id" ref="demo_checklist_template_espresso"/>
+        <field name="name">Empaques revisados</field>
+        <field name="sequence">30</field>
+    </record>
+
+</odoo>

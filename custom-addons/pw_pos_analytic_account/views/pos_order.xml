@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_pos_form_inherit_analytic" model="ir.ui.view">
+        <field name="name">pos.order.form.view.inherit.analytic</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="account_analytic_id" groups="analytic.group_analytic_accounting"/>
+            </xpath>
+            <!--
+                Ojo con el xpath: dentro de <field name="lines"> hay una vista kanban ANTES de
+                la lista, y la kanban tambien tiene un campo qty (pos_order_view.xml:76). Un
+                xpath con // matchea primero ese, y el campo analitico terminaria dentro de la
+                tarjeta kanban en vez de la lista. Por eso se apunta a la lista explicitamente.
+            -->
+            <xpath expr="//field[@name='lines']/list/field[@name='qty']" position="before">
+                <field name="account_analytic_id" groups="analytic.group_analytic_accounting"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_pos_session_form_inherit_analytic" model="ir.ui.view">
+        <field name="name">pos.session.form.view.inherit.analytic</field>
+        <field name="model">pos.session</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='move_id']" position="after">
+                <field name="account_analytic_id" groups="analytic.group_analytic_accounting"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

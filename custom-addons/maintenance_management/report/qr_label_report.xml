@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_equipment_qr_label">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="equipment">
+                <div class="page" style="text-align:center; padding-top:20px;">
+                    <h2 t-esc="equipment.name"/>
+                    <p t-if="equipment.asset_number">
+                        <strong>Activo: </strong><span t-esc="equipment.asset_number"/>
+                    </p>
+                    <p>
+                        <strong>Serie: </strong>
+                        <span t-if="equipment.serial_no" t-esc="equipment.serial_no"/>
+                        <span t-else="">Sin serie asignada</span>
+                    </p>
+                    <p t-if="equipment.category_id" t-esc="equipment.category_id.name"/>
+
+                    <div style="margin:20px auto;">
+                        <img t-if="equipment.qr_image"
+                             t-att-src="'data:image/png;base64,' + equipment.qr_image.decode()"
+                             style="width:200px;height:200px;"/>
+                    </div>
+
+                    <p style="font-size:11px;">Escanea para ver la hoja de vida</p>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_equipment_qr" model="ir.actions.report">
+        <field name="name">Etiqueta QR del Equipo</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">maintenance_management.report_equipment_qr_label</field>
+        <field name="report_file">maintenance_management.report_equipment_qr_label</field>
+        <field name="binding_model_id" ref="maintenance.model_maintenance_equipment"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_euro"/>
+    </record>
+
+</odoo>
