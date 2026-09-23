@@ -36,4 +36,5 @@ Features:
     },
     "installable": True,
     "application": False,
+    "pre_init_hook": "pre_init_rename_module",
 }

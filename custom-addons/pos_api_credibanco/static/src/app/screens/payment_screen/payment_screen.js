@@ -68,4 +68,17 @@ patch(PaymentScreen.prototype, {
             await terminal.recoverPendingPayment(line);
         }
     },
+
+    async sendForceDone(line) {
+        if (line.payment_method_id.use_payment_terminal === 'credibanco') {
+            //Para credibanco no se permite forzar el pago, ya que puede generar inconsistencias entre el POS y el datáfono.
+            this.dialog.add(AlertDialog, { 
+                title: _t("No se puede forzar el pago"),
+                body: _t("Use Recuperar venta pendiente para sincronizar el estado del pago con el datáfono."),
+            });
+            return;
+        }
+        return super.sendForceDone(line);
+    },
+
 });

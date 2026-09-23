@@ -9,4 +9,9 @@ patch(PaymentScreenPaymentLines.prototype, {
         }
         return _t("Send");
     },
+
+    canForceDone(line) {
+        return line.payment_method_id.use_payment_terminal !== 'credibanco';
+    },
 });
+

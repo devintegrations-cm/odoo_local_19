@@ -130,7 +130,7 @@ export class CredibancoTransport {
                 // cannot prove nor disprove the match.
                 return true;
             }
-            return String(answer_value) === String(value);
+            return String(answer_value).trim() === String(value).trim();
         });
     }
 

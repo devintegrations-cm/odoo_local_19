@@ -33,4 +33,5 @@
     },
     'installable': True,
     'auto_install': True,
+    'pre_init_hook': 'pre_init_rename_module',
 }

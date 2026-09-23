@@ -15,7 +15,7 @@
     'website': "desarrollo@libertariocoffee.com",
     'category': 'POS',
     'version': '19.0.1.0.0',
-    'depends': ['base', 'point_of_sale'],
+    'depends': ['base', 'point_of_sale', 'account'],
     'license': 'OPL-1',
     'data': [
         # 'security/ir.model.access.csv',

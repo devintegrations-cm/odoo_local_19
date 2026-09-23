@@ -632,11 +632,9 @@ export class PaymentCredibanco extends PaymentInterface {
      */
     _positions(references, fields) {
         return {
-            [ANSWER.TOTAL]: fields?.total?.value ?? String(references.charge ?? ""),
             [ANSWER.TERMINAL_ID]: references.cashRegister.value,
             [ANSWER.TRANSACTION_NUMBER]: references.numberTransaction.value,
             [ANSWER.CASHIER]: references.operator.value,
-            [ANSWER.TIP]: fields?.tip?.value ?? "0",
         };
     }
 
