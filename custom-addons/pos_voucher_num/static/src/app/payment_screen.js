@@ -12,7 +12,7 @@ const VOUCHER_RE = /^[a-zA-Z0-9]{1,11}$/;
 patch(PaymentScreen.prototype, {
     /**
      * Si el metodo de pago pide numero de aprobacion, lo pregunta ANTES de crear
-     * la linea de pago y lo guarda en `pos.payment.vaucher_num` (el store
+     * la linea de pago y lo guarda en `pos.payment.voucher_num` (el store
      * relacional lo sincroniza solo: no hay serializacion manual en Odoo 19).
      *
      * Se llama a `super` en todos los caminos que crean una linea de pago.
@@ -49,9 +49,9 @@ patch(PaymentScreen.prototype, {
         const added = await super.addNewPaymentLine(...arguments);
         const newLine = this.selectedPaymentLine;
         if (added && newLine) {
-            // `vaucher_num` (con la errata) es el nombre real del campo en
-            // Python. Tiene que coincidir exacto o el store no lo persiste.
-            newLine.vaucher_num = voucher;
+            // `voucher_num` es el nombre real del campo en Python.
+            // Tiene que coincidir exacto o el store no lo persiste.
+            newLine.voucher_num = voucher;
         }
         return added;
     },

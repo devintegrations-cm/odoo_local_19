@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="//field[@name='date_maturity' and @optional='hidden']" position="after">
-                        <field name="vaucher_num_account" />
+                        <field name="voucher_num_account" />
                     </xpath>
                 </data>
             </field>

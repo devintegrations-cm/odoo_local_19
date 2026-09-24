@@ -37,9 +37,7 @@ como columna opcional en la conciliación bancaria:</p>
 <div class="lc-fig"><img alt="Pedido del POS en el backend con la columna Voucher Number" src="04_backend_pedido.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pedido del POS en el backend con la columna Voucher Number</p></div>
 <h2>Limitaciones y pendientes</h2>
 <div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;">El campo que guarda el número se llama <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">vaucher_num</code> en la base de datos, con
-  esa <strong>errata heredada</strong> («vaucher» en vez de «voucher»). Renombrarlo obligaría
-  a migrar los datos existentes, así que se mantuvo tal cual.</li>
+<li style="margin-bottom:7px;">El campo se renombró de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">vaucher_num</code> (errata heredada) a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">voucher_num</code> en 19.0.1.1.0 con migración <strong>RENAME</strong> atómico; los payloads legacy se mapean con log <strong>WARNING</strong> y la compatibilidad se retira en 19.0.1.2.0.</li>
 <li style="margin-bottom:7px;"><strong>Depende de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account_accountant</code> (Odoo Enterprise)</strong>: el módulo extiende una
   vista de la conciliación bancaria. Sin Enterprise no se instala.</li>
 <li style="margin-bottom:7px;">El núcleo <strong>no permite guardar</strong> la casilla del método de pago con una sesión

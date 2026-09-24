@@ -13,15 +13,15 @@
 
         <!-- Linea seleccionada: es la unica que tiene <span class="payment-name"/> -->
         <xpath expr="//span[hasclass('payment-name')]/following-sibling::div[hasclass('payment-amount')]" position="before">
-            <span class="payment-voucher pe-2" t-if="line.vaucher_num">
-                [<t t-esc="line.vaucher_num"/>]
+            <span class="payment-voucher pe-2" t-if="line.voucher_num">
+                [<t t-esc="line.voucher_num"/>]
             </span>
         </xpath>
 
         <!-- Lineas no seleccionadas: su contenedor lleva class="... bg-view ..." -->
         <xpath expr="//div[hasclass('bg-view')]//div[hasclass('payment-amount')]" position="before">
-            <span class="payment-voucher pe-2" t-if="line.vaucher_num">
-                [<t t-esc="line.vaucher_num"/>]
+            <span class="payment-voucher pe-2" t-if="line.voucher_num">
+                [<t t-esc="line.voucher_num"/>]
             </span>
         </xpath>
 

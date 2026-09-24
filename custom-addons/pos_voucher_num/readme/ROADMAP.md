@@ -1,6 +1,9 @@
-- El campo que guarda el número se llama `vaucher_num` en la base de datos, con
-  esa **errata heredada** («vaucher» en vez de «voucher»). Renombrarlo obligaría
-  a migrar los datos existentes, así que se mantuvo tal cual.
+- El campo se renombró de `vaucher_num` (errata heredada) a `voucher_num` en la
+  versión 19.0.1.1.0 mediante migración `RENAME` atómico. La migración
+  19.0.1.1.0 mantiene una compatibilidad temporal que acepta payloads legacy
+  `vaucher_num` y los mapea a `voucher_num` con un log `WARNING`; se retirará
+  en 19.0.1.2.0 junto con el DROP de las columnas huérfanas, cuando ningún
+  POS con assets antiguos siga en uso.
 - **Depende de `account_accountant` (Odoo Enterprise)**: el módulo extiende una
   vista de la conciliación bancaria. Sin Enterprise no se instala.
 - El núcleo **no permite guardar** la casilla del método de pago con una sesión

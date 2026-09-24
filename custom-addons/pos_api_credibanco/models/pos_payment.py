@@ -120,8 +120,8 @@ class PosPayment(models.Model):
         # pos_voucher_num shows the approval number in accounting views. It is an
         # optional module, so the field is only written when it exists: the link
         # between both modules is the value, not a dependency in the manifest.
-        if approval and "vaucher_num" in self._fields and not self.vaucher_num:
-            values["vaucher_num"] = str(approval)
+        if approval and "voucher_num" in self._fields and not self.voucher_num:
+            values["voucher_num"] = str(approval)
 
         self.write(values)
         return True

@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="//field[@name='payment_method_id']" position="after">
-                        <field name="vaucher_num" string="Voucher Number"/>
+                        <field name="voucher_num" string="Voucher Number"/>
                     </xpath>
                 </data>
             </field>

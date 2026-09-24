@@ -195,7 +195,7 @@ recuperar, porque cobrar dos veces es peor que cobrar tarde.
 | wizard `credibanco.extra.info.wizard` | Alta manual de un concepto por un responsable |
 
 Si `pos_voucher_num` está instalado, el número de aprobación se copia también a
-su campo `vaucher_num` (que es lo que muestran sus vistas contables). La
+su campo `voucher_num` (que es lo que muestran sus vistas contables). La
 integración es por valor, no por dependencia del manifest: por eso este módulo se
 puede instalar sin `pos_voucher_num`.
 
