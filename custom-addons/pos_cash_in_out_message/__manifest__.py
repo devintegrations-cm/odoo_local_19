@@ -26,6 +26,10 @@ Features:
     "data": [
         "views/pos_config_views.xml",
     ],
+    "images": [
+        "static/description/01_configuracion.png",
+        "static/description/02_confirmacion.png",
+    ],
     "assets": {
         "point_of_sale._assets_pos": [
             "pos_cash_in_out_message/static/src/css/cash_move_confirm_popup.css",

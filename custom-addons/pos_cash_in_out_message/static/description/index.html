@@ -1,0 +1,137 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Pide una <strong>confirmación explícita</strong> antes de registrar una entrada o salida de efectivo en el
+Punto de Venta. Al pulsar <em>Confirmar</em> en la ventana de <em>Entrada/salida de efectivo</em>, aparece un
+diálogo que muestra el tipo de movimiento (entrada o salida), el monto y, si el punto de venta lo
+tiene configurado, un <strong>mensaje propio</strong> del negocio (por ejemplo, un recordatorio del
+procedimiento de caja). El movimiento solo se registra si el cajero responde <em>Sí, registrar</em>.</p>
+<p style="margin:0 0 12px;">Existe para evitar movimientos de caja registrados por error: un monto mal digitado o una salida
+marcada como entrada se detecta antes de que afecte el cuadre de la sesión.</p>
+<p style="margin:0 0 12px;">Trabaja junto con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_closing_validation</code>, del que depende: ese módulo lleva la cuenta de
+movimientos permitidos por sesión, y este muestra en el mismo diálogo el aviso de <strong>último
+movimiento permitido</strong> cuando corresponde.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_closing_validation</code> (módulo propio de este repositorio). Trae a su vez <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code>. No
+  hay dependencias externas ni librerías de Python adicionales.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em>. No crea modelos nuevos ni permisos: agrega dos campos a
+la configuración del punto de venta y los archivos del POS. Después de instalar o actualizar, hay
+que <strong>volver a entrar al POS</strong> desde el backend para que cargue los archivos nuevos.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<p style="margin:0 0 12px;">En Odoo 17 el módulo se llamaba <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_in_out_message</code>. Al instalarse, un <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pre_init_hook</code>
+(<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hooks.py</code>) renombra el módulo viejo en la base: pasa sus xmlids (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ir_model_data</code>), su registro
+en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ir_module_module</code> y las dependencias registradas a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_in_out_message</code>. Las consultas son
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">UPDATE</code> que no hacen nada si el nombre viejo no existe, así que el hook se puede ejecutar más de
+una vez sin efecto.</p>
+<p style="margin:0 0 12px;">Los campos de configuración conservan el mismo nombre técnico que en 17
+(<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_in_out_message_enabled</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_in_out_message</code> en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>), por lo que la
+configuración existente se mantiene sin script de datos.</p>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Ajustes</em>, elegir el punto de venta en la parte superior y
+buscar el bloque <strong>Interfaz de PdV</strong>. Allí está la opción <strong>Mensaje en movimientos de efectivo</strong>.</p>
+<div class="lc-fig"><img alt="Punto de venta › Configuración › Ajustes › Interfaz de PdV: opción Mensaje en movimientos de efectivo" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración › Ajustes › Interfaz de PdV: opción Mensaje en movimientos de efectivo</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Casilla</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_in_out_message_enabled</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>). Opcional; desmarcada por
+  defecto. Al marcarla aparece el cuadro de texto del mensaje.</li>
+<li style="margin-bottom:7px;"><strong>Cuadro de texto</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_in_out_message</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>). Opcional; vacío por defecto.
+  Texto libre, sin formato, que se muestra dentro del diálogo de confirmación.</li>
+</ul>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>La confirmación no depende de esta opción.</strong> El diálogo de confirmación aparece siempre que el
+  módulo está instalado; la casilla solo decide si se muestra el mensaje. Así funcionaba también en
+  Odoo 17.</li>
+<li style="margin-bottom:7px;">La configuración es <strong>por punto de venta</strong>. Hay que repetirla en cada tienda.</li>
+<li style="margin-bottom:7px;">Desmarcar la casilla oculta el mensaje pero <strong>no borra el texto</strong>: al volver a marcarla, el
+  mensaje anterior sigue ahí.</li>
+<li style="margin-bottom:7px;">Los cambios se ven en el POS después de volver a entrar a la sesión desde el backend.</li>
+<li style="margin-bottom:7px;">El límite de movimientos por sesión y el aviso de último movimiento se configuran en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_closing_validation</code> (<em>Máximo de movimientos de efectivo</em>), no en este módulo.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Flujo</h2>
+<p style="margin:0 0 12px;">En el POS, abrir el menú (☰) y elegir <strong>Entrada/salida de efectivo</strong>. Elegir el tipo de
+movimiento, escribir el monto y el motivo, y pulsar <strong>Confirmar</strong>. Antes de registrar nada aparece
+el diálogo de confirmación, que muestra:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">el tipo de movimiento, en verde si es entrada y en rojo si es salida;</li>
+<li style="margin-bottom:7px;">el monto con el formato de la moneda del POS;</li>
+<li style="margin-bottom:7px;">el aviso de <strong>último movimiento permitido</strong>, si este movimiento agota el límite de la sesión;</li>
+<li style="margin-bottom:7px;">el mensaje configurado, si la opción está habilitada y el texto no está vacío.</li>
+</ul>
+<p style="margin:0 0 12px;"><strong>Sí, registrar</strong> registra el movimiento por el flujo normal de Odoo. <strong>Cancelar</strong> cierra el
+diálogo y vuelve a la ventana anterior con el monto ya escrito, para corregirlo.</p>
+<div class="lc-fig"><img alt="Diálogo de confirmación de una salida de efectivo con el mensaje configurado" src="02_confirmacion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Diálogo de confirmación de una salida de efectivo con el mensaje configurado</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Monto vacío o cero</strong>: no se pide confirmación. El POS muestra su aviso estándar de movimiento
+  ignorado.</li>
+<li style="margin-bottom:7px;"><strong>Límite de movimientos alcanzado</strong>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_closing_validation</code> bloquea el movimiento y el diálogo
+  no llega a abrirse.</li>
+<li style="margin-bottom:7px;"><strong>Último movimiento permitido</strong>: el aviso va dentro del diálogo de confirmación, y el aviso
+  aparte que muestra <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_closing_validation</code> se omite para no preguntar dos veces.</li>
+<li style="margin-bottom:7px;"><strong>Sin conexión</strong>: el POS no puede consultar cuántos movimientos lleva la sesión, así que el
+  diálogo no muestra el aviso de último movimiento. El control del límite en ese caso es de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_closing_validation</code>.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>No aparece la opción <em>Entrada/salida de efectivo</em> en el menú del POS.</strong> Es una condición de
+  Odoo, no de este módulo: el punto de venta debe tener activo el control de efectivo y el usuario
+  debe tener permiso para mover caja.</li>
+<li style="margin-bottom:7px;"><strong>El diálogo de confirmación no aparece.</strong> Verificar que el módulo esté instalado y volver a
+  entrar a la sesión del POS desde el backend. Si el monto está vacío o es cero, el diálogo no se
+  muestra (ver <em>Casos especiales</em>).</li>
+<li style="margin-bottom:7px;"><strong>El diálogo aparece, pero sin el mensaje.</strong> Revisar que la casilla esté marcada, que el texto no
+  esté vacío y que se haya vuelto a entrar al POS después de guardar.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>El nombre y la ayuda de la casilla no describen lo que hace.</strong> El campo se llama <em>Habilitar
+  mensaje en movimiento de Efectivo</em> y su ayuda dice "Pedir confirmación antes de registrar un
+  movimiento de efectivo", pero la confirmación sale siempre: la casilla solo controla el mensaje.
+  Es el mismo comportamiento de Odoo 17. Queda documentado y sin cambiar el código.</li>
+<li style="margin-bottom:7px;">En el diálogo, el ícono de información y el mensaje configurado salen en renglones separados: la
+  regla <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.config-message</code> del CSS no tiene <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">display: flex</code>, a diferencia del aviso de último
+  movimiento. Es solo estético.</li>
+<li style="margin-bottom:7px;">Los textos del diálogo están escritos en español dentro del código, y la plantilla no los marca
+  para traducción. Hoy no importa porque los POS operan en español.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>: en <em>Aplicaciones</em> se ve el ícono genérico de Odoo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_config.py</code>: los dos campos de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> y sus campos relacionados en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.config.settings</code>. En Ajustes llevan el prefijo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_</code> porque ese modelo es compartido por
+  todos los módulos, y un nombre sin prefijo podría chocar con otro.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_config_views.xml</code>: el bloque en <em>Ajustes › Interfaz de PdV</em>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/cash_move_popup_patch.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">CashMovePopup.confirm()</code> que abre el
+  diálogo antes de delegar en el flujo estándar.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/cash_move_confirm_popup.js</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.xml</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.css</code>: el diálogo, un componente OWL sobre
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Dialog</code> que se abre con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">makeAwaitable</code> y responde por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getPayload</code>. Los estilos están todos
+  bajo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.cash-move-confirm-popup</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hooks.py</code>: el renombre desde Odoo 17 (ver <em>Instalación</em>).</li>
+<li style="margin-bottom:7px;">Los campos llegan al POS sin cargador propio: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> no define <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_fields</code> y
+  el POS lee todos sus campos.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Dependencia con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_closing_validation</code>.</strong> El parche usa tres métodos que ese módulo agrega
+  al mismo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">CashMovePopup</code>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">isCashMoveBlocked()</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">isLastCashMove()</code> y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setLastMoveWarningSkipped()</code>. Si se renombra alguno, hay que actualizar los dos módulos en el
+  mismo cambio. Si el parche no encuentra esos métodos, el POS falla al pulsar <em>Confirmar</em>.</li>
+<li style="margin-bottom:7px;"><strong>Tests.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_cash_in_out_message.py</code> cubre la configuración: valor por defecto, que
+  Ajustes escriba y lea en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>, el prefijo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_</code> y que desactivar no borre el texto. El
+  diálogo del POS no tiene test automático: se valida a mano en el navegador.</li>
+<li style="margin-bottom:7px;"><strong>Lección de la migración.</strong> En Odoo 17, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">assets</code> apuntaba a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_in_out_message/static/...</code>.
+  Tras renombrar la carpeta, esas rutas dejaron de existir y el POS no cargaba nada del módulo,
+  sin ningún error al arrancar. Al renombrar un módulo, las rutas de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">assets</code> deben empezar con el
+  nombre nuevo de la carpeta.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Miguel Bolivar, Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Miguel Bolivar</li>
+</ul></div>
+</div>
