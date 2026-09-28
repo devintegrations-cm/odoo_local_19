@@ -34,6 +34,12 @@ Extends the standard Odoo Point of Sale cash control workflow with:
     "data": [
         "views/pos_config_views.xml",
     ],
+    "images": [
+        "static/description/01_configuracion.png",
+        "static/description/02_movimiento_contador.png",
+        "static/description/03_ultimo_movimiento.png",
+        "static/description/04_limite_alcanzado.png",
+    ],
     "assets": {
         "point_of_sale._assets_pos": [
             "pos_closing_validation/static/src/js/pos_store_patch.js",

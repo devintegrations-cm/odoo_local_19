@@ -1,0 +1,248 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Refuerza el control de efectivo del Punto de Venta en dos momentos: durante la sesión, al registrar
+<strong>entradas y salidas de efectivo</strong>, y al <strong>cerrar la caja</strong>.</p>
+<p style="margin:0 0 12px;">Durante la sesión:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Limita la cantidad de entradas/salidas de efectivo por sesión (por defecto, 2) y muestra en la
+  ventana el contador de movimientos y un resumen del efectivo esperado.</li>
+<li style="margin-bottom:7px;">Avisa antes de registrar el <strong>último movimiento permitido</strong> y bloquea la ventana cuando el límite
+  se alcanzó. El límite también se valida en el servidor.</li>
+<li style="margin-bottom:7px;">Evita que un reintento por corte de conexión registre dos veces el mismo movimiento.</li>
+<li style="margin-bottom:7px;">Solo un responsable del Punto de Venta puede eliminar un movimiento de efectivo.</li>
+</ul>
+<p style="margin:0 0 12px;">Al cerrar la caja:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Bloquea el cierre cuando la diferencia entre el efectivo contado y el esperado supera la
+  <strong>diferencia máxima autorizada</strong> de Odoo, para cualquier rol, con un mensaje configurable.</li>
+<li style="margin-bottom:7px;">Revisa la consistencia de la sesión (movimientos por encima del límite, órdenes pagadas sin pagos,
+  sesiones de rescate pendientes): bloquea al cajero y solo advierte al responsable, que puede
+  cerrar dejando constancia en el historial de la sesión.</li>
+<li style="margin-bottom:7px;">Toma un bloqueo acotado sobre la sesión para que dos terminales no cierren ni muevan caja a la vez
+  sin que ninguna quede colgada.</li>
+</ul>
+<p style="margin:0 0 12px;">Opcionalmente, impide abrir una sesión nueva mientras existan sesiones de rescate sin cerrar.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code> (Odoo 19 Community). No requiere otros módulos ni librerías de Python adicionales.</li>
+<li style="margin-bottom:7px;">El punto de venta necesita un método de pago de efectivo con <strong>conteo de caja</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">is_cash_count</code>):
+  el resumen de efectivo y la diferencia se calculan sobre ese método, igual que en Odoo.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_in_out_message</code>, de este mismo repositorio, depende de este módulo y usa sus avisos
+  dentro de su diálogo de confirmación.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar <em>Pos Closing Validation</em> desde <em>Aplicaciones</em>. El módulo agrega campos a la configuración
+del punto de venta, a la sesión y a las líneas de extracto, y los archivos del POS. No crea menús
+ni permisos nuevos. Después de instalar o actualizar, <strong>volver a entrar al POS</strong> desde el backend
+para que cargue los archivos nuevos.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Los campos de configuración conservan su nombre técnico (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maximum_cash_in_out_moves</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_difference_exceeded_message</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">enable_rescue_session_validation</code>), por lo que la
+  configuración existente se mantiene sin script de datos. Lo mismo vale para la marca
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_move</code> de los movimientos ya registrados.</li>
+<li style="margin-bottom:7px;">Se agrega la columna <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_move_uuid</code> con una restricción única por sesión. Los movimientos
+  históricos quedan con el valor vacío, que no viola la restricción.</li>
+<li style="margin-bottom:7px;">Se eliminó la auditoría de continuidad del saldo de apertura de la 17 (campo
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">expected_opening_balance</code> y validación en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">set_cashbox_pos</code>). La columna queda huérfana en la
+  base y no se usa.</li>
+<li style="margin-bottom:7px;">En Odoo 19 el control de efectivo del punto de venta se calcula a partir de los métodos de pago;
+  la validación de la 17 que lo exigía junto con un método de caja ya no hace falta.</li>
+</ul>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Ajustes</em>, elegir el punto de venta en la parte superior y
+buscar el bloque <strong>Pagos</strong>. Las opciones del módulo están junto a <em>Establecer la diferencia
+máxima</em>, que es de Odoo.</p>
+<div class="lc-fig"><img alt="Punto de venta › Configuración › Ajustes › Pagos: diferencia máxima de Odoo y las tres opciones del módulo" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración › Ajustes › Pagos: diferencia máxima de Odoo y las tres opciones del módulo</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Establecer la diferencia máxima</strong> y <strong>Diferencia autorizada</strong> (campos de Odoo
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">set_maximum_difference</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">amount_authorized_diff</code>). Opcional; desmarcada por defecto. Es el
+  interruptor de la validación de diferencia al cerrar: si está desmarcada, el módulo no compara el
+  efectivo contado con el esperado.</li>
+<li style="margin-bottom:7px;"><strong>Máximo de movimientos de efectivo</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maximum_cash_in_out_moves</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>).
+  Obligatorio; 2 por defecto. Número de entradas/salidas de efectivo permitidas por sesión. Debe
+  ser mayor que cero: el valor 0 o negativo se rechaza al guardar.</li>
+<li style="margin-bottom:7px;"><strong>Mensaje de diferencia de efectivo</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_difference_exceeded_message</code>). Opcional; vacío por
+  defecto. Texto del aviso que bloquea el cierre por diferencia. Solo se escribe el texto: la
+  diferencia y el máximo autorizado se agregan solos al final. Vacío, se usa el mensaje por defecto
+  del módulo.</li>
+<li style="margin-bottom:7px;"><strong>Validar sesiones de rescate</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">enable_rescue_session_validation</code>). Opcional; desmarcada por
+  defecto. Impide abrir una sesión nueva mientras haya sesiones de rescate sin cerrar, y bloquea al
+  cajero (advierte al responsable) al cerrar si hay rescates pendientes con datos.</li>
+</ul>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">La configuración es <strong>por punto de venta</strong>. Hay que repetirla en cada tienda.</li>
+<li style="margin-bottom:7px;">El límite se lee del servidor cada vez que se abre la ventana de entrada/salida de efectivo, así
+  que un cambio en el límite rige desde el siguiente movimiento, sin volver a entrar al POS.</li>
+<li style="margin-bottom:7px;"><strong>No bajar el límite con sesiones abiertas.</strong> Si una sesión ya tiene más movimientos que el nuevo
+  límite, el cajero no podrá cerrarla (ver <em>Solución de problemas</em>).</li>
+<li style="margin-bottom:7px;">La diferencia de efectivo se valida para todos los roles, incluidos los responsables.</li>
+<li style="margin-bottom:7px;">Quién es "responsable" se decide por el grupo de administrador del Punto de Venta
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.group_pos_manager</code>) del <strong>usuario de Odoo</strong> con el que se abrió el POS. El
+  empleado elegido con PIN en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> no cambia ese rol.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Entradas y salidas de efectivo</h2>
+<p style="margin:0 0 12px;">En el POS, abrir el menú (☰) y elegir <strong>Entrada/salida de efectivo</strong>. Antes de abrir la ventana,
+el POS consulta el estado de la sesión en el servidor. La ventana muestra, además de los campos de
+Odoo, un <strong>resumen de efectivo</strong> (apertura, ventas en efectivo, entradas, salidas y efectivo
+esperado) y el <strong>contador</strong> de movimientos de la sesión frente al máximo configurado.</p>
+<div class="lc-fig"><img alt="Ventana de entrada/salida de efectivo con el resumen y el contador de movimientos" src="02_movimiento_contador.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ventana de entrada/salida de efectivo con el resumen y el contador de movimientos</p></div>
+<p style="margin:0 0 12px;">Si el movimiento que se va a registrar es el último permitido, se pide una confirmación explícita.
+Con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_in_out_message</code> instalado, el aviso aparece dentro de su diálogo de confirmación
+(captura); sin ese módulo, aparece un diálogo propio, <em>Último movimiento de efectivo</em>, con el
+conteo y los botones <em>Confirmar</em> y <em>Cancelar</em>.</p>
+<div class="lc-fig"><img alt="Aviso de último movimiento permitido dentro del diálogo de confirmación" src="03_ultimo_movimiento.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aviso de último movimiento permitido dentro del diálogo de confirmación</p></div>
+<p style="margin:0 0 12px;">Cuando la sesión ya usó todos los movimientos, la ventana muestra <strong>Límite alcanzado</strong> y el botón
+<em>Confirmar</em> queda deshabilitado. Si el aviso se saltara (por ejemplo, con una llamada directa al
+servidor), el servidor rechaza el movimiento con <em>Se alcanzó el límite de movimientos de efectivo</em>.</p>
+<div class="lc-fig"><img alt="Ventana bloqueada por límite alcanzado: aviso, contador en el máximo y Confirmar deshabilitado" src="04_limite_alcanzado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ventana bloqueada por límite alcanzado: aviso, contador en el máximo y Confirmar deshabilitado</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Cierre de caja</h2>
+<p style="margin:0 0 12px;">Al elegir <strong>Cerrar caja registradora</strong>, el POS consulta primero el estado de la sesión. Si el
+usuario no puede cerrar, aparece <em>No se puede cerrar la sesión</em> con los motivos, y la ventana de
+cierre de Odoo no llega a abrirse. Si puede, se abre la ventana de cierre estándar. Al confirmar,
+el servidor valida de nuevo y, si algo falla, muestra el aviso con estos botones:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Diferencia superada</strong> (el efectivo contado se aparta del esperado más que la diferencia
+  autorizada): <em>Revisar órdenes</em>, que lleva a la lista de órdenes, o <em>Cancelar</em>, que deja el
+  efectivo contado en 0 para volver a contar. Aplica a todos los roles.</li>
+<li style="margin-bottom:7px;"><strong>Sesiones de rescate pendientes</strong>: <em>Revisar órdenes</em> o <em>Cancelar</em>.</li>
+<li style="margin-bottom:7px;"><strong>Movimientos por encima del límite</strong> u <strong>órdenes pagadas sin pagos</strong>: un único botón,
+  <em>Entendido</em>.</li>
+</ul>
+<p style="margin:0 0 12px;">Ningún aviso del módulo cancela órdenes. El botón de Odoo que cancela las órdenes abiertas se
+mantiene solo para los avisos propios de Odoo (por ejemplo, órdenes en borrador).</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Responsable del Punto de Venta</strong>: las revisiones de consistencia (movimientos por encima del
+  límite, órdenes pagadas sin pagos, rescates pendientes) no lo bloquean. Si cierra con alguna
+  activa, queda una nota <em>Validación de caja superada por un responsable</em> en el historial de la
+  sesión. La diferencia autorizada sí lo bloquea.</li>
+<li style="margin-bottom:7px;"><strong>Quién ve el aviso de diferencia</strong>: la ventana de cierre de Odoo ya compara el conteo con la
+  diferencia autorizada. A un usuario que no es responsable, Odoo le muestra su propio aviso y no
+  lo deja continuar; a un responsable le ofrece seguir de todos modos. En ese caso el servidor
+  aplica la regla del módulo y el cierre se bloquea igual.</li>
+<li style="margin-bottom:7px;"><strong>Sin conexión</strong>: la ventana avisa que no puede verificar el límite y pide confirmar <em>Registrar
+  de todos modos</em>. El movimiento queda en la cola del POS y el servidor aplica el límite al
+  sincronizar. Si el servidor responde con un error que no es de conexión, la ventana se bloquea.</li>
+<li style="margin-bottom:7px;"><strong>Reintentos</strong>: cada ventana genera un identificador único para su movimiento. Si el POS reenvía
+  el mismo movimiento (respuesta perdida o cola sin conexión), el servidor lo reconoce y no lo
+  registra dos veces.</li>
+<li style="margin-bottom:7px;"><strong>Dos terminales a la vez</strong>: el movimiento de efectivo espera hasta 2 segundos a que la otra
+  terminal libere la sesión, y el cierre hasta 10 segundos. Si se agota la espera, el aviso trae el
+  conteo actual de movimientos para comprobarlo antes de reintentar.</li>
+<li style="margin-bottom:7px;"><strong>Sesión de rescate</strong>: no admite movimientos de efectivo ni se cierra desde el POS; se cierra
+  desde el backend.</li>
+<li style="margin-bottom:7px;"><strong>Eliminar un movimiento</strong>: el servidor solo lo permite a un responsable del Punto de Venta.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>"Se alcanzó el límite de movimientos de efectivo"</strong>: la sesión no admite más movimientos. Para
+  un caso excepcional, un responsable puede subir el límite en Ajustes; rige desde el siguiente
+  movimiento.</li>
+<li style="margin-bottom:7px;"><strong>"Existe una inconsistencia en los movimientos de efectivo"</strong>: la sesión tiene más movimientos
+  que el límite, normalmente porque el límite se bajó con la sesión abierta o por movimientos
+  sincronizados después de un corte. Un responsable puede cerrar la sesión; queda registrado en el
+  historial.</li>
+<li style="margin-bottom:7px;"><strong>"La diferencia de efectivo supera la diferencia máxima autorizada"</strong> (o el mensaje
+  configurado): volver a contar con <em>Cancelar</em>, o revisar si falta registrar una orden. Si la
+  diferencia es real, la regla no se salta con un rol: hay que corregir el conteo o ajustar la
+  diferencia autorizada.</li>
+<li style="margin-bottom:7px;"><strong>"Hay N órdenes pagadas sin pagos registrados"</strong>: una orden pagada con total distinto de cero
+  no tiene líneas de pago. Revisarla antes de cerrar o pedir a un responsable que cierre.</li>
+<li style="margin-bottom:7px;"><strong>"No se pudo registrar el movimiento... Otro terminal está utilizando la caja"</strong>: otra terminal
+  está cerrando o moviendo caja. Comprobar el conteo que trae el mensaje antes de repetir el
+  movimiento.</li>
+<li style="margin-bottom:7px;"><strong>"El Punto de Venta no está sincronizado con la sesión actual"</strong> o <strong>"Sesión no disponible"</strong>:
+  el navegador tiene una sesión cerrada o de rescate. Pulsar <em>Actualizar la página</em>.</li>
+<li style="margin-bottom:7px;"><strong>"No puede abrir una nueva sesión porque existe(n) sesión(es) de rescate pendiente(s)"</strong>: abrir
+  el tablero del punto de venta, entrar al enlace de sesiones de rescate pendientes y cerrarlas.</li>
+<li style="margin-bottom:7px;"><strong>"Solo un responsable del Punto de Venta puede eliminar un movimiento de efectivo"</strong>: registrar
+  el movimiento contrario y avisar a un responsable.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>La fila "Movimientos de efectivo X/N" no aparece en la ventana de cierre si el punto de venta
+  usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code>.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">closing_popup_extension.xml</code> la inserta después del desglose de entradas/salidas
+  del bloque estándar, pero con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo en el punto de venta Odoo oculta ese bloque y dibuja
+  una copia propia. Comprobado en el POS local, que tiene <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo: la plantilla heredada
+  contiene la fila, pero no se muestra. Por eso no hay captura de la ventana de cierre. Verificar en
+  STG qué tiendas tienen <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo.</li>
+<li style="margin-bottom:7px;"><strong>La lista de movimientos no se puede abrir desde el POS.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_move_popup.xml</code> elimina el
+  botón <em>Detalles</em> de la ventana de entrada/salida de efectivo, y en Odoo 19 esa lista solo se abre
+  desde ese botón. En consecuencia, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_move_list_popup_patch.js</code>, que oculta el borrado a los
+  cajeros, no tiene efecto visible. La restricción de borrado sigue aplicándose en el servidor.</li>
+<li style="margin-bottom:7px;"><strong>Las sesiones de rescate pueden no existir en Odoo 19.</strong> El core de Odoo 19 conserva el campo
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">rescue</code> y lo filtra, pero no se encontró código fuera de los tests que cree una sesión con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">rescue=True</code>. La validación de apertura, el bloqueo de movimientos en rescates y el enlace
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">rescue_parent_session_id</code> se migraron sin cambios y podrían no activarse nunca. Para comprobarlo
+  en una tienda: buscar sesiones de rescate en <em>Punto de venta › Sesiones</em> después de operar.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">rescue_parent_session_id</code> solo se completa si <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">rescue</code> llega en los valores de creación de la
+  sesión; si una versión futura marca el rescate con una escritura posterior, el vínculo queda
+  vacío.</li>
+<li style="margin-bottom:7px;">El rol de responsable sale del usuario de Odoo, no del empleado de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code>. En una tienda donde
+  todos los empleados comparten un usuario con permisos de administrador del POS, las revisiones de
+  consistencia nunca bloquean.</li>
+<li style="margin-bottom:7px;">Los campos nuevos de la sesión (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">rescue_parent_session_id</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">rescue_session_ids</code>) y de las líneas
+  de extracto (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_move</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_move_uuid</code>) no se muestran en ninguna vista.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>: en <em>Aplicaciones</em> se ve el ícono genérico de Odoo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_config.py</code>: los tres campos de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>, sus relacionados con prefijo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_</code> en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.config.settings</code>, la restricción del límite mayor que cero y el bloqueo de apertura por
+  rescates pendientes (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">open_ui</code> → <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_check_rescue_sessions_before_open_ui</code>). Se usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">UserError</code> y no
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">RedirectWarning</code> porque el controlador <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/pos/ui</code> descarta el valor de retorno de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">open_ui()</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_session.py</code>: límite e idempotencia (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">try_cash_in_out</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_prepare_account_bank_statement_line_vals</code>), borrado solo para responsables
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">delete_cash_in_out</code>), bloqueo acotado de la fila de la sesión (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_lock_session_row</code>, 2 s para
+  movimientos y 10 s para el cierre), validaciones de cierre (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_cannot_close_session</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">post_closing_cash_details</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_check_authorized_cash_difference</code>) y los dos endpoints del POS,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">get_cash_in_out_control_data</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">get_closing_validation_info</code>, que exigen el grupo de usuario del
+  POS.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/account_bank_statement_line.py</code>: la marca <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_move</code> y el identificador
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_move_uuid</code>, con restricción única por sesión declarada con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models.Constraint</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_config_views.xml</code>: las tres opciones en <em>Ajustes › Pagos</em>, después de <em>Establecer la
+  diferencia máxima</em>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/pos_store_patch.js</code>: controles previos a <em>Entrada/salida de efectivo</em> y a <em>Cerrar
+  caja registradora</em>, y los botones de los avisos de cierre (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">handleClosingError</code>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/cash_move_popup_patch.js</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/xml/cash_move_popup.xml</code>: contador,
+  resumen, aviso de último movimiento, bloqueo por límite, avisos sin conexión y el identificador
+  del movimiento.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/cash_move_list_popup_patch.js</code>: oculta el borrado a quien no es responsable (ver
+  <em>Limitaciones conocidas</em>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/xml/closing_popup_extension.xml</code>: la fila de movimientos en la ventana de cierre (ver
+  <em>Limitaciones conocidas</em>).</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Contrato con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_in_out_message</code>.</strong> Ese módulo parcha el mismo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">CashMovePopup</code> y usa
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">isCashMoveBlocked()</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">isLastCashMove()</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setLastMoveWarningSkipped()</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getCashMoveControl()</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.closingValidationInfo</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">confirm()</code> encadenado con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">super</code>. Renombrar cualquiera obliga a
+  cambiar los dos módulos en el mismo commit.</li>
+<li style="margin-bottom:7px;"><strong>Todas las reglas se deciden en el servidor</strong>; el POS solo las muestra. Un aviso quitado del JS
+  no habilita nada que el servidor rechace.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">get_closing_control_data</code> de Odoo no se sobreescribe a propósito: agregar claves a su respuesta
+  hace que OWL rechace las props de la ventana de cierre estándar.</li>
+<li style="margin-bottom:7px;">El resumen usa los cálculos de Odoo: el efectivo esperado es <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_register_balance_end</code> y la
+  diferencia es <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_register_difference</code>. Las entradas/salidas del resumen suman todas las líneas
+  de caja de la sesión por signo; el contador del límite solo cuenta las marcadas con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_cash_move</code>.</li>
+<li style="margin-bottom:7px;">Las cadenas de nivel de módulo usan <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_lt</code>: con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_</code> en tiempo de importación Odoo 19 no detecta el
+  idioma y guarda el texto sin traducir.</li>
+<li style="margin-bottom:7px;"><strong>Tests.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_closing_validation.py</code> tiene 66 tests: resumen y su igualdad con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_register_balance_end</code>, límite, idempotencia, contrato del bloqueo acotado, diferencia
+  autorizada para todos los roles, política por rol con nota de auditoría, borrado restringido,
+  rescates y apertura bloqueada. La concurrencia real no se puede probar en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">TransactionCase</code>: se
+  prueba el contrato SQL y se simula el fallo del bloqueo. El JS del POS no tiene tests
+  automáticos.</li>
+<li style="margin-bottom:7px;">Los comentarios de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_filter_non_empty_rescues</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">create</code> en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_session.py</code> remiten al
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">README.md</code> anterior; ese contenido está ahora en <em>Limitaciones conocidas</em>.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Miguel Bolivar, Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Miguel Bolivar</li>
+</ul></div>
+</div>
