@@ -13,6 +13,12 @@
     'website': "https://www.libertariocoffee.com",
     'license': 'LGPL-3',
     'depends': ['purchase', 'product', 'stock'],
+    'images': [
+        'static/description/01_configuracion.png',
+        'static/description/02_producto.png',
+        'static/description/03_orden_compra.png',
+        'static/description/04_recepcion.png',
+    ],
     'data': [
         'security/ir.model.access.csv',
         'views/purchase_order_views.xml',

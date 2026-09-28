@@ -1,48 +1,191 @@
-<section class="oe_container oe_dark">
-    <div class="col-md-12">
-        <h2 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Purchase prices validation</b></h2>
-    </div>
-    <div class="col-md-12" style="text-align: left;">
-        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Preview</b></h3>
-        <p style="font-size: 18px;">
-            With the button "Confirm order" or "save manually" validate two points:
-        </p>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="preview.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-        <p style="font-size: 18px;">
-            1. Field "Unit Price" not equals to 0.
-        </p>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="price_zero.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-        <p style="font-size: 18px;">
-            2. Field "Unit Price" not have a variation greater than "Variation percentage" of product add.
-        </p>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="price_variation.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-        <p style="font-size: 18px;">
-            Validation will be in products type "Storable Product" and only users with permissions Administrator can confirm order with variations.
-        </p>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="order_confirm.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Controla el <strong>precio unitario</strong> con el que se compra y se recibe mercancía. Antes de confirmar una
+orden de compra o de validar una recepción, compara el precio de cada producto con su <strong>costo</strong> y
+detiene el proceso si encuentra alguno de estos casos:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">la diferencia entre el precio unitario y el costo supera el <strong>porcentaje de variación</strong> definido
+  en el producto (10 % por defecto);</li>
+<li style="margin-bottom:7px;">el precio unitario es <strong>0</strong>.</li>
+</ul>
+<p style="margin:0 0 12px;">Cuando eso pasa, se abre un asistente con una tabla de los productos afectados: variación
+permitida, variación generada, costo y costo ingresado. Un <strong>administrador de inventario</strong> puede
+confirmar igual; cualquier otro usuario solo puede cerrar el aviso y pedir la aprobación.</p>
+<p style="margin:0 0 12px;">Existe para que un precio mal digitado, o una línea sin precio, no llegue al costo del inventario
+sin que nadie lo revise.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">product</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock</code>, todos de Odoo Community. No hay dependencias externas ni
+  librerías de Python adicionales.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em>. Agrega el campo <em>Porcentaje de variación</em> al producto, dos
+opciones en los ajustes de Inventario y los dos asistentes de aviso. Las dos validaciones quedan
+<strong>activas</strong> desde la instalación.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<p style="margin:0 0 12px;">No hay script de datos: el campo del producto (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">porcent_variation</code>) y los parámetros de
+configuración conservan el mismo nombre técnico que en 17, así que los porcentajes ya cargados y
+el estado de las opciones se mantienen.</p>
+<p style="margin:0 0 12px;">Cambios de código en la migración:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">El filtro de productos pasó de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">type == 'product'</code> a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">type == 'consu'</code>, porque Odoo 19 eliminó el
+  tipo <em>Almacenable</em>. Esto <strong>amplía</strong> el alcance (ver <em>Limitaciones conocidas</em>).</li>
+<li style="margin-bottom:7px;">La recepción recorre <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">move_ids</code> en lugar de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">move_ids_without_package</code>, que ya no existe en 19.</li>
+</ul>
+<h2>Configuración</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Ajustes generales</h2>
+<p style="margin:0 0 12px;">Ir a <em>Inventario › Configuración › Ajustes</em> y bajar hasta el bloque <strong>Productos</strong>. Allí están las
+dos opciones del módulo.</p>
+<div class="lc-fig"><img alt="Inventario › Configuración › Ajustes › Productos: las dos opciones de validación" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Inventario › Configuración › Ajustes › Productos: las dos opciones de validación</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Validar variación de precios en Órdenes de Compra</strong> (parámetro
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase_price_validation.enable_purchase_validation</code>). Opcional; activada por defecto. Revisa
+  los precios al confirmar la orden y al guardar cambios en sus líneas.</li>
+<li style="margin-bottom:7px;"><strong>Validar variación de precios en Recepciones de Inventario</strong> (parámetro
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase_price_validation.enable_stock_validation</code>). Opcional; activada por defecto. Revisa los
+  precios al validar operaciones de tipo <em>Recepción</em>.</li>
+</ul>
+<p style="margin:0 0 12px;">Las opciones son globales para la base de datos, no por compañía ni por almacén.</p>
+<p style="margin:0 0 12px;"><strong>Desmarcar la casilla no desactiva la validación.</strong> Al guardar desmarcada, Odoo borra el
+parámetro, y tanto el módulo como la pantalla de ajustes interpretan un parámetro ausente como
+"activado": la casilla vuelve a aparecer marcada. Para desactivarla de verdad, ver <em>Solución de
+problemas</em>.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Porcentaje por producto</h2>
+<p style="margin:0 0 12px;">En la ficha del producto (<em>Inventario › Productos › Productos</em>), pestaña <em>Información general</em>,
+el campo <strong>Porcentaje de variación</strong> define cuánto puede alejarse el precio unitario del <strong>Costo</strong>
+antes de disparar el aviso.</p>
+<div class="lc-fig"><img alt="Ficha del producto: Costo y Porcentaje de variación" src="02_producto.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ficha del producto: Costo y Porcentaje de variación</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Porcentaje de variación</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">porcent_variation</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">product.template</code>). Opcional; vale
+  <strong>10</strong> por defecto. Se escribe como número (10 = 10 %); en 0, cualquier diferencia con el costo
+  dispara el aviso. La comparación es en ambos
+  sentidos: un precio 10 % por encima o por debajo del costo cuenta igual.</li>
+<li style="margin-bottom:7px;"><strong>Costo</strong> es el campo estándar de Odoo. Es la base de la comparación, así que debe estar al día.</li>
+</ul>
+<p style="margin:0 0 12px;">Los campos <em>Reference Cost</em> y <em>Percentage Difference Cost</em> que aparecen debajo son del módulo
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">telegram_alerts</code>, no de este.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Permisos</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Administrador de inventario</strong> (grupo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock.group_stock_manager</code>): ve el aviso y puede
+  confirmar la orden o la recepción con las diferencias.</li>
+<li style="margin-bottom:7px;"><strong>Resto de usuarios</strong>: ve el aviso y solo puede cerrarlo.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Orden de compra</h2>
+<p style="margin:0 0 12px;">Crear la solicitud de cotización como siempre y pulsar <strong>Confirmar orden</strong>. Si todos los productos
+están dentro de su porcentaje, la orden se confirma sin aviso. Si alguno se sale, o tiene precio 0,
+se abre el asistente <strong>Confirmación de orden</strong> con una tabla por cada caso.</p>
+<div class="lc-fig"><img alt="Compras: asistente de confirmación con una variación del 25 % y un producto en 0" src="03_orden_compra.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Compras: asistente de confirmación con una variación del 25 % y un producto en 0</p></div>
+<p style="margin:0 0 12px;">La variación se calcula como la diferencia entre el precio unitario y el costo, dividida por el
+costo. En el ejemplo, el costo es 20.000 y el precio 25.000: la variación es del 25 %, por encima
+del 10 % permitido.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Confirmar</strong> (solo administradores de inventario) sigue con la confirmación estándar de Odoo.</li>
+<li style="margin-bottom:7px;"><strong>Cerrar</strong> deja la orden como estaba, en borrador, para corregir el precio.</li>
+</ul>
+<p style="margin:0 0 12px;">Un usuario que no es administrador de inventario recibe en su lugar el asistente <strong>Advertencia
+orden con variación de costos</strong>, con la misma tabla y solo el botón <em>Cerrar</em>.</p>
+<p style="margin:0 0 12px;">Además, para esos usuarios, <strong>guardar cambios en las líneas</strong> de una orden ya creada también se
+bloquea si alguna línea queda fuera de rango o en 0: Odoo muestra un error que termina en
+"Comuniquese con el Administrador" y el cambio no se guarda.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Recepción de inventario</h2>
+<p style="margin:0 0 12px;">En <em>Inventario › Operaciones › Recepciones</em>, abrir la recepción y pulsar <strong>Validar</strong>. Si algún
+movimiento se sale del rango o no tiene precio, aparece el asistente <strong>Confirmación de recepción</strong>
+(o <strong>Advertencia recepción con variación de costos</strong> para quien no es administrador), con los
+mismos botones. Al confirmar, la validación sigue su curso normal, incluidos los avisos estándar de
+Odoo como el de entrega parcial.</p>
+<div class="lc-fig"><img alt="Inventario: asistente de confirmación en una recepción manual sin precio" src="04_recepcion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Inventario: asistente de confirmación en una recepción manual sin precio</p></div>
+<p style="margin:0 0 12px;">El precio que se revisa es el precio unitario del movimiento de inventario. En una recepción que
+viene de una orden de compra, Odoo lo toma de la línea de la orden (ya convertido a la moneda de la
+compañía y a la unidad del producto). Una recepción creada a mano no tiene precio, así que todos
+sus productos salen en la tabla de <strong>precio unitario igual a 0</strong>, como en la captura.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Solo productos de tipo Bienes.</strong> Los servicios y los combos no se revisan.</li>
+<li style="margin-bottom:7px;"><strong>Producto con costo 0.</strong> La variación se calcula contra el propio precio y da 100 %, así que el
+  aviso sale siempre que el porcentaje permitido sea menor que 100.</li>
+<li style="margin-bottom:7px;"><strong>Solo recepciones.</strong> Las entregas y los traslados internos no se revisan.</li>
+<li style="margin-bottom:7px;"><strong>Varias órdenes o recepciones a la vez.</strong> El código asume un solo registro al abrir el
+  asistente: confirmar o validar varios desde la lista, cuando alguno tiene diferencias, termina en
+  un error de Odoo en vez del aviso. Hay que hacerlo de a uno.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Desmarqué la opción en Ajustes y la validación sigue.</strong> Es la limitación descrita en
+  <em>Configuración</em>. Para desactivarla, activar el modo desarrollador, ir a <em>Ajustes › Técnico › Parámetros ›
+  Parámetros del sistema</em>, abrir <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase_price_validation.enable_purchase_validation</code> (compras) o
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase_price_validation.enable_stock_validation</code> (recepciones) y cambiar el valor a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">False</code>.
+  Con ese valor la casilla de Ajustes también aparece desmarcada. Para volver a activarla, poner
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">True</code>.</li>
+<li style="margin-bottom:7px;"><strong>No aparece el aviso.</strong> Revisar que la opción esté activa, que el producto sea de tipo <em>Bienes</em>
+  y que la diferencia supere de verdad el porcentaje del producto. En recepciones, que la operación
+  sea de tipo <em>Recepción</em>.</li>
+<li style="margin-bottom:7px;"><strong>Todas las recepciones manuales piden confirmación.</strong> Es lo esperado: sus movimientos no tienen
+  precio unitario. Las recepciones que salen de una orden de compra traen el precio de la orden.</li>
+<li style="margin-bottom:7px;"><strong>El aviso sale en órdenes en otra moneda o con otra unidad de compra.</strong> En la orden de compra se
+  compara el precio tal como está en la línea (moneda de la orden, unidad de compra) contra el costo
+  (moneda de la compañía, unidad del producto), sin convertir. En esos casos la variación que se
+  muestra no es real.</li>
+<li style="margin-bottom:7px;"><strong>"Comuniquese con el Administrador" al guardar la orden.</strong> El usuario no es administrador de
+  inventario y alguna línea está fuera de rango o en 0. Corregir el precio o pedir que un
+  administrador guarde y confirme la orden.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Las casillas de Ajustes no desactivan nada.</strong> Los campos tienen <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">default=True</code> y el módulo lee
+  el parámetro con valor por defecto <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">'True'</code>; al desmarcar, Odoo borra el parámetro y ambos lo
+  vuelven a leer como activo. Solo se desactiva escribiendo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">False</code> en el parámetro (ver <em>Uso ›
+  Solución de problemas</em>).</li>
+<li style="margin-bottom:7px;"><strong>Alcance más amplio que en Odoo 17.</strong> En 17 solo se revisaban productos <em>Almacenables</em>. En 19 el
+  filtro es <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">type == 'consu'</code>, que incluye también los <em>Bienes</em> sin <em>Rastrear inventario</em>
+  (antes <em>Consumibles</em>). La equivalencia exacta sería filtrar por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">is_storable</code>.</li>
+<li style="margin-bottom:7px;"><strong>Moneda y unidad de medida en compras.</strong> La orden compara <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">price_unit</code> de la línea contra
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">standard_price</code> sin convertir moneda ni unidad (ver <em>Uso › Solución de problemas</em>). La recepción
+  sí usa el precio ya convertido.</li>
+<li style="margin-bottom:7px;"><strong>Recepciones manuales.</strong> Sus movimientos tienen precio 0 y siempre disparan el aviso.</li>
+<li style="margin-bottom:7px;"><strong>Un solo registro.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">button_confirm</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">button_validate</code> usan <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">self.id</code> y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">self.picking_type_id.code</code>; con varios registros y diferencias falla con error de Odoo.</li>
+<li style="margin-bottom:7px;"><strong>Bloqueo al guardar.</strong> El <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">write</code> de la orden bloquea a los usuarios sin
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock.group_stock_manager</code> incluso con la orden en borrador. La creación no se revisa.</li>
+<li style="margin-bottom:7px;"><strong>Se pierde la validación analítica.</strong> El botón <em>Confirmar orden</em> de Odoo envía
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">validate_analytic=True</code> en el contexto, y con eso se exigen los planes analíticos obligatorios.
+  Al confirmar desde el asistente ese contexto no llega, así que la orden se confirma sin esa
+  revisión.</li>
+<li style="margin-bottom:7px;"><strong>Permisos amplios en compras.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">security/ir.model.access.csv</code> da lectura y creación de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase.order</code> a todos los usuarios internos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">base.group_user</code>). Odoo solo da lectura a
+  Inventario y Contabilidad, y creación a Compras. Viene así desde 17.</li>
+<li style="margin-bottom:7px;"><strong>Textos fijos en español</strong>, sin marcar para traducción. Los montos del asistente no usan el
+  formato de moneda (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">$ 20000.00</code>) y el porcentaje de la tabla de precio 0 sale con un decimal.
+  Las dos opciones de Ajustes comparten el mismo texto de ayuda.</li>
+<li style="margin-bottom:7px;"><strong>Nombres de producto sin escapar.</strong> El mensaje del asistente se arma como HTML con los nombres
+  tal cual y el campo tiene <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sanitize=False</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> mide 750x750 px, no los 100x100 de los módulos del core.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/product_template.py</code>: el campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">porcent_variation</code> (<em>Porcentaje de variación</em>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/res_config_settings.py</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/res_config_settings_views.xml</code>: las dos opciones, en el
+  bloque <em>Productos</em> de los ajustes de Inventario, guardadas como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ir.config_parameter</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/purchase_order.py</code>: extiende <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">write</code> (bloqueo al guardar líneas) y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">button_confirm</code>
+  (asistente); <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_continue_confirmation</code> retoma la confirmación estándar.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/stock_picking.py</code>: extiende <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">button_validate</code> solo para operaciones <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">incoming</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/confirmation_variation_wizard.py</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/warning_variation_wizard.py</code>, con sus vistas:
+  los dos asistentes (con y sin botón <em>Confirmar</em>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/product_template_views.xml</code>: el campo en la ficha, dentro del grupo del costo.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/purchase_order_views.xml</code>: herencia vacía, sin efecto.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">get_list_products_variation</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_generate_variation_message</code> están duplicados en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase.order</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock.picking</code>. Un cambio en la regla hay que hacerlo en los dos.</li>
+<li style="margin-bottom:7px;">Los métodos extendidos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">write</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase.order.button_confirm</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock.picking.button_validate</code>) existen en Odoo 19 con la misma firma.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_continue_confirmation</code> de la orden escribe en el log con nivel <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">error</code> en un flujo normal.</li>
+<li style="margin-bottom:7px;">El módulo no tiene tests automáticos.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee Roasters</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Libertario Coffee Roasters</li>
+</ul></div>
+</div>
