@@ -1,0 +1,232 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Amplía la aplicación <strong>Mantenimiento</strong> de Odoo para llevar la trazabilidad de los equipos de las
+tiendas (neveras, molinos, máquinas de espresso) y el control de cada intervención:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Equipos identificados</strong>: cada equipo recibe un número de activo consecutivo (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ACT00001</code>…), un
+  número de serie automático si no se digita uno, la tienda donde está y el cliente asociado (por
+  ejemplo, un equipo en comodato).</li>
+<li style="margin-bottom:7px;"><strong>Código QR y hoja de vida</strong>: el QR del equipo abre una página del portal con su ficha técnica,
+  indicadores (MTBF, MTTR, costo acumulado) y el historial de mantenimientos. Se imprime como
+  etiqueta PDF para pegarla en el equipo.</li>
+<li style="margin-bottom:7px;"><strong>Solicitudes más completas</strong>: referencia consecutiva (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC00001</code>…), condición del equipo,
+  ubicación del mantenimiento, diagnóstico y un reporte imprimible <em>Orden de Mantenimiento</em>.</li>
+<li style="margin-bottom:7px;"><strong>Checklist por categoría</strong>: los ítems de una plantilla se copian a cada solicitud del equipo, y
+  la solicitud no se puede cerrar mientras queden ítems sin marcar.</li>
+<li style="margin-bottom:7px;"><strong>Costos</strong>: líneas de costo por solicitud, cargadas a mano o traídas de una orden de compra, con
+  el total por solicitud y el acumulado por equipo.</li>
+</ul>
+<p style="margin:0 0 12px;">Existe para que el área de mantenimiento sepa qué equipo hay en cada tienda, qué se le hizo y
+cuánto costó, y para que un técnico pueda consultar la historia del equipo escaneando su QR.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Módulos de Odoo Community: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maintenance</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">portal</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock</code>. No requiere librerías
+  de Python adicionales: el QR se genera con el generador de códigos de barras que ya trae Odoo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em> (aparece como <em>Gestión Integral de Mantenimiento</em>). La
+instalación crea:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">las secuencias <em>Mantenimiento: Número de Activo</em> (prefijo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ACT</code>) y <em>Mantenimiento:
+  Incidencia/Solicitud</em> (prefijo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code>), ambas de 5 dígitos y compartidas por todas las compañías;</li>
+<li style="margin-bottom:7px;">el parámetro del sistema <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maintenance_management.enforce_checklist</code> con valor <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">True</code>;</li>
+<li style="margin-bottom:7px;">el menú <em>Mantenimiento › Configuración › Plantillas de Checklist</em>;</li>
+<li style="margin-bottom:7px;">la acción <em>Asignar Nº de activo, QR y serial</em> en el menú <em>Acción</em> de los equipos;</li>
+<li style="margin-bottom:7px;">los reportes <em>Etiqueta QR del Equipo</em> y <em>Orden de Mantenimiento</em>.</li>
+</ul>
+<p style="margin:0 0 12px;">Los equipos que ya existían antes de instalar el módulo quedan sin número de activo, sin serie
+automática y sin token de portal (el QR no abre la hoja de vida). Para completarlos, en
+<em>Mantenimiento › Equipo</em> seleccionarlos en la lista y ejecutar <em>Acción › Asignar Nº de
+activo, QR y serial</em>. Solo llena lo que falta, así que se puede repetir sin riesgo.</p>
+<p style="margin:0 0 12px;">En bases con datos de demostración se cargan además tres categorías (<em>Neveras</em>, <em>Molinos</em>,
+<em>Máquinas de espresso</em>) con su plantilla de checklist.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<p style="margin:0 0 12px;">El módulo conserva el nombre, los modelos y los nombres técnicos de los campos de la versión 17,
+por lo que los datos existentes se mantienen sin script de migración. Los cambios de la migración
+fueron de forma: la restricción de número de activo único pasó a la sintaxis <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models.Constraint</code>,
+las vistas de lista usan <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">list</code> en lugar de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tree</code> y la hoja de vida del portal dejó de mostrar el
+campo <em>Ubicación</em> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">location</code>) del equipo, que ya no existe en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maintenance</code> de Odoo 19. La tienda
+se sigue mostrando como <em>Tienda / Almacén</em>.</p>
+<h2>Configuración</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Plantillas de checklist</h2>
+<p style="margin:0 0 12px;">Ir a <em>Mantenimiento › Configuración › Plantillas de Checklist</em> y crear una plantilla por categoría
+de equipo. Las categorías se administran en <em>Mantenimiento › Configuración › Categorías del
+equipo</em>.</p>
+<div class="lc-fig"><img alt="Mantenimiento › Configuración › Plantillas de Checklist: categoría e ítems de la plantilla" src="01_configuracion_checklist.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Mantenimiento › Configuración › Plantillas de Checklist: categoría e ítems de la plantilla</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Nombre</strong>. Obligatorio. Solo sirve para identificar la plantilla.</li>
+<li style="margin-bottom:7px;"><strong>Categoría de equipo</strong>. Opcional en el formulario, pero una plantilla sin categoría nunca se
+  aplica: la solicitud busca la plantilla por la categoría de su equipo.</li>
+<li style="margin-bottom:7px;"><strong>Ítems</strong>. Opcional. Cada ítem tiene un texto obligatorio; el orden se ajusta arrastrando la
+  manija de la izquierda y es el mismo en que aparecen en la solicitud.</li>
+</ul>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">El menú solo lo ven los usuarios del grupo <strong>Responsable de los equipos</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maintenance.group_equipment_manager</code>).</li>
+<li style="margin-bottom:7px;">Si hay varias plantillas para la misma categoría, se usa <strong>solo la primera</strong> que encuentra Odoo.
+  Conviene mantener una plantilla por categoría.</li>
+<li style="margin-bottom:7px;">Cambiar una plantilla no modifica las solicitudes que ya tienen su checklist cargado.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Checklist obligatorio para cerrar</h2>
+<p style="margin:0 0 12px;">El control que impide cerrar una solicitud con ítems pendientes se gobierna con el parámetro del
+sistema <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maintenance_management.enforce_checklist</code>, en <em>Ajustes › Técnico › Parámetros del
+sistema</em> (requiere el modo de desarrollador).</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Valor por defecto: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">True</code> (activo). Con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">1</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">true</code> o <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">yes</code> (sin importar mayúsculas) el control
+  está activo; con cualquier otro valor, por ejemplo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">False</code>, queda desactivado.</li>
+<li style="margin-bottom:7px;">El parámetro se crea una sola vez al instalar: actualizar el módulo no pisa el valor que se haya
+  cambiado.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Datos del equipo</h2>
+<p style="margin:0 0 12px;">No hay más ajustes. La tienda (<em>Almacén/Tienda</em>) y el cliente se indican en cada equipo, en la
+pestaña <em>Ficha técnica</em> (ver <em>Uso</em>). El código de la tienda que entra en el número de serie es el
+<strong>Nombre corto</strong> del almacén en <em>Inventario › Configuración › Almacenes</em>.</p>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Registrar un equipo</h2>
+<p style="margin:0 0 12px;">En <em>Mantenimiento › Equipo</em> crear el equipo con su nombre y categoría. En la pestaña
+<strong>Ficha técnica</strong> indicar la tienda (<em>Almacén/Tienda</em>) y, si aplica, el cliente. Al guardar, el
+módulo asigna:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">el <strong>Número de Activo</strong> siguiente de la secuencia <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ACT</code>;</li>
+<li style="margin-bottom:7px;">el <strong>Número de serie</strong>, si se dejó vacío: las tres primeras letras de las dos primeras palabras
+  del nombre (en mayúsculas, sin tildes y omitiendo artículos y preposiciones como <em>de</em>, <em>la</em>,
+  <em>para</em>), más el código de la tienda y la fecha de registro <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">AAAAMMDD</code>. Por ejemplo, <em>Nevera de
+  cocina</em> en la tienda <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ZNG2</code> registrada el 8 de mayo de 2025 queda <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">NEVCOCZNG220250508</code>;</li>
+<li style="margin-bottom:7px;">el token de portal que usa el código QR.</li>
+</ul>
+<div class="lc-fig"><img alt="Ficha del equipo: botones del módulo, pestaña Ficha técnica y código QR" src="02_equipo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ficha del equipo: botones del módulo, pestaña Ficha técnica y código QR</p></div>
+<p style="margin:0 0 12px;">Desde la ficha del equipo:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Hoja de Vida</strong> abre la página del equipo en el portal.</li>
+<li style="margin-bottom:7px;"><strong>Imprimir QR</strong> genera la etiqueta PDF con el nombre, el número de activo, la serie, la categoría
+  y el QR. La misma etiqueta sale de <em>Imprimir › Etiqueta QR del Equipo</em>, también para varios
+  equipos seleccionados en la lista.</li>
+<li style="margin-bottom:7px;"><strong>Costo total</strong> muestra la suma de los costos de todas las solicitudes del equipo y, al
+  pulsarlo, las lista.</li>
+<li style="margin-bottom:7px;"><strong>Descargar QR</strong>, debajo de la imagen, baja el QR como PNG (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">QR_&lt;número de activo&gt;.png</code>).</li>
+</ul>
+<p style="margin:0 0 12px;">En la búsqueda de equipos se puede filtrar por número de activo, tienda y cliente, y agrupar por
+<em>Tienda</em> o <em>Cliente</em>.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Atender una solicitud</h2>
+<p style="margin:0 0 12px;">Crear la solicitud en <em>Mantenimiento › Mantenimiento › Solicitudes de mantenimiento</em> y elegir el
+equipo. En el formulario se cargan solos la <strong>Ubicación del mantenimiento</strong> (la tienda del equipo)
+y el <strong>Checklist</strong> de la plantilla de su categoría. Al guardar se asigna la <strong>Referencia</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code>.</p>
+<div class="lc-fig"><img alt="Solicitud de mantenimiento: referencia, ubicación, condición del equipo y checklist" src="03_solicitud_checklist.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Solicitud de mantenimiento: referencia, ubicación, condición del equipo y checklist</p></div>
+<p style="margin:0 0 12px;">El técnico registra la <strong>Condición del equipo</strong> (Bueno, Regular o Malo), marca los ítems del
+checklist a medida que los hace (con una nota opcional por ítem) y describe lo realizado en la
+pestaña <strong>Diagnóstico</strong>.</p>
+<p style="margin:0 0 12px;">Mientras quede algún ítem sin marcar, la solicitud no puede pasar a una etapa marcada como
+<em>Solicitud lista</em> (en las etapas estándar, <em>Reparado</em> y <em>Desechar</em>). Odoo muestra el aviso y no guarda el
+cambio de etapa.</p>
+<div class="lc-fig"><img alt="Intento de cerrar una solicitud con ítems pendientes del checklist" src="04_bloqueo_checklist.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Intento de cerrar una solicitud con ítems pendientes del checklist</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Registrar los costos</h2>
+<p style="margin:0 0 12px;">En la pestaña <strong>Costos</strong> se agregan las líneas de costo a mano (detalle, producto, cantidad y
+valor) o se traen de una compra: elegir la <strong>Orden de compra</strong> y pulsar <strong>Traer costos de OC</strong>.
+Cada línea de la orden se copia con su descripción, producto, cantidad y subtotal sin impuestos.
+El <strong>Costo total</strong> de la solicitud se suma solo y alimenta el costo acumulado del equipo.</p>
+<div class="lc-fig"><img alt="Pestaña Costos: orden de compra, botón Traer costos de OC, líneas y costo total" src="05_costos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pestaña Costos: orden de compra, botón Traer costos de OC, líneas y costo total</p></div>
+<p style="margin:0 0 12px;">Para imprimir la solicitud usar <em>Imprimir › Orden de Mantenimiento</em>: incluye equipo, fechas,
+técnico, condición, checklist, costos y observaciones.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Hoja de vida en el portal</h2>
+<p style="margin:0 0 12px;">Al escanear el QR (o pulsar <em>Hoja de Vida</em>) se abre la página del equipo. La puede ver cualquier
+persona que tenga el QR, sin iniciar sesión, porque el enlace incluye el token de acceso del
+equipo. Un usuario interno con permiso sobre el equipo la ve también sin el token.</p>
+<div class="lc-fig"><img alt="Hoja de vida del equipo en el portal" src="06_hoja_vida_portal.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Hoja de vida del equipo en el portal</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Equipo sin tienda</strong>: el serial se arma sin código de tienda, y la solicitud queda sin ubicación
+  hasta que se elija una.</li>
+<li style="margin-bottom:7px;"><strong>Cambiar el equipo de una solicitud</strong>: la ubicación y el checklist solo se cargan si están
+  vacíos. Si ya había un checklist, no se reemplaza por el de la nueva categoría.</li>
+<li style="margin-bottom:7px;"><strong>Mantenimiento preventivo recurrente</strong>: la solicitud siguiente que crea Odoo al cerrar la actual
+  recibe una referencia nueva, pero <strong>llega sin checklist y sin costos</strong>, por lo que el bloqueo no
+  la afecta.</li>
+<li style="margin-bottom:7px;"><strong>Traer costos de OC dos veces</strong>: cada pulsación vuelve a copiar todas las líneas; hay que borrar
+  las duplicadas a mano.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>"No puede marcar como Realizado: el checklist de la solicitud … tiene ítems pendientes."</strong>
+  Marcar los ítems que faltan en la pestaña <em>Checklist</em> y volver a cambiar la etapa. Después del
+  aviso el formulario queda mostrando la etapa nueva sin guardar: descartar los cambios (ícono ✖
+  junto al nombre) antes de seguir editando, o completar el checklist y guardar.</li>
+<li style="margin-bottom:7px;"><strong>La solicitud no trae checklist.</strong> El equipo no tiene categoría, o su categoría no tiene
+  plantilla. El checklist se carga solo al elegir el equipo en el formulario; las solicitudes
+  creadas por importación o por código no lo reciben.</li>
+<li style="margin-bottom:7px;"><strong>Al escanear el QR se pide iniciar sesión.</strong> El equipo no tenía token de portal cuando se
+  imprimió o descargó el QR (pasa con equipos anteriores a la instalación). Ejecutar <em>Acción ›
+  Asignar Nº de activo, QR y serial</em> sobre el equipo y volver a imprimir la etiqueta.</li>
+<li style="margin-bottom:7px;"><strong>El QR abre una dirección que no carga desde el celular.</strong> La URL del QR se arma con el
+  parámetro <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">web.base.url</code>; debe ser la dirección pública del servidor. Si el servidor atiende
+  varias bases sin filtro de base de datos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">dbfilter</code>), el enlace responde <em>404</em> a quien no tiene
+  sesión.</li>
+<li style="margin-bottom:7px;"><strong>El número de serie salió con caracteres raros</strong>, por ejemplo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">DOC-…</code>: los signos sueltos del
+  nombre (un guion entre espacios) cuentan como palabra. Corregir la serie a mano; el módulo solo
+  la calcula si está vacía.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>El checklist solo se carga desde el formulario.</strong> Lo trae el cambio de equipo en la pantalla;
+  las solicitudes creadas por importación, por código o como repetición de un preventivo
+  recurrente quedan sin checklist y, por lo tanto, sin bloqueo al cerrar.</li>
+<li style="margin-bottom:7px;"><strong>El bloqueo solo revisa el cambio de etapa.</strong> Una solicitud creada directamente en una etapa de
+  cierre no se valida.</li>
+<li style="margin-bottom:7px;"><strong>Traer costos de OC no evita duplicados.</strong> Cada pulsación copia de nuevo todas las líneas de la
+  orden, aunque ya se hayan traído.</li>
+<li style="margin-bottom:7px;"><strong>Regla del número de serie sin confirmar.</strong> El código la marca como pendiente de validar con el
+  negocio (longitud de las abreviaturas, separadores, fecha de creación o de puesta en marcha). El
+  parámetro <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maintenance_management.serial_pattern</code> que menciona el código <strong>no existe</strong> en la base
+  ni cambia nada: la regla está fija en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_compute_or_default_serial()</code>. La serie tampoco es única.</li>
+<li style="margin-bottom:7px;"><strong>La hoja de vida es pública para quien tenga el QR.</strong> Muestra la ficha completa, incluidos el
+  cliente, el proveedor y el técnico responsable. El módulo no ofrece una forma de renovar el token
+  desde la interfaz si una etiqueta se pierde.</li>
+<li style="margin-bottom:7px;"><strong>Permisos amplios.</strong> Cualquier usuario interno puede crear, modificar y borrar plantillas de
+  checklist y líneas de costo; el menú de plantillas es lo único restringido a <em>Responsable de los
+  equipos</em>.</li>
+<li style="margin-bottom:7px;"><strong>Una plantilla por categoría.</strong> Si hay varias, se usa la primera que encuentra Odoo.</li>
+<li style="margin-bottom:7px;"><strong>Columna <em>Moneda</em> vacía en las líneas de costo.</strong> El campo está marcado <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">invisible="1"</code> dentro de
+  la lista; en Odoo 19 eso oculta el valor pero deja la columna. Es solo estético.</li>
+<li style="margin-bottom:7px;"><strong>Textos fijos en español.</strong> Las vistas, los reportes y los mensajes están escritos en español en
+  el código y el módulo no trae carpeta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">i18n/</code>: un usuario con Odoo en otro idioma los ve igual.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>: en <em>Aplicaciones</em> se ve el ícono genérico de Odoo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/maintenance_equipment.py</code>: número de activo, tienda, cliente, QR (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">portal.mixin</code>), costo
+  acumulado, serie por defecto y las acciones de los botones y de <em>Asignar Nº de activo, QR y
+  serial</em>. El código de tienda del serial sale de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_get_store_code()</code>, aislado para poder cambiar
+  su origen sin tocar lo demás.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/maintenance_request.py</code>: referencia, condición, ubicación, checklist, costos, carga de la
+  plantilla (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_onchange_equipment_id</code>), bloqueo de cierre (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">write</code>) y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">action_bring_costs_from_po</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/maintenance_checklist.py</code>: plantillas, ítems de plantilla e ítems de la solicitud.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/maintenance_request_cost_line.py</code>: líneas de costo, con enlace a la línea de compra de
+  origen.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">controllers/portal.py</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/maintenance_portal_templates.xml</code>: la ruta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/my/equipment/&lt;id&gt;</code>
+  y la hoja de vida. Valida el acceso con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_document_check_access</code> (token o permisos del usuario).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">report/qr_label_report.xml</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">report/maintenance_report.xml</code>: etiqueta QR y orden de
+  mantenimiento. El QR va embebido como imagen, sin servicio externo.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/</code>: secuencias <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ACT</code> e <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code>, el parámetro <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">enforce_checklist</code> y la acción de servidor.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">demo/demo_data.xml</code>: categorías y plantillas de ejemplo, solo en bases con demostración.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Sin tests automáticos.</strong> El módulo no tiene carpeta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/</code>; todo se valida a mano.</li>
+<li style="margin-bottom:7px;"><strong>El QR depende de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">web.base.url</code>.</strong> Se calcula al vuelo (no se guarda) con la URL base y el token
+  del equipo. Si cambia la dirección del servidor, las etiquetas ya impresas apuntan a la
+  dirección vieja.</li>
+<li style="margin-bottom:7px;"><strong>Traer costos automáticamente.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">action_bring_costs_from_po()</code> está aislado para poder llamarlo
+  más adelante al confirmar la compra o desde un cron; hoy es solo manual.</li>
+<li style="margin-bottom:7px;"><strong>Migración 17 → 19.</strong> El campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">location</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">maintenance.equipment</code> desapareció del core en 19;
+  si se vuelve a usar en la plantilla del portal, la hoja de vida falla con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">AttributeError</code>. En
+  Odoo 19 el campo <em>Usado en la ubicación</em> del equipo lo agrega <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock_maintenance</code> y no lo usa este
+  módulo.</li>
+<li style="margin-bottom:7px;"><strong>Moneda de los costos.</strong> La solicitud toma por defecto la moneda de la compañía activa al
+  crearla, en lugar de un campo relacionado con su compañía, para no fallar si la solicitud no
+  tiene compañía resuelta. Las líneas de costo usan la moneda de su solicitud.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Maintenance Management</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Maintenance Management (autor declarado en el manifiesto)</li>
+</ul></div>
+</div>

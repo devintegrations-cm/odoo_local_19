@@ -35,6 +35,14 @@ Extiende el módulo de Mantenimiento de Odoo con:
     'demo': [
         'demo/demo_data.xml',
     ],
+    'images': [
+        'static/description/01_configuracion_checklist.png',
+        'static/description/02_equipo.png',
+        'static/description/03_solicitud_checklist.png',
+        'static/description/04_bloqueo_checklist.png',
+        'static/description/05_costos.png',
+        'static/description/06_hoja_vida_portal.png',
+    ],
     'installable': True,
     'application': True,
     'license': 'LGPL-3',
