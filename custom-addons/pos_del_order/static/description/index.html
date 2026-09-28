@@ -1,16 +1,144 @@
-<section class="oe_container oe_dark">
-    <div class="col-md-12">
-        <h2 class="oe_slogan" style="font-size: 35px;color:#6f37f0"><b>Delete Pos Order</b></h2>
-    </div>
-</section>
-
-<section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <div class="oe_span12">
-            <div class="oe_demo oe_picture oe_screenshot">
-                <img src="devwall.jpg" style="height:400px;">
-            </div>
-    </div>
-</section>
-
-
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Limita qué <strong>empleados</strong> pueden <strong>eliminar órdenes</strong> en el Punto de Venta. Cada punto de venta tiene
+una lista de empleados autorizados. Si el empleado que tiene la caja está en la lista, puede
+eliminar órdenes como siempre. Si no está, el POS oculta el ícono de borrar en la pantalla de
+<em>Órdenes</em> y rechaza la acción <em>Cancelar orden</em> con el aviso "No tiene permisos para eliminar una
+orden, contacte al líder de tienda.".</p>
+<p style="margin:0 0 12px;">Existe para que un cajero o mesero no pueda borrar una orden abierta (y con ella la venta) sin
+pasar por el líder de tienda.</p>
+<p style="margin:0 0 12px;">Con la lista vacía, todos los empleados pueden eliminar órdenes. Así se comportaba el POS antes de
+instalar el módulo.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> (Odoo Community). <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> hace falta porque el permiso se asigna a
+  empleados (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hr.employee</code>) y se evalúa sobre el empleado que inició sesión en el POS. No hay
+  dependencias externas ni librerías de Python adicionales.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em>. No crea modelos ni permisos de acceso: agrega un campo a
+la configuración del punto de venta y dos archivos JavaScript al POS. Después de instalar o
+actualizar, hay que <strong>volver a entrar al POS</strong> desde el backend para que cargue los archivos
+nuevos.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<p style="margin:0 0 12px;">El campo conserva el nombre técnico y la tabla de relación de Odoo 17 (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">able_del_employee_ids</code>,
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_config_able_del_employee_rel</code>), así que la lista de empleados autorizados se mantiene sin
+script de datos.</p>
+<p style="margin:0 0 12px;">Cambió el identificador de la vista de Ajustes (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">view_hr_employee_inh_form</code> pasó a
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res_config_settings_view_form_inherit_pos_del_order</code>). Al actualizar, Odoo borra la vista vieja y
+crea la nueva, sin intervención manual.</p>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Ajustes</em>, elegir el punto de venta en la parte superior y
+buscar el bloque <strong>Interfaz de PdV</strong>.</p>
+<div class="lc-fig"><img alt="Punto de venta › Configuración › Ajustes › Interfaz de PdV: Iniciar sesión como empleado y Borrar pedidos POS" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración › Ajustes › Interfaz de PdV: Iniciar sesión como empleado y Borrar pedidos POS</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Iniciar sesión como empleado</strong> (campo estándar de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code>). Requisito. El campo del módulo
+  solo aparece con esta casilla marcada y guardada, y el control usa el empleado que inició sesión
+  en la caja.</li>
+<li style="margin-bottom:7px;"><strong>Borrar pedidos POS</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">able_del_employee_ids</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>). Opcional; vacío por
+  defecto. Lista de empleados de la compañía que pueden eliminar órdenes. Vacío significa que
+  <strong>todos</strong> pueden (el campo muestra "Todos los empleados").</li>
+</ul>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">La configuración es <strong>por punto de venta</strong>. Hay que repetirla en cada tienda.</li>
+<li style="margin-bottom:7px;">Los cambios se ven en el POS después de volver a entrar a la sesión desde el backend.</li>
+<li style="margin-bottom:7px;">La fila <strong>Borrar o reducir lineas de pedido POS</strong> que aparece más abajo pertenece a otro módulo
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restrict_del_ordered_order_line</code>) y no tiene efecto sobre esta regla.</li>
+<li style="margin-bottom:7px;">Los empleados con <strong>Permisos mínimos</strong> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> ya no ven el ícono ni el botón <em>Cancelar
+  orden</em>, aunque estén en esta lista. Esa restricción es de Odoo.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Empleado autorizado</h2>
+<p style="margin:0 0 12px;">Con un empleado de la lista en la caja, la pantalla <strong>Órdenes</strong> muestra el ícono de borrar en las
+órdenes en curso. Al pulsarlo, Odoo pide la confirmación habitual ("... ¿Está seguro de que desea
+eliminar esta orden?") y, si se acepta, la orden desaparece del POS. Si la orden ya estaba
+sincronizada, en el backend queda en estado <strong>Cancelado</strong>.</p>
+<div class="lc-fig"><img alt="Pantalla Órdenes con un empleado autorizado: aparece el ícono de borrar" src="02_ordenes_autorizado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla Órdenes con un empleado autorizado: aparece el ícono de borrar</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Empleado no autorizado</h2>
+<p style="margin:0 0 12px;">Con un empleado que no está en la lista, la misma orden aparece <strong>sin el ícono de borrar</strong>.</p>
+<div class="lc-fig"><img alt="Pantalla Órdenes con un empleado no autorizado: la orden no tiene ícono de borrar" src="03_ordenes_no_autorizado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla Órdenes con un empleado no autorizado: la orden no tiene ícono de borrar</p></div>
+<p style="margin:0 0 12px;">Si ese empleado intenta eliminar la orden desde la pantalla de productos (<strong>⋮ › Cancelar orden</strong>),
+el POS muestra el aviso <em>Advertencia</em> y la orden no se toca.</p>
+<div class="lc-fig"><img alt="Aviso al pulsar Cancelar orden sin permiso" src="04_cancelar_denegado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aviso al pulsar Cancelar orden sin permiso</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Lista vacía</strong>: todos los empleados pueden eliminar órdenes.</li>
+<li style="margin-bottom:7px;"><strong>Cambio de empleado</strong>: la regla se evalúa con el empleado que tiene la caja en ese momento. Al
+  bloquear la caja y entrar con otro PIN, el ícono aparece o desaparece según el nuevo empleado.</li>
+<li style="margin-bottom:7px;"><strong>Orden vacía</strong>: el empleado no autorizado tampoco puede eliminarla con <em>Cancelar orden</em>; el aviso
+  sale igual.</li>
+<li style="margin-bottom:7px;"><strong>Transferir o fusionar mesas, Liberar la mesa y cierre de sesión</strong>: Odoo elimina órdenes en esos
+  flujos sin pasar por la regla del módulo (ver <em>Limitaciones conocidas</em>).</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>No aparece el campo Borrar pedidos POS en Ajustes.</strong> Marcar <em>Iniciar sesión como empleado</em>,
+  guardar y volver a la página: el campo está dentro de ese bloque.</li>
+<li style="margin-bottom:7px;"><strong>Un empleado no autorizado sigue viendo el ícono.</strong> Verificar que la lista esté guardada en el
+  punto de venta correcto y volver a entrar al POS desde el backend. Revisar también qué empleado
+  tiene la caja (avatar arriba a la derecha).</li>
+<li style="margin-bottom:7px;"><strong>Nadie ve el ícono de borrar.</strong> Odoo lo oculta además en órdenes pagadas, con un pago
+  electrónico ya aprobado, en la orden vacía por defecto y para empleados con permisos mínimos.
+  Esas condiciones aplican también con la lista vacía.</li>
+<li style="margin-bottom:7px;"><strong>El aviso sale para todos, incluso con la lista cargada.</strong> Comprobar que <em>Iniciar sesión como
+  empleado</em> esté activo: sin él, el POS usa el usuario y no el empleado, y el control no encuentra
+  coincidencias (ver <em>Limitaciones conocidas</em>).</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>El control vive en el navegador.</strong> No hay validación en el servidor: quien llame por RPC a
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.order</code> puede cancelar una orden aunque no esté en la lista. Un control real necesitaría una
+  validación en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.order</code> o usar los roles de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> (permisos avanzados, básicos y mínimos),
+  que son el mecanismo nativo de Odoo 19.</li>
+<li style="margin-bottom:7px;"><strong>Flujos de Odoo que no pasan por la regla.</strong> El módulo intercepta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">beforeDeleteOrder</code>, que usan
+  el ícono de <em>Órdenes</em> y <em>Cancelar orden</em>. Estos flujos llaman a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">deleteOrders</code> directamente y no
+  quedan restringidos: <em>Transferir / Fusionar</em> (la orden de origen se elimina después de pasar sus
+  líneas a la de destino), <em>Liberar la mesa</em> (solo con la orden vacía), la opción <em>Cancelar
+  órdenes</em> del cierre de sesión cuando quedan órdenes abiertas y la sincronización entre
+  dispositivos del restaurante.</li>
+<li style="margin-bottom:7px;"><strong>Sin "Iniciar sesión como empleado" la regla compara ids distintos.</strong> Sin <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo en el
+  punto de venta, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getCashier()</code> devuelve el usuario (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.users</code>) y el módulo compara su id con
+  ids de empleados. Si la lista quedó cargada de antes, el resultado no es confiable. El campo se
+  oculta en Ajustes en ese caso, pero el valor guardado se conserva.</li>
+<li style="margin-bottom:7px;">La fila de Ajustes no tiene texto de ayuda: el significado de la lista vacía solo se ve en el
+  marcador "Todos los empleados".</li>
+<li style="margin-bottom:7px;">El aviso está escrito en español en el código. Está marcado con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_t</code>, pero el módulo no trae
+  archivos de traducción.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>: en <em>Aplicaciones</em> se ve el ícono genérico de Odoo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_config.py</code>: el campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">able_del_employee_ids</code> (Many2many a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hr.employee</code>, tabla
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_config_able_del_employee_rel</code>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/res_config_settings.py</code>: el campo relacionado <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_del_able_employee_ids</code>, escribible
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">readonly=False</code>), que usa la pantalla de Ajustes.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/res_config_settings_views.xml</code>: la fila <em>Borrar pedidos POS</em>, insertada después de
+  <em>Permisos avanzados</em> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/services/pos_store.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosStore.beforeDeleteOrder()</code>. Si el empleado
+  no está autorizado, muestra el aviso y devuelve <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">false</code> antes de delegar en Odoo. Define
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">isEmployeeAllowedToDeleteOrders()</code>, que usa también la pantalla de órdenes.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/screens/ticket_screen/ticket_screen.js</code>: parche de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">TicketScreen.shouldHideDeleteButton()</code> para ocultar el ícono.</li>
+<li style="margin-bottom:7px;">El campo llega al POS sin cargador propio: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> no define <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_fields</code> y el
+  POS lee todos sus campos.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Cambio respecto de Odoo 17.</strong> En 17 el control estaba en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">TicketScreen.onDeleteOrder()</code>, y el
+  botón <em>Cancelar orden</em> de la pantalla de productos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">control_buttons.js</code>, que llama a
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.onDeleteOrder</code>) lo saltaba. En 19 el control está en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">beforeDeleteOrder</code>, por donde pasan
+  los dos caminos.</li>
+<li style="margin-bottom:7px;"><strong>La lista se lee de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">config.raw</code>.</strong> El store solo tiene cargados algunos empleados, y el getter
+  relacional podría no resolver los demás. Por eso el módulo usa los ids crudos.</li>
+<li style="margin-bottom:7px;"><strong>Tests.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_delete_order_access.py</code> cubre la configuración: lista vacía por defecto,
+  que Ajustes escriba en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> y que el relacionado sea escribible. El comportamiento en el
+  POS no tiene test automático: se valida a mano en el navegador.</li>
+<li style="margin-bottom:7px;">En <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">doc/historial_16_17/</code> quedan las notas de la migración 16→17, solo como historial.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Osmar Toloza</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Osmar Toloza</li>
+</ul></div>
+</div>

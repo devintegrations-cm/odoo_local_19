@@ -22,6 +22,12 @@
     'data': [
         'views/res_config_settings_views.xml',
     ],
+    'images': [
+        'static/description/01_configuracion.png',
+        'static/description/02_ordenes_autorizado.png',
+        'static/description/03_ordenes_no_autorizado.png',
+        'static/description/04_cancelar_denegado.png',
+    ],
     'assets': {
         'point_of_sale._assets_pos': [
             'pos_del_order/static/src/app/services/pos_store.js',
