@@ -1,0 +1,225 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Agrega al ticket del Punto de Venta <strong>bloques de información adicional</strong> configurables por tienda:
+texto, texto legal, separadores, imágenes, códigos QR y códigos de barras. Cada punto de venta
+tiene su propia lista de bloques, ordenable y con activación individual, y cada bloque se imprime
+en una de tres posiciones del ticket: <strong>cabecera</strong>, <strong>antes del pie</strong> o <strong>final del ticket</strong>.</p>
+<p style="margin:0 0 12px;">Tipos de bloque disponibles: texto libre, texto legal (letra más pequeña), separador, imagen, QR de
+URL, QR de texto, código de barras, QR de reseña en Google, QR de WhatsApp, QR de WiFi, QR de
+contacto (vCard) y QR de pago o propina.</p>
+<p style="margin:0 0 12px;">Cada bloque puede limitarse por <strong>vigencia</strong> (fechas desde/hasta), <strong>importe mínimo</strong> del pedido y
+<strong>frecuencia</strong> (uno de cada N pedidos). El contenido admite marcadores que se reemplazan al imprimir
+con datos del pedido, como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{order_name}</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{total}</code> o <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{cashier}</code>.</p>
+<p style="margin:0 0 12px;">Los QR y códigos de barras los genera el propio Odoo con el endpoint <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/report/barcode</code>; no se usa
+ninguna librería JavaScript externa. Las imágenes se incrustan en el ticket, así que se siguen
+imprimiendo aunque la caja pierda la conexión, y si un código no se puede generar se imprime la
+misma información en texto.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code>. No hay dependencias externas ni librerías de Python adicionales.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em>. Crea el modelo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.receipt.custom.block</code>, sus permisos y
+una regla multicompañía. Después de instalar o actualizar, hay que <strong>volver a entrar al POS</strong> desde
+el backend (o recargar la pestaña) para que cargue los archivos nuevos y los bloques.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Permisos</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Administrador del POS</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.group_pos_manager</code>) y <strong>Ajustes</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">base.group_system</code>):
+  lectura y escritura de bloques.</li>
+<li style="margin-bottom:7px;"><strong>Usuario del POS</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.group_pos_user</code>): solo lectura, que es lo que necesita la
+  caja para cargar los bloques al abrir la sesión.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<p style="margin:0 0 12px;">El módulo conserva el nombre técnico, el modelo y los nombres de campo de la versión 17, así que
+los bloques ya configurados se mantienen sin script de datos. Lo que cambió es el código del POS:
+la carga de datos pasó al contrato <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.load.mixin</code> de Odoo 19 y el ticket se arma a partir del
+pedido vivo en lugar de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">export_for_printing()</code>.</p>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Los bloques se configuran por punto de venta. El acceso principal está en <em>Punto de venta ›
+Configuración › Punto de venta</em>: al abrir una tienda, al final del formulario aparece la sección
+<strong>Ticket – Información adicional</strong>, con una lista editable en línea. Cada fila es un bloque; se
+reordenan arrastrando el ícono de la izquierda y se apagan con el interruptor <strong>Activo</strong>.</p>
+<div class="lc-fig"><img alt="Punto de venta › Configuración › Punto de venta › (tienda): sección Ticket – Información adicional" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración › Punto de venta › (tienda): sección Ticket – Información adicional</p></div>
+<p style="margin:0 0 12px;">Hay dos accesos más al mismo modelo:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><em>Punto de venta › Configuración › Ajustes</em>, bloque <strong>Recibos y facturas</strong>, opción <strong>Información
+  adicional en el ticket</strong>: muestra cuántos bloques activos tiene la tienda elegida arriba y el
+  botón <strong>Configurar bloques</strong>, que abre la lista de esa tienda.</li>
+<li style="margin-bottom:7px;"><em>Punto de venta › Configuración › Ticket – Información adicional</em>: lista de todas las tiendas,
+  con filtros para agrupar por punto de venta, tipo o posición y para ver los archivados.</li>
+</ul>
+<div class="lc-fig"><img alt="Ajustes › Punto de venta › Recibos y facturas: opción Información adicional en el ticket" src="02_ajustes.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ajustes › Punto de venta › Recibos y facturas: opción Información adicional en el ticket</p></div>
+<p style="margin:0 0 12px;">Todas las opciones requieren el grupo <strong>Administrador del POS</strong>. Si no hay ningún bloque, el ticket
+se imprime igual que el estándar de Odoo.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Campos de un bloque</h2>
+<p style="margin:0 0 12px;">Al abrir un bloque desde la lista global o desde <em>Configurar bloques</em> se ve el formulario completo.
+Los grupos de campos cambian según el tipo elegido.</p>
+<div class="lc-fig"><img alt="Formulario de un bloque de tipo QR de WiFi" src="03_bloque.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Formulario de un bloque de tipo QR de WiFi</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Punto de venta</strong> (obligatorio): la tienda dueña del bloque. Si se elimina la tienda, se
+  eliminan sus bloques.</li>
+<li style="margin-bottom:7px;"><strong>Tipo</strong> (obligatorio, por defecto <em>Texto libre</em>): define qué se imprime y qué campos se piden.</li>
+<li style="margin-bottom:7px;"><strong>Posición</strong> (obligatoria, por defecto <em>Antes del pie</em>): <em>Cabecera</em>, <em>Antes del pie</em> o <em>Final del
+  ticket</em>.</li>
+<li style="margin-bottom:7px;"><strong>Alineación</strong> (obligatoria, por defecto <em>Centro</em>): izquierda, centro o derecha.</li>
+<li style="margin-bottom:7px;"><strong>Secuencia</strong> (por defecto 10): orden de impresión dentro de la misma posición.</li>
+<li style="margin-bottom:7px;"><strong>Leyenda</strong> (opcional): texto que se imprime encima del bloque. Admite marcadores.</li>
+<li style="margin-bottom:7px;"><strong>Contenido</strong>: obligatorio para texto libre, texto legal, QR de URL, QR de texto, código de
+  barras, QR de reseña y QR de pago. Es el texto, la URL o el valor del código. Admite marcadores.</li>
+<li style="margin-bottom:7px;"><strong>Imagen</strong> (obligatoria para el tipo <em>Imagen</em>): se reduce a 512 px como máximo al guardar.</li>
+<li style="margin-bottom:7px;"><strong>WhatsApp</strong>: <em>Número</em> (obligatorio, formato internacional sin "+" ni espacios, por ejemplo
+  573001234567) y <em>Mensaje</em> prellenado (opcional, admite marcadores).</li>
+<li style="margin-bottom:7px;"><strong>WiFi</strong>: <em>SSID</em> (obligatorio), <em>Seguridad</em> (por defecto WPA/WPA2), <em>Contraseña</em> y <em>Red oculta</em>.</li>
+<li style="margin-bottom:7px;"><strong>Contacto (vCard)</strong>: <em>Nombre</em> (obligatorio), organización, teléfono, correo, sitio web y
+  dirección.</li>
+<li style="margin-bottom:7px;"><strong>Simbología</strong> (solo código de barras, por defecto Code 128) y <strong>Mostrar valor</strong> (imprime el
+  valor legible bajo las barras).</li>
+<li style="margin-bottom:7px;"><strong>Ancho / Alto (px)</strong> (por defecto 150 × 150; al elegir <em>Código de barras</em> pasa a 300 × 60): entre
+  1 y 1000 px. Para impresora térmica se recomiendan QR de 120 a 200 px.</li>
+<li style="margin-bottom:7px;"><strong>Vigente desde / hasta</strong> (opcionales): vacío significa sin límite.</li>
+<li style="margin-bottom:7px;"><strong>Importe mínimo</strong> (por defecto 0): el bloque solo sale si el total con impuestos del pedido es
+  igual o mayor. 0 significa sin mínimo.</li>
+<li style="margin-bottom:7px;"><strong>Cada N pedidos</strong> (obligatorio, por defecto 1) y <strong>Desplazamiento</strong> (por defecto 0): con 1 sale en
+  todos los pedidos; con 10, en los pedidos 10, 20, 30… de la sesión de caja. El desplazamiento
+  corre el ciclo (con 10 y desplazamiento 5, sale en 5, 15, 25…) y debe estar entre 0 y N − 1.</li>
+</ul>
+<p style="margin:0 0 12px;">Para el QR de reseña, el <em>Contenido</em> puede ser el Place ID de Google o una URL completa: si empieza
+por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">http</code> se usa tal cual; si no, se arma el enlace de reseña de Google con ese Place ID.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Validaciones al guardar</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Cada tipo exige sus campos obligatorios (contenido, imagen, número, SSID o nombre de contacto).</li>
+<li style="margin-bottom:7px;">EAN-8 y EAN-13 deben tener la longitud y el dígito de control correctos, salvo que el valor lleve
+  marcadores.</li>
+<li style="margin-bottom:7px;"><em>Vigente desde</em> no puede ser posterior a <em>Vigente hasta</em>.</li>
+<li style="margin-bottom:7px;">Ancho y alto deben ser mayores que 0 y no pasar de 1000 px.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Marcadores</h2>
+<p style="margin:0 0 12px;">Disponibles en <em>Contenido</em>, <em>Leyenda</em> y <em>Mensaje de WhatsApp</em>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{order_name}</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{total}</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{date}</code>,
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{cashier}</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{table}</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{partner_name}</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{tracking_number}</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{store_name}</code>. Un marcador que no
+existe se imprime tal cual, para que el error se vea en el ticket.</p>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Los cambios se ven en el POS después de volver a entrar a la sesión o recargar la pestaña: los
+  bloques se cargan al abrir el POS.</li>
+<li style="margin-bottom:7px;">Los bloques archivados no se cargan en el POS.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Flujo</h2>
+<p style="margin:0 0 12px;">No hay ningún paso nuevo para el cajero. Al terminar un pedido, el ticket incluye los bloques
+activos de la tienda que cumplen sus condiciones (vigencia, importe mínimo y frecuencia), cada uno
+en su posición:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Cabecera</strong>: justo debajo del encabezado estándar (datos del pedido, cajero y cliente).</li>
+<li style="margin-bottom:7px;"><strong>Antes del pie</strong>: después de los totales, los pagos y el QR de autofacturación de Odoo, antes del
+  pie configurable de la tienda.</li>
+<li style="margin-bottom:7px;"><strong>Final del ticket</strong>: después del pie y de los comprobantes del datáfono.</li>
+</ul>
+<p style="margin:0 0 12px;">Los mismos bloques salen en la pantalla de recibo, en la impresión, en la reimpresión desde
+<em>Órdenes › Imprimir recibo</em> y en el recibo enviado por correo.</p>
+<div class="lc-fig"><img alt="Ticket reimpreso con bloques en las tres posiciones" src="04_recibo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ticket reimpreso con bloques en las tres posiciones</p></div>
+<p style="margin:0 0 12px;">La captura es la vista de impresión de un ticket reimpreso desde <em>Órdenes</em>, con cinco bloques de
+ejemplo: un texto libre en la cabecera, un QR de WiFi antes del pie y, al final, un separador, un
+QR de propina cuya leyenda usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{order_name}</code> y un texto legal.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Reimpresión</strong>: la frecuencia se calcula con el número de pedido dentro de la sesión de caja,
+  que se guarda con el pedido. Una reimpresión muestra los mismos bloques que el ticket original.</li>
+<li style="margin-bottom:7px;"><strong>Sin conexión</strong>: los códigos que no dependen del pedido se descargan al abrir la sesión y quedan
+  en memoria. Los que llevan marcadores se generan al imprimir; si en ese momento no hay conexión,
+  el bloque imprime la información en texto (SSID y clave del WiFi, la URL, el teléfono…).</li>
+<li style="margin-bottom:7px;"><strong>Recibo básico</strong> (el que Odoo imprime sin precios, para regalos): los bloques de la posición
+  <em>Antes del pie</em> no salen, porque Odoo omite esa parte del ticket. Los de cabecera y final sí.</li>
+<li style="margin-bottom:7px;"><strong>Restaurante</strong>: con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{order_name}</code> se reemplaza por el nombre que Odoo le da
+  al pedido en la mesa (por ejemplo "T 5"), no por la referencia del pedido. Para imprimir una
+  referencia única conviene usar <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{tracking_number}</code>.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Un bloque no aparece en el ticket.</strong> Revisar que esté activo, que la fecha de hoy esté dentro
+  de la vigencia, que el total alcance el importe mínimo y que <em>Cada N pedidos</em> sea 1 (o que le
+  toque a ese pedido). Después de cambiar algo, recargar el POS.</li>
+<li style="margin-bottom:7px;"><strong>Un bloque con <em>Cada N pedidos</em> no sale nunca.</strong> El conteo se reinicia en cada sesión de caja: si
+  la tienda hace menos de N pedidos por turno, el bloque no llega a imprimirse. Bajar N.</li>
+<li style="margin-bottom:7px;"><strong>Aparece <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{algo}</code> literal en el ticket.</strong> El marcador está mal escrito; ver la lista en
+  <em>Configuración</em>.</li>
+<li style="margin-bottom:7px;"><strong>Sale el texto en lugar del código.</strong> El código no se pudo generar (sin conexión con el
+  servidor). Al recuperar la conexión, la siguiente impresión vuelve a intentarlo.</li>
+<li style="margin-bottom:7px;"><strong>Un bloque archivado no aparece en la lista de la tienda.</strong> La lista del formulario de la tienda
+  solo muestra los activos; para reactivarlo, usar el menú <em>Ticket – Información adicional</em> con el
+  filtro <em>Archivado</em>.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{order_name}</code> en restaurante.</strong> Toma el valor de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getName()</code> del pedido, que en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> devuelve el nombre de la mesa ("T 5") o el texto de venta directa, no la referencia. En la
+  captura de uso se ve así.</li>
+<li style="margin-bottom:7px;"><strong>Recibo básico.</strong> Los bloques <em>Antes del pie</em> se insertan junto a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">div.before-footer</code>, que en la
+  plantilla de Odoo 19 está dentro de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">t-if="!props.basic_receipt"</code>; en un recibo básico no salen.</li>
+<li style="margin-bottom:7px;"><strong>Bloques archivados en el formulario de la tienda.</strong> El campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">custom_receipt_block_ids</code> lleva
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">context="{'active_test': False}"</code>, pero la lista embebida solo muestra los activos. Se ven y se
+  reactivan desde el menú global o desde <em>Configurar bloques</em>.</li>
+<li style="margin-bottom:7px;"><strong>El contador de Ajustes cuenta solo los activos</strong>, aunque la etiqueta dice <em>Bloques
+  configurados</em>.</li>
+<li style="margin-bottom:7px;">La frecuencia se reinicia en cada sesión de caja (usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sequence_number</code>).</li>
+<li style="margin-bottom:7px;">Las etiquetas de la interfaz están en español dentro del código y no hay <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">i18n/</code>.</li>
+<li style="margin-bottom:7px;">No hay vista previa del bloque en el formulario: el resultado se ve en el POS.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>: en <em>Aplicaciones</em> se ve el ícono genérico de Odoo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_receipt_custom_block.py</code>: el modelo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.receipt.custom.block</code> (hereda
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.load.mixin</code>), sus validaciones y la lista de campos que se envían al POS
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">POS_LOADED_FIELDS</code>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_session.py</code>: agrega el modelo en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_models()</code>. El dominio de carga solo
+  trae los bloques activos de la tienda de la sesión.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_config.py</code>: el One2many <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">custom_receipt_block_ids</code> y la acción que abre los bloques de
+  una tienda.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/res_config_settings.py</code>: el contador y el botón de <em>Ajustes</em>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/</code>: la sección en el formulario de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>, la opción en <em>Ajustes › Recibos y
+  facturas</em>, las listas, el formulario, la búsqueda y el menú global.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">security/</code>: permisos por grupo y regla multicompañía sobre el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">company_id</code> heredado de la tienda.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/utils/receipt_block_utils.js</code>: URLs de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/report/barcode</code>, payloads de WiFi, vCard,
+  WhatsApp y reseña, marcadores y texto de respaldo.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/services/pos_store.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosStore</code>; carga los bloques, filtra por
+  vigencia, importe y frecuencia, resuelve marcadores e incrusta las imágenes como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data:</code> URI.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/services/printer_service.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PrinterService.print()</code> que incrusta los
+  códigos antes de rasterizar.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/screens/receipt_screen/receipt_screen.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_sendReceiptToCustomer()</code>
+  para el envío por correo.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/screens/receipt_screen/receipt/order_receipt.js</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.xml</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.scss</code>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setup()</code> y el
+  getter <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">customReceiptBlocks</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">OrderReceipt</code>, la herencia de la plantilla
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.OrderReceipt</code> y los estilos (clases <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">o_ptc_*</code>).</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Puntos de anclaje en la plantilla.</strong> La herencia usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">//ReceiptHeader</code> (after),
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">//div[hasclass('before-footer')]</code> (before) y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">//div[hasclass('after-footer')]</code> (inside). Los tres
+  existen en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.OrderReceipt</code> de Odoo 19. La herencia se resuelve en el navegador: si una
+  versión futura quita alguno, la instalación no avisa y el error aparece al abrir el POS.</li>
+<li style="margin-bottom:7px;"><strong><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">OrderReceipt</code> no tiene <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setup()</code> en Odoo 19.</strong> El parche define uno para tener <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">this.pos</code> con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">usePos()</code>. Si el core agrega su propio <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setup()</code>, el parche debe llamar a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">super.setup()</code>.</li>
+<li style="margin-bottom:7px;"><strong>Por qué se incrustan las imágenes.</strong> Al imprimir, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">htmlToCanvas</code> cachea cada recurso por URL
+  <strong>sin la query string</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getCacheKey</code> en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale/static/src/app/utils/html-to-image.js</code>).
+  Todos los códigos son <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/report/barcode/?...</code>, así que sin incrustarlos el primer código se
+  repetiría en todos los bloques. Con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data:</code> URI esa caché no interviene. En la reimpresión de la
+  captura, los dos QR del ticket llegaron como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data:image/png;base64</code>.</li>
+<li style="margin-bottom:7px;"><strong>Simbologías.</strong> Los valores del selector son nombres de ReportLab (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Standard39</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">I2of5</code>), no
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Code39</code> ni <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ITF</code>: con un nombre inválido <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ir.actions.report.barcode()</code> lanza <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">KeyError</code>, el
+  endpoint responde 500 y el ticket sale con la imagen rota.</li>
+<li style="margin-bottom:7px;"><strong>Tope de 1000 px por lado.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ir.actions.report.barcode()</code> rechaza imágenes de más de 1 200 000
+  px²; el endpoint lo devuelve como HTTP 200 con HTML y el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">&lt;img&gt;</code> sale roto sin error en el log. La
+  validación del modelo lo evita.</li>
+<li style="margin-bottom:7px;"><strong>Query string en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/report/barcode</code>.</strong> Se usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">?barcode_type=..&amp;value=..</code> en lugar de la forma de
+  ruta, porque los payloads de WiFi, vCard y URLs llevan <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/</code> y saltos de línea.</li>
+<li style="margin-bottom:7px;"><strong>Tests.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_receipt_custom_block.py</code> (22 tests: validaciones, carga al POS, campo
+  imagen, integración con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> y el contrato con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">barcode()</code> del core) y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/tests/receipt_block_utils_tests.js</code> (QUnit, funciones de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">receipt_block_utils.js</code>). Los
+  parches del POS no tienen test automático: se validan en el navegador.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Libertario Coffee</li>
+<li style="margin-bottom:7px;">Cristian Mira (migración a Odoo 19)</li>
+</ul></div>
+</div>

@@ -47,6 +47,12 @@ el teléfono...) en lugar de dejar un hueco en blanco.
             'pos_ticket_customization/static/tests/receipt_block_utils_tests.js',
         ],
     },
+    'images': [
+        'static/description/01_configuracion.png',
+        'static/description/02_ajustes.png',
+        'static/description/03_bloque.png',
+        'static/description/04_recibo.png',
+    ],
     'installable': True,
     'application': False,
     'auto_install': False,
