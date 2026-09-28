@@ -1,0 +1,2 @@
+- Libertario Coffee Roasters
+- danilosantoslibertario (desarrollo original en Odoo 16/17)

@@ -1,63 +1,279 @@
-<section class="oe_container oe_dark">
-    <div class="col-md-12">
-        <h2 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>POS API Datafono</b></h2>
-    </div>
-    <div class="col-md-12" style="text-align: left;">
-        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Preview</b></h3>
-        <p style="font-size: 18px;">
-            Integration of the payment terminal with the Credibanco API in the POS.
-        </p>
-        <p style="font-size: 18px;">
-            - Point of Sale (POS)
-        </p>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="duplicate_pos.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-        <br>
-        <h1 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Use Case</b></h1>
-        <p style="font-size: 18px;">
-            Payment Card  
-        </p><br>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="validate_field_pos.png" style="height: 400px;">
-                </div>
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="validate_field_contacts.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-        <h1 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Use Case</b></h1>
-        <p style="font-size: 18px;">
-            Anulation  
-        </p><br>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="validate_field_pos.png" style="height: 400px;">
-                </div>
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="validate_field_contacts.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-        <p style="font-size: 18px;">
-            Anulation  
-        </p><br>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="validate_field_pos.png" style="height: 400px;">
-                </div>
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="validate_field_contacts.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Cobra con el <strong>datáfono Credibanco</strong> desde la pantalla de pago del Punto de Venta. El cajero agrega
+el método de pago Credibanco, revisa el monto y pulsa <strong>Enviar a Datafono</strong>: el POS arma la trama
+del protocolo Credibanco (total, IVA, IAC, propina, caja, número de transacción y cajero), la envía
+al datáfono y, si el cliente aprueba, deja la línea pagada con el monto que realmente cobró el
+terminal y su número de aprobación.</p>
+<p style="margin:0 0 12px;">El navegador de la caja no habla con el datáfono directamente: lo hace a través de un <strong>servicio
+puente WebSocket</strong> que corre en el equipo de la caja (contenedor <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">websocket-api-credibanco</code>), y ese
+puente habla por TCP/IP con el datáfono.</p>
+<p style="margin:0 0 12px;">Además del cobro, el módulo cubre lo que pasa cuando algo sale mal:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Venta sin respuesta</strong>: si el datáfono no contesta o devuelve "sin respuesta final", la venta
+  queda marcada como pendiente y el POS obliga a <strong>recuperarla</strong> antes de cobrar de nuevo, para no
+  cobrar dos veces.</li>
+<li style="margin-bottom:7px;"><strong>Anulación</strong>: un pago aprobado se puede anular desde la misma pantalla de pago; la anulación se
+  registra como una <strong>línea de pago negativa</strong>, igual que en Odoo 17.</li>
+<li style="margin-bottom:7px;"><strong>Trazabilidad</strong>: cada pago guarda la respuesta completa del datáfono y la muestra en la ficha
+  del pago como un desglose legible (franquicia, recibo, terminal, cuotas...).</li>
+</ul>
+<p style="margin:0 0 12px;">Se integra con el marco de terminales de pago del núcleo de Odoo 19
+(<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">use_payment_terminal = 'credibanco'</code>), que es el que evita dos pagos electrónicos a la vez y
+maneja los estados de la línea.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code> (Odoo Community). No hay dependencias de Python adicionales.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_voucher_num</code> es <strong>opcional</strong>: si está instalado, el número de aprobación se copia también a
+  su campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">voucher_num</code>. En Odoo 17 era una dependencia obligatoria; en 19 la integración es por
+  valor y este módulo se instala sin él.</li>
+<li style="margin-bottom:7px;"><strong>Servicio puente WebSocket</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">websocket-api-credibanco</code> (imagen Docker
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">soportedevlibertario/api_credibanco</code>), instalado en el equipo de cada caja. Expone el WebSocket
+  en el puerto <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">8080</code> (ruta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/ws</code>) y escucha al datáfono en el puerto TCP <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">8013</code>. Su código y su
+  guía de instalación están en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">api_credibanco-main/</code> dentro de este módulo; Odoo no lo instala ni
+  lo arranca.</li>
+<li style="margin-bottom:7px;"><strong>Datáfono Credibanco</strong> en la misma red que la caja, configurado desde su menú técnico con la IP y
+  el puerto del equipo de la caja. La integración se desarrolló con un Ingenico Lane/3000.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">En el equipo de la caja: instalar Docker y levantar el puente con el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stack.yml</code> de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">api_credibanco-main/</code> (ver su <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">README.md</code>). En <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">resource/tcpIp.ini</code> del puente se asocia la IP de
+  cada datáfono con el <strong>nombre de terminal</strong> (por ejemplo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">dataf001</code>) que luego se configura en
+  Odoo.</li>
+<li style="margin-bottom:7px;">En Odoo: instalar el módulo desde <em>Aplicaciones</em>. Crea el modelo del desglose
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.payment.credibanco</code>), el asistente de carga manual, los campos de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.payment</code> y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.payment.method</code>, y el menú <em>Credibanco Settings</em>.</li>
+<li style="margin-bottom:7px;">Configurar el método de pago (ver <em>Configuración</em>) y <strong>volver a entrar al POS</strong> desde el backend
+  para que cargue los archivos y los datos nuevos.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">En 17 la terminal se activaba con la casilla <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">enable_pos_credibanco</code> del método de pago. El script
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">migrations/19.0.1.0.0/pre-migration.py</code> pasa esos métodos a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">use_payment_terminal = 'credibanco'</code>
+  e <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Integración = Terminal</code>. Solo toca los métodos que tenían la casilla marcada y que no tenían
+  otra terminal asignada, así que se puede ejecutar más de una vez. Si la columna vieja no existe
+  (instalación nueva), no hace nada.</li>
+<li style="margin-bottom:7px;">Nombre, host y puerto del datáfono conservan el mismo nombre técnico que en 17
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_payment_terminal_name</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_ip_host</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_websocket_port</code>) y no necesitan script. El script
+  <strong>no rellena</strong> los valores que en 17 se asumían cuando estaban vacíos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">dataf001</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">localhost</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">8080</code>): un método migrado sin esos datos no se puede guardar hasta completarlos.</li>
+<li style="margin-bottom:7px;"><strong>Número de voucher</strong>: el código de 19 escribe en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">voucher_num</code> (en 17 el campo se llamaba
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">vaucher_num</code>). El renombre de la columna y de los datos lo hace <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_voucher_num</code> en su
+  migración <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">19.0.1.1.0</code>; este módulo no migra datos de voucher.</li>
+<li style="margin-bottom:7px;">Los ajustes de <em>Payment Terminals</em> de 17 (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">module_pos_credibanco</code> en Ajustes) no se portaron.</li>
+</ul>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Credibanco Settings</em> (solo lo ven los responsables del POS).
+La lista muestra <strong>todos</strong> los métodos de pago con su terminal, nombre, host y puerto; no permite
+crear ni borrar. Abrir el método que va a cobrar con el datáfono.</p>
+<div class="lc-fig"><img alt="Punto de venta › Configuración › Credibanco Settings: lista de métodos y su terminal" src="01_credibanco_settings.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración › Credibanco Settings: lista de métodos y su terminal</p></div>
+<p style="margin:0 0 12px;">En el formulario del método de pago (es el mismo de <em>Configuración › Métodos de pago</em>):</p>
+<div class="lc-fig"><img alt="Método de pago: integración con Credibanco y bloque Datáfono Credibanco" src="02_metodo_pago.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Método de pago: integración con Credibanco y bloque Datáfono Credibanco</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Integración</strong> = <em>Terminal</em> y luego <strong>Integrar con</strong> = <em>Credibanco</em>. Obligatorios. <em>Integrar
+  con</em> solo aparece con la integración en <em>Terminal</em> y un diario que no sea de efectivo. Al elegir
+  Credibanco aparece el bloque <strong>Datáfono Credibanco</strong>.</li>
+<li style="margin-bottom:7px;"><strong>Nombre de la terminal</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_payment_terminal_name</code>). Obligatorio, sin valor por defecto. Es
+  el prefijo que lleva cada trama y debe coincidir con el nombre que el puente asocia a la IP del
+  datáfono en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tcpIp.ini</code> (por ejemplo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">dataf001</code>).</li>
+<li style="margin-bottom:7px;"><strong>Host del datáfono</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_ip_host</code>). Obligatorio, sin valor por defecto. Pese al nombre, es la
+  IP o el nombre del <strong>equipo donde corre el puente</strong>, tal como lo ve el navegador de la caja: el
+  navegador se conecta directo a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ws://&lt;host&gt;:&lt;puerto&gt;/ws</code> (o <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">wss://</code> si el POS se abre por https).</li>
+<li style="margin-bottom:7px;"><strong>Puerto</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_websocket_port</code>). Obligatorio; <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">8080</code> por defecto, que es el puerto del puente.</li>
+<li style="margin-bottom:7px;"><strong>Espera de respuesta (s)</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">credibanco_timeout</code>). Opcional; <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">100</code> por defecto en métodos
+  nuevos. Pasado ese tiempo sin respuesta, la venta queda pendiente de recuperar. Debe ser mayor
+  que los 90 s que espera el propio puente (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">LONG_TIMEOUT</code> en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tef.ini</code>), para que el primero en
+  rendirse sea el datáfono y el cajero vea su error.</li>
+<li style="margin-bottom:7px;"><strong>Diario</strong>: uno de banco. Un método de efectivo no puede ser terminal Credibanco.</li>
+<li style="margin-bottom:7px;"><strong>Punto de venta</strong>: agregar el método a los puntos de venta que lo usan.</li>
+</ul>
+<p style="margin:0 0 12px;">Lo que <strong>no</strong> se configura:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Número de caja</strong> (posición 42 de la trama). Se compone al cobrar como <em>id de la sesión</em> + <em>id
+  del cajero</em>, sin separador, igual que en la integración certificada de Odoo 17. Si supera los 10
+  caracteres del protocolo, el cobro se rechaza con un mensaje; nunca se recorta.</li>
+<li style="margin-bottom:7px;"><strong>Números de transacción</strong> (posición 53). Salen de una secuencia por método de pago
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_api_credibanco.trx.&lt;id&gt;</code>) que se crea sola al primer cobro. El POS reserva bloques de 25
+  para poder seguir cobrando si pierde el servidor.</li>
+<li style="margin-bottom:7px;"><strong>Impuestos</strong>. El servidor clasifica los impuestos de venta por el nombre de su <strong>grupo</strong>: los que
+  empiezan por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">IVA</code> van a la posición 41 y los que empiezan por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code> (el "IAC" del datáfono) a la
+  82. Las retenciones y los impuestos negativos no viajan. Si el pedido tiene impuestos pero
+  ninguno es IVA ni INC, el cobro se rechaza con el nombre de los grupos encontrados.</li>
+<li style="margin-bottom:7px;"><strong>Propina</strong>. Se toma del producto de propina del punto de venta (<em>Ajustes › Propinas</em>).</li>
+</ul>
+<p style="margin:0 0 12px;">Los cambios se ven en el POS después de volver a entrar a la sesión.</p>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Cobro con el datáfono</h2>
+<p style="margin:0 0 12px;">En la pantalla de pago, tocar el método Credibanco. Se crea una línea por el saldo pendiente con el
+estado <em>Solicitud de pago pendiente</em>. <strong>Agregar la línea no envía nada</strong>: el monto se puede ajustar
+con el teclado (pago parcial) antes de enviar.</p>
+<div class="lc-fig"><img alt="Pantalla de pago con la línea Credibanco lista para enviar" src="03_pantalla_pago.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de pago con la línea Credibanco lista para enviar</p></div>
+<p style="margin:0 0 12px;">Al pulsar <strong>Enviar a Datafono</strong>:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">El POS calcula los valores y abre <strong>Valores de la transacción</strong> con TOTAL, IVA, IAC y PROPINA.
+  <em>Cancelar</em> no envía nada; <em>Continuar</em> envía la venta al datáfono.</li>
+<li style="margin-bottom:7px;">El cliente pasa la tarjeta y aprueba en el datáfono. Mientras tanto la línea muestra <em>Solicitud
+  enviada</em>.</li>
+<li style="margin-bottom:7px;">Si el datáfono aprueba, la línea queda pagada con el <strong>monto que cobró el terminal</strong> (valor total
+  más la propina que devuelve en la posición 80), el número de aprobación y el identificador de la
+  transacción. En el recibo sale <em>Aprob.:</em> seguido del número de aprobación. Si con eso el pedido queda pagado y el punto de
+  venta tiene activo <em>Validar órdenes de forma automática</em> (opción estándar de <em>Ajustes</em>, activa por defecto), el
+  pedido se valida solo.</li>
+<li style="margin-bottom:7px;">Si el datáfono rechaza, se muestra el motivo según su código (02 rechazada, 05 problema de
+  comunicación, 06 error de trama, 09 a 12 errores de formato, 13 tiempo agotado, 99 puerto
+  ocupado). La línea queda en <em>Transacción cancelada</em> y se puede volver a enviar.</li>
+</ul>
+<p style="margin:0 0 12px;"><strong>Propina</strong>: si el pedido tiene propina (producto de propina del POS) y la línea cubre el pedido
+entero, el TOTAL se envía sin la propina y la propina viaja aparte en la posición 81.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Venta sin respuesta y recuperación</h2>
+<p style="margin:0 0 12px;">Si el datáfono no contesta dentro de la espera configurada, se corta la conexión o responde con el
+código 03 (sin respuesta final), la venta <strong>puede haber quedado aprobada</strong> en el terminal. Por eso:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">El POS guarda en la línea la venta enviada. Sin respuesta, avisa <em>Sin respuesta del datáfono</em>;
+  con el código 03 abre directamente el diálogo <strong>Recuperar</strong> (en el datáfono: TECLA 3 y luego
+  TECLA 9). <em>Más tarde</em> deja la venta pendiente.</li>
+<li style="margin-bottom:7px;">El botón de la línea cambia a <strong>Recuperar venta</strong>: pulsarlo consulta la venta pendiente, <strong>nunca
+  envía una venta nueva</strong>.</li>
+<li style="margin-bottom:7px;">Si la página se recarga, al volver a la pantalla de pago se ofrece recuperar la venta pendiente.</li>
+<li style="margin-bottom:7px;">No se puede <strong>validar</strong> el pedido mientras haya una venta pendiente.</li>
+<li style="margin-bottom:7px;">Borrar esa línea pide confirmar que en el datáfono se verificó que la venta <strong>no</strong> fue aprobada.</li>
+<li style="margin-bottom:7px;">Después de tres intentos sin respuesta final, el POS pide consultar el datáfono y avisar a un
+  responsable antes de cobrar de nuevo.</li>
+</ul>
+<p style="margin:0 0 12px;">El botón estándar <em>Forzar terminación</em> sigue visible en algunos estados, pero con Credibanco no marca el
+pago: muestra <em>No se puede forzar el pago</em> y pide usar la recuperación.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Cancelar una venta en curso</h2>
+<p style="margin:0 0 12px;">Quitar la línea (×) mientras la venta está enviada manda al datáfono una <strong>anulación</strong> con los
+datos de esa venta. Si el datáfono no la confirma, la línea sigue pendiente y el aviso pide usar
+<em>Recuperar</em> antes de continuar.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Anular un pago aprobado</h2>
+<p style="margin:0 0 12px;">Mientras el pedido sigue en la pantalla de pago, una línea Credibanco aprobada muestra el botón
+estándar <strong>Revertir</strong>. Con Credibanco no deja la línea en cero: si el datáfono aprueba la anulación,
+se agrega una <strong>línea negativa</strong> por el mismo monto (con propina incluida) y la línea original
+queda como estaba, ya sin botón de revertir. El pedido vuelve a quedar con saldo pendiente: hay que
+cobrarlo de otra forma o cancelarlo.</p>
+<p style="margin:0 0 12px;">La línea de anulación <strong>no se puede borrar</strong>: ya existe una devolución en el datáfono y borrarla
+dejaría la venta pagada en Odoo.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Información del pago en el backend</h2>
+<p style="margin:0 0 12px;">En <em>Punto de venta › Órdenes › Pagos</em>, la ficha de un pago Credibanco muestra el <strong>número de
+aprobación</strong> y el desglose de la respuesta del datáfono. Un responsable del POS puede agregar un
+concepto a mano con <strong>Agregar información</strong>.</p>
+<div class="lc-fig"><img alt="Ficha del pago: número de aprobación y desglose de la respuesta del datáfono" src="04_informacion_pago.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ficha del pago: número de aprobación y desglose de la respuesta del datáfono</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>"Sin respuesta del datáfono" en todos los cobros.</strong> El navegador no llega al puente. Revisar
+  que el contenedor <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">websocket-api-credibanco</code> esté corriendo en la caja y que <em>Host del datáfono</em> y
+  <em>Puerto</em> apunten a ese equipo. Si el POS se abre por <strong>https</strong>, el navegador usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">wss://</code> y el
+  puente no tiene TLS: la conexión falla siempre (ver <em>Limitaciones</em>).</li>
+<li style="margin-bottom:7px;"><strong>"Error en la trama" o "Campo no corresponde".</strong> La respuesta no se pudo leer o un valor no
+  cumple el formato del datáfono. Revisar que el <em>Nombre de la terminal</em> coincida con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tcpIp.ini</code> y
+  avisar a IT.</li>
+<li style="margin-bottom:7px;"><strong>"El número de caja excede el protocolo".</strong> La sesión y el cajero forman un número de más de 10
+  caracteres. No se puede cobrar con el datáfono en esa sesión; avisar a IT.</li>
+<li style="margin-bottom:7px;"><strong>"Impuestos no reconocidos".</strong> Algún producto tiene impuestos de un grupo que no empieza por
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">IVA</code> ni <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code>. Corregir el grupo del impuesto en contabilidad.</li>
+<li style="margin-bottom:7px;"><strong>"Sin números de transacción disponibles".</strong> Se agotó el bloque reservado y no hay conexión con
+  el servidor. Esperar a recuperar la conexión; no se repiten números.</li>
+<li style="margin-bottom:7px;"><strong>"Falta el cajero"</strong> o <strong>"Sesión no disponible".</strong> Iniciar sesión con un empleado o recargar el
+  POS.</li>
+<li style="margin-bottom:7px;"><strong>El método no aparece en el POS o no abre el datáfono.</strong> Verificar que el método esté asignado
+  al punto de venta, con <em>Integrar con = Credibanco</em>, y volver a entrar a la sesión.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Validación con el datáfono real pendiente.</strong> La base local tiene ventas aprobadas por un
+  datáfono (respuestas completas con franquicia, recibo y terminal), pero la anulación, la
+  recuperación y el cobro con propina no están validados de punta a punta con el terminal. Hay que
+  probarlos en cada tienda antes de habilitar el método.</li>
+<li style="margin-bottom:7px;"><strong>Propina cobrada.</strong> El monto de la línea aprobada es la posición 40 (valor total) más la 80
+  (propina). Si el 40 del datáfono ya incluye la propina, se contaría dos veces. En 17 se sumaban
+  el 40 y el 81, que la respuesta de compra no trae. Confirmar con una compra real con propina.</li>
+<li style="margin-bottom:7px;"><strong>POS por https.</strong> Con https el navegador usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">wss://</code>, y el puente actual no tiene TLS: ningún
+  cobro conecta. En 17 la URL era siempre <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ws://</code>. Hoy el POS tiene que abrirse por http en la red
+  local, o el puente necesita TLS.</li>
+<li style="margin-bottom:7px;"><strong>Anular solo antes de validar.</strong> El botón <em>Revertir</em> existe solo en la pantalla de pago y se
+  pierde al enviar otra línea electrónica. Con <em>Validar órdenes de forma automática</em> activo, un pago
+  que cubre todo el pedido lo valida enseguida y ya no se puede anular desde el POS. Los pedidos de
+  reembolso tampoco pasan por el datáfono: el monto negativo se rechaza ("El monto a pagar debe ser
+  mayor que 0").</li>
+<li style="margin-bottom:7px;"><strong>Desglose solo al crear el pago.</strong> La respuesta se convierte en desglose y en voucher en el
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">create</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.payment</code>. Si el pago ya estaba sincronizado (pedido de restaurante guardado antes
+  de pagar) y llega como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">write</code>, se guarda la respuesta cruda pero no el desglose ni el voucher.</li>
+<li style="margin-bottom:7px;"><strong>Respuestas compartidas.</strong> El puente reenvía cada respuesta a todas las conexiones abiertas. El
+  POS solo acepta una respuesta de venta si trae su caja (42) y su número de transacción (53), y una
+  anulación de un pago aprobado si trae su recibo (43). Las respuestas de recuperación y de
+  anulación de una venta en curso no traen esos datos y se aceptan tal cual: dos cajas sobre el
+  mismo puente podrían cruzarlas.</li>
+<li style="margin-bottom:7px;"><strong>Puente sin autenticación</strong> en la red local, y escribe en su salida estándar lo que recibe y lo
+  que responde el datáfono (incluidos datos de la tarjeta).</li>
+<li style="margin-bottom:7px;"><strong>Impuestos mixtos.</strong> Si el pedido tiene al menos un impuesto IVA o INC, los impuestos de otros
+  grupos no se informan y el cobro sigue sin aviso.</li>
+<li style="margin-bottom:7px;"><strong>Cajero (83).</strong> Viaja el primer nombre del cajero, recortado a 12 caracteres. Falta confirmar
+  qué espera el banco para la conciliación.</li>
+<li style="margin-bottom:7px;">Los códigos de error de E/S del puente (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">MSG_CODE_1</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">MSG_CODE_2</code>) no están mapeados porque no
+  se confirmó su código en la respuesta: salen con el mensaje genérico de rechazo.</li>
+<li style="margin-bottom:7px;"><strong>Interfaz.</strong> La lista <em>Credibanco Settings</em> muestra todos los métodos de pago sin filtrar, con
+  títulos en inglés (<em>Payment terminal name</em>, <em>Ip host POS</em>) y la acción se llama <em>Credibanco
+  Terminals</em>. En el formulario, el texto sobre el número de caja ocupa la columna de etiquetas y
+  deja <em>Espera de respuesta (s)</em> desalineado (ver captura). Los mensajes del POS están en español en
+  el código, sin traducción.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_payment_methods.py</code>: terminal <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">credibanco</code> en la selección del núcleo, campos del
+  datáfono, validaciones, carga al POS (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_fields</code>), mapa de impuestos por grupo
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">get_credibanco_tax_map</code>) y reserva de números de transacción
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reserve_credibanco_transaction_numbers</code>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_payment.py</code>: campos <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">credibanco_*</code> del pago (aprobación, respuesta, venta pendiente,
+  valores enviados en 42/53/83, marca de anulación) y el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">create</code> que genera el desglose.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_payment_credibanco.py</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/data/fields_credibanco.json</code>: filas del desglose y
+  etiquetas de cada posición de la respuesta.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">wizard/</code>: <em>Agregar información</em>, solo para responsables del POS.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/</code>: menú <em>Credibanco Settings</em>, bloque del método de pago y bloque de la ficha del pago.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/utils/payment/credibanco_protocol.js</code>: trama, LRC, límites por campo, lectura de
+  respuestas y mensajes por código. Sin dependencias de Odoo.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/utils/payment/credibanco_transport.js</code>: WebSocket con espera, una petición a la
+  vez y correlación de respuestas.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/utils/payment/credibanco_terminal.js</code>: la terminal (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PaymentInterface</code>)
+  registrada como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">credibanco</code>: venta, cancelación, anulación con línea negativa y recuperación.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/screens/payment_screen/</code>: recuperación al abrir la pantalla, bloqueos de borrado
+  y de validación, bloqueo de <em>Forzar terminación</em> y texto del botón (<em>Enviar a Datafono</em> /
+  <em>Recuperar venta</em>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/components/popups/text_list_popup/</code>: diálogo <em>Valores de la transacción</em>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">migrations/19.0.1.0.0/pre-migration.py</code>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">enable_pos_credibanco</code> → <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">use_payment_terminal</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">api_credibanco-main/</code>: código, recursos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tcpIp.ini</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tef.ini</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">fields.ini</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">functionsFields.ini</code>) y guía de instalación del puente. Odoo no lo carga.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tools/credibanco_fake_terminal.py</code>: simulador de datáfono para desarrollo
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">--outcome approved|rejected|no-answer|recover-then|bad-lrc</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">--selftest</code>). Odoo no lo carga.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">doc/historial_17/</code>: notas de la migración 16 → 17 (se conservan como historial).</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>La trama es la certificada.</strong> El número de caja (42 = sesión + cajero), el orden de los campos
+  y el LRC reproducen lo que enviaba Odoo 17. No se rellenan ni se recortan valores: el puente
+  rellena cada campo a su longitud (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">fields.ini</code>) y un valor que no cabe se rechaza con mensaje.</li>
+<li style="margin-bottom:7px;"><strong><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sendPaymentReversal</code> devuelve <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">false</code> a propósito</strong> aunque la anulación se apruebe. Con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">true</code>
+  el núcleo dejaría la línea en 0 con estado <em>reversed</em>, y al cierre no habría asiento que
+  conciliar. Con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">false</code> queda el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">+X</code> original y la línea <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-X</code> de la anulación.</li>
+<li style="margin-bottom:7px;"><strong>Anulación y recuperación repiten lo enviado.</strong> Leen 42/53/83 de los campos guardados en el
+  pago, no los recalculan desde la sesión.</li>
+<li style="margin-bottom:7px;"><strong><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">canForceDone</code></strong> (en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">payment_lines.js</code>) no lo llama ninguna plantilla del núcleo 19: el
+  bloqueo real de <em>Forzar terminación</em> es el parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sendForceDone</code> en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">payment_screen.js</code>.</li>
+<li style="margin-bottom:7px;"><strong><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">fastPayments</code> es <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">false</code></strong>: el núcleo no envía la venta al agregar la línea, para dejar
+  ajustar un pago parcial.</li>
+<li style="margin-bottom:7px;"><strong>Overrides a vigilar</strong> en cada actualización del núcleo: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PaymentScreen.deletePaymentLine</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sendForceDone</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">OrderPaymentValidation.askBeforeValidation</code> y la plantilla
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.PaymentScreenPaymentLines</code> (se reemplazan los botones de los estados <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pending</code> y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">retry</code>).</li>
+<li style="margin-bottom:7px;"><strong>Tests.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_pos_payment_method.py</code> tiene 33 pruebas de configuración, persistencia,
+  secuencias, anulación y mapa de impuestos. El JS del POS no tiene test automático: se valida a
+  mano en el navegador o con el simulador.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee Roasters</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Libertario Coffee Roasters</li>
+<li style="margin-bottom:7px;">danilosantoslibertario (desarrollo original en Odoo 16/17)</li>
+</ul></div>
+</div>

@@ -26,6 +26,12 @@ sale:
         'views/pos_settings_credibanco.xml',
         'wizard/credibanco_extra_info_wizard.xml',
     ],
+    'images': [
+        'static/description/01_credibanco_settings.png',
+        'static/description/02_metodo_pago.png',
+        'static/description/03_pantalla_pago.png',
+        'static/description/04_informacion_pago.png',
+    ],
     'assets': {
         'point_of_sale._assets_pos': [
             # Protocol and transport first: the terminal interface imports both,
