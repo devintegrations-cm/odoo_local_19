@@ -1,0 +1,2 @@
+- Libertario Coffee Roasters, equipo de desarrollo
+- Cristian Mira (migración a Odoo 19)

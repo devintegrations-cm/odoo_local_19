@@ -22,6 +22,13 @@
     # any module necessary for this one to work correctly
     'depends': ['pos_restaurant'],
 
+    'images': [
+        'static/description/01_configuracion.png',
+        'static/description/02_linea_enviada.png',
+        'static/description/03_reduccion_denegada.png',
+        'static/description/04_reduccion_autorizada.png',
+    ],
+
     # always loaded
     'data': [
         'views/pos_order_view.xml',

@@ -1,40 +1,170 @@
-<section class="oe_container oe_dark">
-    <div class="col-md-12">
-        <h2 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Restrict Erase POS Order Line</b></h2>
-    </div>
-    <div class="col-md-12" style="text-align: left;">
-        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Setup</b></h3>
-        <p style="font-size: 18px;">
-            Set a list of authorized users: Point of Sale > Settings > POS > Restaurant & Bar > Multi Employees per Session.
-        </p>
-        <div class="oe_row oe_spaced"></div>
-        <div class="oe_span12">
-            <div class="oe_demo oe_picture oe_screenshot">
-                <img src="config.png" style="height: 400px; object-fit: contain;">
-            </div>
-        </div>
-    </div>
-    <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Preview</b></h3>
-    <p style="font-size: 18px;">
-        When the <b>Order</b> button on the Product Screen is clicked, the ordered quantities are set for each line.
-    </p>
-    <div class="oe_row oe_spaced">
-        <div class="oe_span12">
-            <div class="oe_demo oe_picture oe_screenshot">
-                <img src="prev_ordered.png" style="height: 400px; object-fit: contain;">
-            </div>
-        </div>
-    </div>
-    <p style="font-size: 18px;">
-        When an unauthorized user tries to delete or set a smaller quantity in the order line, an error popup appears.
-        <br>
-        <b>Note:</b> The quantity can only be edited using the plus and minus buttons located on the order line.
-    </p>
-    <div class="oe_row oe_spaced">
-        <div class="oe_span12">
-            <div class="oe_demo oe_picture oe_screenshot">
-                <img src="prev_alert.png" style="height: 400px; object-fit: contain;">
-            </div>
-        </div>
-    </div>
-</section>
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Impide que un <strong>empleado no autorizado</strong> reduzca o borre una línea de pedido del Punto de Venta
+después de enviarla a cocina. Cada punto de venta tiene una lista de empleados autorizados. Si el
+empleado que tiene la caja está en la lista, puede reducir o borrar líneas como siempre. Si no está,
+el POS rechaza la acción con el aviso <em>Operacion no permitida</em>.</p>
+<p style="margin:0 0 12px;">Existe para que un mesero no pueda quitar de la cuenta un producto que la cocina ya está preparando
+sin pasar por el líder de tienda.</p>
+<p style="margin:0 0 12px;">Cada línea enviada muestra su <strong>cantidad ordenada</strong> con el distintivo <em>En preparación</em> y dos botones
+para restar o sumar una unidad. Aumentar la cantidad siempre está permitido. Con la lista vacía,
+todos los empleados pueden reducir y borrar líneas.</p>
+<p style="margin:0 0 12px;">Está pensado para puntos de venta de tipo restaurante (depende de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code>).</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> (Odoo Community), que trae <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code>. No hay dependencias externas ni
+  librerías de Python adicionales.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> no es dependencia del módulo, pero hace falta en la práctica: el campo de Ajustes solo se
+  ve con <em>Iniciar sesión como empleado</em> activo, y el control se evalúa sobre el empleado que inició
+  sesión en la caja.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em>. No crea modelos ni permisos de acceso: agrega un campo a la
+configuración del punto de venta, un campo a las líneas de pedido y los archivos del POS. Después de
+instalar o actualizar, hay que <strong>volver a entrar al POS</strong> desde el backend para que cargue los
+archivos nuevos.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<p style="margin:0 0 12px;">Los campos conservan el nombre técnico y la tabla de relación de Odoo 17:
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">able_del_pol_employee_ids</code> en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> (tabla <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">abl_pol_employee_ids</code>) y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ordered_quantities</code>
+en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.order.line</code>. La lista de empleados autorizados y las cantidades ordenadas de las órdenes
+existentes se mantienen sin script de datos.</p>
+<p style="margin:0 0 12px;">El archivo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_session.py</code> de 17 ya no existe: en Odoo 19 cada modelo declara sus campos
+para el POS en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_fields</code>. El archivo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">security/ir.model.access.csv</code> de 17 tampoco:
+se refería a un modelo de otro módulo y el manifiesto de 17 no lo cargaba.</p>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Ajustes</em>, elegir el punto de venta en la parte superior y
+buscar el bloque <strong>Interfaz de PdV</strong>.</p>
+<div class="lc-fig"><img alt="Punto de venta › Configuración › Ajustes › Interfaz de PdV: Iniciar sesión como empleado y Borrar o reducir lineas de pedido POS" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración › Ajustes › Interfaz de PdV: Iniciar sesión como empleado y Borrar o reducir lineas de pedido POS</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Iniciar sesión como empleado</strong> (campo estándar de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code>). Requisito. El campo del módulo
+  solo aparece con esta casilla marcada y guardada, y el control usa el empleado que inició sesión
+  en la caja.</li>
+<li style="margin-bottom:7px;"><strong>Borrar o reducir lineas de pedido POS</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">able_del_pol_employee_ids</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>).
+  Opcional; vacío por defecto. Lista de empleados de la compañía que pueden reducir o borrar líneas
+  ya enviadas a cocina. Vacío significa que <strong>todos</strong> pueden.</li>
+</ul>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">La configuración es <strong>por punto de venta</strong>. Hay que repetirla en cada tienda.</li>
+<li style="margin-bottom:7px;">Los cambios se ven en el POS después de volver a entrar a la sesión desde el backend.</li>
+<li style="margin-bottom:7px;">El texto de ayuda de la fila dice "borrar pedidos", pero este módulo <strong>no controla la eliminación
+  de órdenes completas</strong>. Eso lo hace la fila <strong>Borrar pedidos POS</strong>, del módulo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_del_order</code>.</li>
+<li style="margin-bottom:7px;">En el backend, la columna opcional <strong>Ordered Quantities</strong> de las líneas de la orden (<em>Punto de
+  venta › Órdenes</em>) muestra la cantidad ordenada guardada. Es de solo lectura.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Enviar a cocina</h2>
+<p style="margin:0 0 12px;">Al pulsar <strong>Enviar</strong> (o <strong>Pago</strong>, ver <em>Casos especiales</em>), el POS guarda la cantidad actual de cada
+línea como <strong>cantidad ordenada</strong>. Al volver a la mesa, cada línea muestra esa cantidad entre los
+botones de restar y sumar, con el distintivo <em>En preparación</em>.</p>
+<div class="lc-fig"><img alt="Línea enviada a cocina con su cantidad ordenada y el distintivo En preparación" src="02_linea_enviada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Línea enviada a cocina con su cantidad ordenada y el distintivo En preparación</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Empleado no autorizado</h2>
+<p style="margin:0 0 12px;">Con un empleado que no está en la lista, cualquier intento de dejar la línea por debajo de la
+cantidad ordenada muestra el aviso <em>Operacion no permitida</em> y la línea no cambia. Aplica a la tecla
+⌫ del teclado numérico, a escribir una cantidad menor con el teclado y al botón de restar del
+distintivo.</p>
+<div class="lc-fig"><img alt="Empleado no autorizado: al pulsar ⌫ sobre la línea enviada, el POS lo impide" src="03_reduccion_denegada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Empleado no autorizado: al pulsar ⌫ sobre la línea enviada, el POS lo impide</p></div>
+<p style="margin:0 0 12px;">Sumar unidades está permitido. Las unidades agregadas después del envío, mientras no se vuelva a
+enviar, se pueden quitar hasta llegar otra vez a la cantidad ordenada.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Empleado autorizado</h2>
+<p style="margin:0 0 12px;">Con un empleado de la lista, la línea se reduce o se borra como en el POS estándar. Odoo registra la
+diferencia como un cambio pendiente para cocina (el botón <strong>Enviar</strong> muestra <em>Cocina -1</em>).</p>
+<div class="lc-fig"><img alt="Empleado autorizado: la cantidad baja a 1 y el distintivo conserva la cantidad ordenada" src="04_reduccion_autorizada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Empleado autorizado: la cantidad baja a 1 y el distintivo conserva la cantidad ordenada</p></div>
+<p style="margin:0 0 12px;">El distintivo sigue mostrando la cantidad ordenada anterior hasta el próximo <strong>Enviar</strong>, que la
+actualiza con la cantidad nueva.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Lista vacía</strong>: todos los empleados pueden reducir y borrar líneas.</li>
+<li style="margin-bottom:7px;"><strong>Cambio de empleado</strong>: la regla se evalúa con el empleado que tiene la caja en ese momento. Al
+  bloquear la caja y entrar con otro PIN, el mismo pedido queda permitido o bloqueado según el
+  nuevo empleado.</li>
+<li style="margin-bottom:7px;"><strong>Pago</strong>: el botón <strong>Pago</strong> también marca todas las líneas como ordenadas, antes de que Odoo
+  pregunte si se quiere enviar el pedido a preparación. Aunque se elija <em>Descartar</em> y no se envíe
+  nada a cocina, al volver a la mesa las líneas aparecen <em>En preparación</em> y quedan protegidas.</li>
+<li style="margin-bottom:7px;"><strong>Dividir cuenta</strong>: al confirmar la división, las cantidades de las dos órdenes resultantes pasan
+  a ser las cantidades ordenadas.</li>
+<li style="margin-bottom:7px;"><strong>Combos</strong>: si alguna línea del combo tiene cantidad ordenada, el empleado no autorizado no puede
+  borrar el combo.</li>
+<li style="margin-bottom:7px;"><strong>Transferir o fusionar mesas, Cancelar orden, Liberar la mesa</strong>: no pasan por este control (ver
+  <em>Limitaciones conocidas</em>).</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>No aparece el campo en Ajustes.</strong> Marcar <em>Iniciar sesión como empleado</em>, guardar y volver a la
+  página: el campo está dentro de ese bloque.</li>
+<li style="margin-bottom:7px;"><strong>La línea no muestra el distintivo <em>En preparación</em>.</strong> Solo aparece después de <strong>Enviar</strong> o
+  <strong>Pago</strong>, en las pantallas de productos y de pago, y nunca en líneas de recompensa. Si el módulo
+  se acaba de instalar, volver a entrar al POS desde el backend.</li>
+<li style="margin-bottom:7px;"><strong>Un empleado no autorizado puede reducir la línea.</strong> Verificar que la lista esté guardada en el
+  punto de venta correcto, volver a entrar al POS y revisar qué empleado tiene la caja (avatar arriba
+  a la derecha). Si la reducción no baja de la cantidad ordenada, está permitida.</li>
+<li style="margin-bottom:7px;"><strong>Un empleado no puede quitar un producto que nunca se envió a cocina.</strong> Probablemente se pulsó
+  <strong>Pago</strong> antes (ver <em>Casos especiales</em>). Lo puede quitar un empleado autorizado.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>El control vive en el navegador.</strong> No hay validación en el servidor: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ordered_quantities</code> es
+  escribible y quien envíe la orden por RPC puede cambiar cantidades o borrar líneas. Si el POS no
+  terminó de cargar, el módulo deja pasar la acción.</li>
+<li style="margin-bottom:7px;"><strong>Pago marca líneas no enviadas.</strong> El parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosStore.pay()</code> guarda las cantidades ordenadas
+  antes de que <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> pregunte si se envía el pedido, así que <em>Descartar</em> no lo evita. En
+  Odoo 17 el botón de pago llamaba a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order.pay()</code> y no marcaba líneas: es un cambio de
+  comportamiento de la migración.</li>
+<li style="margin-bottom:7px;"><strong>Flujos de Odoo que no pasan por el control.</strong> El módulo intercepta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setQuantity</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">removeOrderline</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">updateQuantityNumber</code>. No quedan restringidos: <em>Transferir / Fusionar</em> mesas
+  (si la línea se suma a otra existente, la cantidad ordenada de origen no se suma), <em>Cancelar orden</em>
+  y <em>Liberar la mesa</em> (eliminan la orden entera; para eso está <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_del_order</code>) ni la división de
+  cuenta.</li>
+<li style="margin-bottom:7px;"><strong>La cantidad ordenada no baja con una reducción autorizada.</strong> Queda en el valor anterior hasta el
+  próximo envío o pago.</li>
+<li style="margin-bottom:7px;"><strong>Sin "Iniciar sesión como empleado" la regla compara ids distintos.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getCashier()</code> devuelve el
+  usuario (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.users</code>) y el módulo compara su id con ids de empleados. El campo se oculta en Ajustes
+  en ese caso, pero el valor guardado se conserva y sigue aplicando.</li>
+<li style="margin-bottom:7px;">El texto de ayuda de Ajustes menciona "borrar pedidos", que es la función de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_del_order</code>.</li>
+<li style="margin-bottom:7px;">Los textos están en español en el código; el aviso usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_t</code> pero el módulo no trae archivos de
+  traducción. El título <em>Operacion no permitida</em> va sin tilde.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> mide 750x750 px; la norma pide 100x100 como los módulos del core.</li>
+<li style="margin-bottom:7px;">No hay tests automáticos.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_config.py</code>: el campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">able_del_pol_employee_ids</code> (Many2many a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hr.employee</code>, tabla
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">abl_pol_employee_ids</code>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/res_config_settings.py</code>: el campo relacionado <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_able_del_pol_employee_ids</code>, escribible,
+  que usa la pantalla de Ajustes.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_order.py</code>: el campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ordered_quantities</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.order.line</code> y su alta en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_fields</code> para que viaje al POS y se guarde al sincronizar.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/res_config_settings_views.xml</code>: la fila de Ajustes, dentro del bloque
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">multiple_employee_session</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_order_view.xml</code>: la columna opcional <em>Ordered Quantities</em> en las líneas de la orden.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/models.js</code>: parches de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosOrderline.setQuantity()</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosOrder.removeOrderline()</code>
+  y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">OrderSummary.updateQuantityNumber()</code>, y la regla <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">isCapableToDeletePosOrderLines()</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/pos_store.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosStore.submitOrder()</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosStore.pay()</code> que guarda las
+  cantidades ordenadas, y expone el store a los modelos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">posRestrictState</code>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/split_bill_screen.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SplitBillScreen.createSplittedOrder()</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/orderline.js</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/xml/orderline.xml</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/css/orderline.scss</code>: el
+  distintivo <em>En preparación</em> con los botones de restar y sumar.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Qué es "línea ordenada".</strong> Es el campo propio <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ordered_quantities</code>, no un concepto de Odoo. No
+  coincide con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">uiState.savedQuantity</code> (cantidad sincronizada) ni con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">last_order_preparation_change</code> (lo que Odoo ya notificó a cocina).</li>
+<li style="margin-bottom:7px;"><strong>El parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">updateQuantityNumber</code> hoy no se ejecuta.</strong> Ese camino solo se usa cuando
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosStore.disallowLineQuantityChange()</code> devuelve <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">true</code>; en Odoo 19 Community devuelve <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">false</code> y
+  ningún módulo de Community lo cambia. Queda como defensa si se instala uno que lo active.</li>
+<li style="margin-bottom:7px;"><strong>Cambio respecto de Odoo 17.</strong> El envío a cocina pasó de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ActionpadWidget.submitOrder()</code> a
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosStore.submitOrder()</code>, la división de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">proceed()</code> a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">createSplittedOrder()</code>, y el aviso de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ErrorPopup</code> a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">AlertDialog</code>. En 19 <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setQuantity</code> devuelve el error y quien la llama muestra el
+  diálogo; el borrado con ⌫ va directo a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">removeOrderline</code>, por eso hay dos parches.</li>
+<li style="margin-bottom:7px;"><strong>El identificador de la vista de Ajustes</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res_config_settings_view_form_inh_pos_del_order_17</code>)
+  viene de 17 y menciona <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_del_order</code>, pero pertenece a este módulo. No renombrarlo sin revisar
+  el efecto en la actualización.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee Roasters</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Libertario Coffee Roasters, equipo de desarrollo</li>
+<li style="margin-bottom:7px;">Cristian Mira (migración a Odoo 19)</li>
+</ul></div>
+</div>
