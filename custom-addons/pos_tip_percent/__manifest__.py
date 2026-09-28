@@ -25,6 +25,13 @@
             'pos_tip_percent/static/src/xml/pos_payment.xml',
         ],
     },
+    'images': [
+        'static/description/01_configuracion.png',
+        'static/description/02_botones_pago.png',
+        'static/description/03_propina_aplicada.png',
+        'static/description/04_ajuste_pago.png',
+        'static/description/05_linea_propina.png',
+    ],
     'installable': True,
     'application': False,
 }

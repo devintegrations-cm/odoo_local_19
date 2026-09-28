@@ -1,0 +1,3 @@
+- Roaya (autor original)
+- Libertario Coffee
+- Cristian Mira (migración a Odoo 19)
