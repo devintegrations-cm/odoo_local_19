@@ -745,12 +745,14 @@ class PosSession(models.Model):
         self.ensure_one()
         issues = []
 
-        # Paid orders without payments
+        # Paid orders without payments. An order whose total is 0 (courtesy,
+        # 100 % discount, loyalty reward) is validated by the core with no
+        # payment line at all, so it is not an inconsistency.
         paid_no_payments = self.env["pos.order"].search([
             ("session_id", "=", self.id),
             ("state", "=", "paid"),
             ("payment_ids", "=", False),
-        ])
+        ]).filtered(lambda order: not order.currency_id.is_zero(order.amount_total))
         if paid_no_payments:
             issues.append(
                 _("Hay %(count)s órdenes pagadas sin pagos registrados.",

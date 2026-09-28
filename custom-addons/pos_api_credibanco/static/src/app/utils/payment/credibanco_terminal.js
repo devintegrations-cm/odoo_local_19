@@ -86,6 +86,15 @@ export class PaymentCredibanco extends PaymentInterface {
             return false;
         }
 
+        // A previous sale of this line never got a final answer and may have been
+        // approved on the terminal. The core leaves the line in `retry`, so this
+        // same button is what the cashier presses next: sending a new sale here
+        // would charge the customer twice. Recover the pending one instead; a new
+        // sale is only possible once the terminal gives a definitive answer.
+        if (line.credibanco_pending_sale) {
+            return this.recoverPendingPayment(line);
+        }
+
         let prepared;
         try {
             prepared = await this._prepareFields(line);

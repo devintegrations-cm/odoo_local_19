@@ -143,15 +143,67 @@ class PosOrder(models.Model):
         ))
 
     # -------------------------------------------------------------------------
-    # Factura agrupada — lógica compartida
+    # Facturación en el POS: la restricción manda sobre `to_invoice`
     # -------------------------------------------------------------------------
 
-    def _action_grouped_invoice_common(self, ei=False):
+    def _get_payment_restriction(self):
+        """Restricción de pago del cliente de la orden (o registro vacío).
+
+        Misma regla que el POS (`getPartnerRestriction`): cuenta solo si el
+        POS tiene activas las restricciones y el cliente está autorizado. Si
+        el cliente figura en varias, se prefiere la del método de pago usado.
+        """
+        self.ensure_one()
+        Restriction = self.env['pos.payment.customer.restriction']
+        config = self.config_id
+        if not self.partner_id or not config.payment_restrict_enabled:
+            return Restriction
+        restrictions = config.payment_customer_restriction_ids.filtered(
+            lambda r: self.partner_id in r.partner_ids
+        )
+        used_methods = self.payment_ids.payment_method_id
+        by_method = restrictions.filtered(lambda r: r.payment_method_id in used_methods)
+        return (by_method or restrictions)[:1]
+
+    def _apply_restriction_invoice_flag(self):
+        """Fija `to_invoice` según la restricción del cliente.
+
+        El POS ya lo hace (`applyRestrictionFlags`), pero otros módulos del
+        frontend pueden volver a marcar "Facturar" antes de enviar la orden
+        (facturación obligatoria), y una orden facturada ya no se puede
+        agrupar después. Por eso se decide de nuevo en el servidor.
+        """
+        self.ensure_one()
+        if self.account_move:
+            return
+        restriction = self._get_payment_restriction()
+        if not restriction:
+            return
+        to_invoice = restriction.to_invoice
+        if not to_invoice and self.refunded_order_id.account_move:
+            # La devolución de una orden facturada lleva nota crédito: el POS
+            # del core la exige facturada y aquí no se contradice.
+            return
+        if self.to_invoice != to_invoice:
+            self.to_invoice = to_invoice
+
+    def _process_saved_order(self, draft):
+        # `_process_order` (llamado desde `sync_from_ui`) termina aquí, y es
+        # aquí donde el core factura si `to_invoice` está activo.
+        self._apply_restriction_invoice_flag()
+        return super()._process_saved_order(draft)
+
+    # -------------------------------------------------------------------------
+    # Factura agrupada
+    # -------------------------------------------------------------------------
+
+    def _action_grouped_invoice_common(self):
         """
         Agrupa las órdenes seleccionadas por cliente y crea una sola factura
-        por grupo.
+        por grupo, con el diario de facturas del POS (`_prepare_invoice_vals`).
 
-        :param ei: Si True, usa el diario de factura electrónica (DIAN).
+        Con Jorels 19 la factura es electrónica si ese diario tiene resolución
+        DIAN: ya no hay un diario electrónico aparte en el POS.
         """
         orders_ok = self.filtered(
             lambda o: o.state == 'paid' and not o.account_move and o.partner_id
@@ -199,23 +251,15 @@ class PosOrder(models.Model):
             move_vals['ref'] = order_names
             move_vals['invoice_origin'] = order_names
 
-            # Factura electrónica: cambiar al diario DIAN
-            if ei:
-                ei_journal = base.session_id.config_id.electronic_invoice_journal_id
-                if not ei_journal:
-                    raise UserError(_(
-                        'El punto de venta "%s" no tiene configurado el '
-                        'diario de factura electrónica.',
-                        base.session_id.config_id.name,
-                    ))
-                move_vals['journal_id'] = ei_journal.id
-
             # Marcar las órdenes como facturables antes de crear
             orders.write({'to_invoice': True})
 
             # Crear y publicar la factura
             new_move = base._create_invoice(move_vals)
-            orders.write({'account_move': new_move.id, 'state': 'invoiced'})
+            # Odoo 19 eliminó el estado 'invoiced' de pos.order: un pedido
+            # facturado queda en 'done' con su factura en `account_move`, igual
+            # que en el core (`_generate_pos_order_invoice`).
+            orders.write({'account_move': new_move.id, 'state': 'done'})
             new_move.sudo().with_company(base.company_id).with_context(
                 skip_invoice_sync=True
             )._post()
@@ -258,9 +302,5 @@ class PosOrder(models.Model):
     # -------------------------------------------------------------------------
 
     def action_pos_grouped_invoice(self):
-        """Acción de servidor: factura agrupada normal."""
-        return self._action_grouped_invoice_common(ei=False)
-
-    def action_pos_grouped_ei_invoice(self):
-        """Acción de servidor: factura agrupada electrónica (DIAN)."""
-        return self._action_grouped_invoice_common(ei=True)
+        """Acción de servidor: factura agrupada."""
+        return self._action_grouped_invoice_common()

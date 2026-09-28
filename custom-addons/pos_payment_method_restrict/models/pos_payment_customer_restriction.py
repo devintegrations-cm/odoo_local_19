@@ -44,8 +44,9 @@ class PosPaymentCustomerRestriction(models.Model):
     to_invoice = fields.Boolean(
         string='Crear factura',
         default=False,
-        help='Marca automáticamente la orden como "Facturar" al seleccionar '
-             'un cliente de esta restricción en el POS.',
+        help='Decide si la orden de un cliente de esta restricción se factura '
+             'en el POS. Prevalece sobre la factura obligatoria: si está '
+             'desmarcado, la orden queda sin factura para agruparla después.',
     )
     to_ei_invoice = fields.Boolean(
         string='Crear factura electrónica',

@@ -715,6 +715,18 @@ class TestClosingValidation(TransactionCase):
         self.assertEqual(result["kind"], "data_integrity")
         self.assertIn("órdenes pagadas", result["message"])
 
+    def test_zero_total_order_without_payments_is_not_an_issue(self):
+        """A 0-total order (courtesy, 100 % discount) has no payment line.
+
+        The Odoo 19 core validates such an order without asking for a payment
+        method, so it must not block the cashier's session closing.
+        """
+        session = self._create_session(opening=1000.0)
+        order = self._create_order(session, self._product(0.0), 0.0)
+        order.state = "paid"
+
+        self.assertIsNone(session._check_session_data_integrity())
+
     def test_clean_session_has_no_data_integrity_issue(self):
         """Properly paid orders produce no integrity complaint.
 

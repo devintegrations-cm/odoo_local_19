@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Acción: Factura agrupada normal -->
+    <!-- Acción: Factura agrupada. Usa el diario de facturas del POS; con
+         Jorels 19 es electrónica si ese diario tiene resolución DIAN, por eso
+         ya no existe la variante "electrónica" de Odoo 17 (usaba
+         electronic_invoice_journal_id, que Jorels 19 eliminó). -->
     <record id="action_pos_grouped_invoice" model="ir.actions.server">
         <field name="name">Crear factura agrupada</field>
         <field name="model_id" ref="point_of_sale.model_pos_order"/>
@@ -8,15 +11,5 @@
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">action = records.action_pos_grouped_invoice()</field>
-    </record>
-
-    <!-- Acción: Factura agrupada electrónica (DIAN) -->
-    <record id="action_pos_grouped_ei_invoice" model="ir.actions.server">
-        <field name="name">Crear factura electrónica agrupada</field>
-        <field name="model_id" ref="point_of_sale.model_pos_order"/>
-        <field name="binding_model_id" ref="point_of_sale.model_pos_order"/>
-        <field name="binding_view_types">list</field>
-        <field name="state">code</field>
-        <field name="code">action = records.action_pos_grouped_ei_invoice()</field>
     </record>
 </odoo>

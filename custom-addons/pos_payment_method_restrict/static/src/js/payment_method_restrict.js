@@ -46,6 +46,7 @@
 
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
+import { onMounted } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { makeAwaitable, ask } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { PaymentScreen } from "@point_of_sale/app/screens/payment_screen/payment_screen";
@@ -86,22 +87,33 @@ function getPartnerRestriction(pos, order) {
 }
 
 /**
- * Fuerza los flags to_invoice / to_ei_invoice según la restricción del cliente.
- * Si el cliente no tiene restricción (o no hay cliente) se desactivan, igual
- * que en Odoo 17: el flags en false
+ * Aplica los flags to_invoice / to_ei_invoice de la restricción del cliente.
+ *
+ * - Cliente CON restricción: se escribe el valor configurado, sea true o false
+ *   (igual que en Odoo 17). Un cliente con método especial (p. ej. hotel a
+ *   crédito) configurado sin factura no se factura en el POS: sus pedidos quedan
+ *   "Pagados" sin factura y se facturan después con "Crear factura agrupada".
+ *   Esto prevalece sobre la factura obligatoria del POS.
+ * - Cliente SIN restricción (o sin cliente): no se desmarca nada, para respetar
+ *   la factura obligatoria y la electrónica de los clientes normales. Si el POS
+ *   exige factura (`enable_obin` de pos_obligatory_invoice, opcional) se vuelve
+ *   a marcar, por si antes se eligió un cliente con restricción sin factura.
  */
 function applyRestrictionFlags(pos, order) {
-    if (!order) return;
-    const data = getPartnerRestriction(pos, order) || {};
-    if (data.to_invoice) {
-        order.setToInvoice(true);
-    }
-    if (data.to_ei_invoice) {
-        if (typeof order.setToElectronicInvoice === "function") {
-            order.setToElectronicInvoice(true);
-        } else if (typeof order.set_to_electronic_invoice === "function") {
-            order.set_to_electronic_invoice(true);
+    if (!order || order.finalized) return;
+    const data = getPartnerRestriction(pos, order);
+    if (!data) {
+        if (pos.config.enable_obin && pos.config.canInvoice && !order.isToInvoice()) {
+            order.setToInvoice(true);
         }
+        return;
+    }
+    order.setToInvoice(Boolean(data.to_invoice));
+    const toEiInvoice = Boolean(data.to_ei_invoice);
+    if (typeof order.setToElectronicInvoice === "function") {
+        order.setToElectronicInvoice(toEiInvoice);
+    } else if (typeof order.set_to_electronic_invoice === "function") {
+        order.set_to_electronic_invoice(toEiInvoice);
     }
 }
 
@@ -143,6 +155,12 @@ patch(PaymentScreen.prototype, {
                 get: () => this._computeAllowedMethods(this._restrictions),
                 configurable: true,
             });
+
+            // La factura obligatoria (pos_obligatory_invoice) marca "Facturar"
+            // en el setup de esta pantalla. Si el cliente ya venía elegido, la
+            // restricción se vuelve a aplicar una vez montada la pantalla, para
+            // que su configuración prevalezca como en Odoo 17.
+            onMounted(() => applyRestrictionFlags(this.pos, this.currentOrder));
         }
     },
 
