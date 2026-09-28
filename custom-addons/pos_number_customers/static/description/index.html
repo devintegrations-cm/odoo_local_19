@@ -1,29 +1,149 @@
-<section class="oe_container oe_dark">
-    <div class="col-md-12">
-        <h2 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>POS number of customers</b></h2>
-    </div>
-    <div class="col-md-12" style="text-align: left;">
-        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Setup</b></h3>
-        <p style="font-size: 18px;">
-            Enable the check box located: Point of Sale > Settings > POS > Restaurant & Bar > Ask number customers
-        </p>
-        <div class="oe_row oe_spaced"></div>
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="config.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Preview</b></h3>
-        <p style="font-size: 18px;">
-            When the payment button on Product Screen is clicked open a Number Popup asking number of customers
-        </p>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="preview.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Pide al cajero el <strong>número de clientes</strong> (comensales) de la orden en cuanto entra a la pantalla de
+<strong>Pago</strong> del Punto de Venta, antes de elegir el método de pago. El número tiene que estar dentro de
+un rango <strong>mínimo y máximo</strong> configurable por punto de venta; si está fuera del rango, no se guarda.</p>
+<p style="margin:0 0 12px;">La pregunta es <strong>obligatoria</strong>: si el cajero la descarta al entrar, se le vuelve a hacer al pulsar
+<em>Validar</em>, y la orden no se valida hasta que responda con un número válido.</p>
+<p style="margin:0 0 12px;">El valor se guarda en el campo estándar <strong>Comensales</strong> de la orden (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">customer_count</code>, de
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code>), el mismo que usan las mesas. Por eso el valor por invitado de la pantalla de pago,
+el encabezado del recibo (<em>Mesa N, Comensales: X</em>) y la ficha de la orden en el backend lo muestran
+sin cambios adicionales.</p>
+<p style="margin:0 0 12px;">Relación con Odoo 19: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> ya maneja el número de comensales, pero <strong>no lo exige</strong>. Al
+abrir una mesa lo llena con los asientos de la mesa, y solo lo pregunta al abrir la orden si el
+punto de venta usa <em>presets</em> con la opción de invitados. Este módulo agrega la pregunta obligatoria
+y el rango válido.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> (Odoo 19 Community), que a su vez instala <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code>. De ahí vienen el campo
+  <em>Comensales</em> de la orden y los métodos del POS que usa el módulo. No hay otras dependencias ni
+  librerías de Python adicionales.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar <em>Ask Number of Customers</em> desde <em>Aplicaciones</em>. El módulo agrega tres campos a la
+configuración del punto de venta y un archivo JavaScript al POS. No crea menús, modelos ni permisos.
+Después de instalar o actualizar, <strong>volver a entrar al POS</strong> desde el backend para que cargue el
+archivo nuevo.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">La casilla conserva su nombre técnico (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">enable_obligatory_ask_number_customers</code> en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>),
+  así que los puntos de venta que la tenían marcada en la 17 la siguen teniendo. No hace falta
+  script de datos.</li>
+<li style="margin-bottom:7px;">Los campos nuevos <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">number_customers_min</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">number_customers_max</code> se crean con sus valores por
+  defecto, 1 y 20: el mismo rango que la 17 tenía escrito en el JavaScript. El comportamiento no
+  cambia hasta que alguien modifique el rango.</li>
+<li style="margin-bottom:7px;">En la 17 la pregunta salía al pulsar <em>Pago</em> en la pantalla de productos. En la 19 sale al entrar a
+  la pantalla de pago y, como respaldo, al pulsar <em>Validar</em> (ver <em>Uso</em>).</li>
+</ul>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Ajustes</em>, elegir el punto de venta en la parte superior y
+buscar el bloque <strong>Punto de venta</strong> (el de <em>Es un bar/restaurante</em>). La opción <strong>Número de clientes</strong>
+está junto a <em>Permitir dividir la cuenta</em>.</p>
+<div class="lc-fig"><img alt="Punto de venta › Configuración › Ajustes › Punto de venta: opción Número de clientes con su rango" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración › Ajustes › Punto de venta: opción Número de clientes con su rango</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Número de clientes</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">enable_obligatory_ask_number_customers</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>). Opcional;
+  desmarcada por defecto. Activa la pregunta. Al marcarla aparecen los dos campos del rango.</li>
+<li style="margin-bottom:7px;"><strong>Mínimo</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">number_customers_min</code>). Por defecto 1. No se acepta un valor menor que 1.</li>
+<li style="margin-bottom:7px;"><strong>Máximo</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">number_customers_max</code>). Por defecto 20. No puede ser menor que el mínimo.</li>
+</ul>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">La opción solo se ve si el punto de venta es un <strong>bar/restaurante</strong> y no está en modo quiosco.</li>
+<li style="margin-bottom:7px;">La configuración es <strong>por punto de venta</strong>. Hay que repetirla en cada tienda.</li>
+<li style="margin-bottom:7px;">Un rango inválido (mínimo menor que 1 o máximo menor que el mínimo) no se puede guardar: Odoo
+  muestra un error al pulsar <em>Guardar</em>.</li>
+<li style="margin-bottom:7px;">Los cambios se ven en el POS después de volver a entrar a la sesión desde el backend.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Flujo</h2>
+<p style="margin:0 0 12px;">En el POS, abrir la mesa, agregar los productos y pulsar <strong>Pago</strong>. Si la orden tiene productos sin
+enviar a cocina, Odoo pregunta primero si se quiere enviar (es un aviso de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code>, no de
+este módulo). Al llegar a la pantalla de pago aparece la ventana <strong>Número de clientes</strong>. El valor
+inicial es el que ya tenía la orden; en una mesa nueva, los asientos de la mesa. Escribir el número
+y pulsar <strong>Confirmar</strong>.</p>
+<div class="lc-fig"><img alt="Pregunta del número de clientes al entrar a la pantalla de pago" src="02_pregunta_al_pagar.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pregunta del número de clientes al entrar a la pantalla de pago</p></div>
+<p style="margin:0 0 12px;">Si el número está fuera del rango configurado, aparece el aviso <strong>Acción bloqueada</strong> con el rango
+permitido. El número no se guarda y se vuelve a preguntar al pulsar <em>Validar</em>.</p>
+<div class="lc-fig"><img alt="Aviso de número fuera del rango configurado" src="03_fuera_de_rango.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aviso de número fuera del rango configurado</p></div>
+<p style="margin:0 0 12px;">Si el cajero pulsa <strong>Descartar</strong> o cierra la ventana al entrar, puede seguir registrando los pagos.
+Pero al pulsar <strong>Validar</strong> se le vuelve a preguntar, y si descarta otra vez, la orden no se valida y
+queda en la pantalla de pago.</p>
+<div class="lc-fig"><img alt="La pregunta vuelve a salir al pulsar Validar" src="04_pregunta_al_validar.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">La pregunta vuelve a salir al pulsar Validar</p></div>
+<p style="margin:0 0 12px;">Una vez respondida, la pregunta no se repite en esa orden, aunque el cajero vuelva a productos y
+entre de nuevo a pago. El número queda en la orden: la pantalla de pago muestra el valor por
+invitado y en el recibo sale <em>Mesa N, Comensales: X</em>.</p>
+<div class="lc-fig"><img alt="Número guardado en la orden: valor por invitado en la pantalla de pago" src="05_resultado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Número guardado en la orden: valor por invitado en la pantalla de pago</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Cambiar el número después de responder</strong>: la acción <em>Comensales</em> de la pantalla de productos y
+  el número junto al valor por invitado de la pantalla de pago (ambos de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code>) permiten
+  corregirlo. Esos botones no aplican el rango de este módulo.</li>
+<li style="margin-bottom:7px;"><strong>Una sola persona</strong>: la pantalla de pago de Odoo solo muestra el valor por invitado cuando hay
+  más de un comensal. Con 1, el número se guarda igual, pero esa línea no aparece.</li>
+<li style="margin-bottom:7px;"><strong>Pago en un clic</strong>: si el punto de venta valida desde la pantalla de productos sin pasar por la
+  de pago, la pregunta sale al validar.</li>
+<li style="margin-bottom:7px;"><strong>Recarga del navegador</strong>: la marca de "ya preguntado" vive solo en memoria. Si se recarga el POS
+  antes de validar, se vuelve a preguntar.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>No aparece la opción en Ajustes.</strong> El punto de venta debe tener marcado <em>Es un bar/restaurante</em>
+  y no estar en modo quiosco.</li>
+<li style="margin-bottom:7px;"><strong>No sale la pregunta en el POS.</strong> Verificar que la casilla esté marcada en el punto de venta
+  correcto y volver a entrar a la sesión desde el backend.</li>
+<li style="margin-bottom:7px;"><strong>No deja guardar Ajustes.</strong> Revisar el rango: el mínimo debe ser al menos 1 y el máximo no puede
+  ser menor que el mínimo.</li>
+<li style="margin-bottom:7px;"><strong>Siempre dice "Acción bloqueada".</strong> El número escrito está fuera del rango. Se puede borrar el
+  valor inicial con la tecla ⌫ de la ventana antes de escribir el nuevo.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>El rango solo se controla en la pregunta del módulo.</strong> Los botones de comensales de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> (pantalla de productos y pantalla de pago) permiten poner cualquier número mayor
+  que cero después de responder.</li>
+<li style="margin-bottom:7px;"><strong>El valor inicial no obliga a pensar.</strong> La ventana sale con el número que ya tenía la orden (en
+  mesas, los asientos), y basta con pulsar <em>Confirmar</em> para aceptarlo.</li>
+<li style="margin-bottom:7px;">Los textos de la pregunta y del aviso están escritos en español dentro del código; no hay
+  traducción al inglés.</li>
+<li style="margin-bottom:7px;">El número se pide para la orden completa. Al dividir la cuenta, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> resta un comensal
+  a la orden original por cada cuenta separada; este módulo no interviene en ese reparto.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_config.py</code>: los tres campos de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> y la restricción del rango
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_check_number_customers_range</code>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/res_config_settings.py</code>: los campos relacionados en Ajustes, con prefijo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_</code> porque
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.config.settings</code> es compartido por todos los módulos.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/res_config_settings_views.xml</code>: el ajuste <em>Número de clientes</em>, insertado después de
+  <em>Permitir dividir la cuenta</em> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">iface_splitbill</code>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/utils/order_payment_validation.js</code>: dos parches. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PaymentScreen.setup()</code> pregunta
+  en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">onMounted</code>, al entrar a la pantalla de pago. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">OrderPaymentValidation.askBeforeValidation()</code>
+  pregunta al validar si todavía no se respondió; devolver <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">false</code> detiene la validación. La
+  pregunta usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">NumberPopup</code> con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">makeAwaitable</code> y guarda con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order.setCustomerCount()</code>.</li>
+<li style="margin-bottom:7px;">Los campos llegan al POS sin cargador propio: el POS lee todos los campos de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Marca de "ya preguntado".</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">customer_count</code> no sirve para saber si se preguntó, porque
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> lo inicia en 1 al crear la orden. Por eso el JS usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order._customersAsked</code>, que
+  no se guarda en el servidor.</li>
+<li style="margin-bottom:7px;"><strong>Puntos del core que usa.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">askBeforeValidation()</code> es el gancho que Odoo 19 deja vacío para
+  validaciones previas; <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">l10n_es_pos</code> lo usa igual. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">validateOrder()</code> lo llama tanto desde la
+  pantalla de pago como desde el pago en un clic (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">validateOrderFast</code>). Si cambia de nombre, la
+  pregunta deja de salir sin ningún error.</li>
+<li style="margin-bottom:7px;"><strong>Cambios frente a la 17.</strong> La 17 parcheaba <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Order.pay()</code>, que en la 19 no existe, y tenía el
+  rango 1–20 fijo en el JS. Se eliminó <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">security/ir.model.access.csv</code>, que no estaba en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data</code> y
+  apuntaba a un modelo inexistente. La vista de Ajustes cambió de xmlid; al actualizar, Odoo borra
+  la vista vieja.</li>
+<li style="margin-bottom:7px;"><strong>Tests.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_number_customers_config.py</code> cubre la configuración: valores por defecto,
+  rechazo de rangos inválidos, escritura desde Ajustes y el prefijo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_</code>. La pregunta del POS no
+  tiene test automático: se valida a mano en el navegador.</li>
+<li style="margin-bottom:7px;">Falta un recibo impreso en esta documentación: mostrarlo exige pagar una orden de prueba. La línea
+  <em>Mesa N, Comensales: X</em> es de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">receipt_header_patch.js</code>).</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee Roasters</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Libertario Coffee Roasters</li>
+</ul></div>
+</div>

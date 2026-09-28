@@ -24,6 +24,13 @@
     'data': [
         'views/res_config_settings_views.xml',
     ],
+    'images': [
+        'static/description/01_configuracion.png',
+        'static/description/02_pregunta_al_pagar.png',
+        'static/description/03_fuera_de_rango.png',
+        'static/description/04_pregunta_al_validar.png',
+        'static/description/05_resultado.png',
+    ],
     'assets': {
         'point_of_sale._assets_pos': [
             'pos_number_customers/static/src/app/utils/order_payment_validation.js',
