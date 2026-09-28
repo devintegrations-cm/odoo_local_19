@@ -1,0 +1,242 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Permite reservar métodos de pago del Punto de Venta para <strong>clientes autorizados</strong>. En cada punto de
+venta se define una lista de restricciones: cada una asocia un método de pago con los clientes que
+pueden usarlo. En la pantalla de pago:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">un cliente con restricción ve <strong>solo</strong> los métodos que tiene autorizados;</li>
+<li style="margin-bottom:7px;">cualquier otro cliente, o una orden sin cliente, ve solo los métodos que no están restringidos.</li>
+</ul>
+<p style="margin:0 0 12px;">Cada restricción puede además:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">pedir <strong>datos adicionales</strong> en un popup al elegir el método (por ejemplo huésped y habitación) y
+  avisar si hoy ya se registró una orden con los mismos datos;</li>
+<li style="margin-bottom:7px;">decidir si la orden <strong>se factura en el POS o no</strong>, por encima de la facturación obligatoria;</li>
+<li style="margin-bottom:7px;">forzar la <strong>entrega de inventario</strong> en el momento de la venta.</li>
+</ul>
+<p style="margin:0 0 12px;">Las órdenes que quedan sin factura se facturan después en una sola <strong>factura agrupada</strong> por cliente,
+desde la lista de órdenes. El menú <em>Reportes › Convenios y restricciones</em> muestra las órdenes con
+los datos capturados.</p>
+<p style="margin:0 0 12px;">El caso que lo originó es el convenio de desayunos con un hotel: el huésped no paga, la orden queda
+a nombre del hotel con los datos del huésped y se factura al hotel al cierre del mes.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code>. No hay otras dependencias de Odoo ni librerías de Python adicionales.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em>. Crea dos modelos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.payment.customer.restriction</code> y
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.payment.restriction.field</code>) con estos permisos: el grupo <em>Punto de venta / Administrador</em> puede
+crear, editar y borrar; el grupo <em>Punto de venta / Usuario</em> solo leer, que es lo que necesita el
+POS. Después de instalar o actualizar, hay que <strong>volver a entrar al POS</strong> desde el backend para que
+cargue los archivos nuevos.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<p style="margin:0 0 12px;">Los modelos, los campos y la tabla de clientes autorizados (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_payment_restrict_partner_rel</code>)
+conservan el nombre técnico de la versión 17, así que las restricciones existentes se mantienen sin
+script de datos.</p>
+<p style="margin:0 0 12px;">Al actualizar desaparece la acción <em>Crear factura electrónica agrupada</em>: dependía del diario
+electrónico del POS (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">electronic_invoice_journal_id</code>), que Jorels 19 eliminó. Tampoco se porta el
+archivo de 17 que desactivaba dos vistas de búsqueda de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_sale</code>, porque <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_sale</code> no está
+instalado.</p>
+<h2>Configuración</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Activar las restricciones en el punto de venta</h2>
+<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Ajustes</em>, elegir el punto de venta en la parte superior y
+buscar, en el bloque <strong>Pago</strong>, la opción <strong>Restricciones por cliente</strong>.</p>
+<div class="lc-fig"><img alt="Punto de venta › Configuración › Ajustes › Pago: opción Restricciones por cliente y su lista" src="01_activar.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración › Ajustes › Pago: opción Restricciones por cliente y su lista</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Restricciones por cliente</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">payment_restrict_enabled</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>). Opcional;
+  desmarcada por defecto. Es el interruptor general: con la casilla desmarcada el POS no filtra
+  métodos ni decide la factura, y la lista queda oculta (pero no se borra).</li>
+<li style="margin-bottom:7px;"><strong>Lista de restricciones</strong>: una línea por método de pago restringido. <em>Agregar una línea</em> abre el
+  formulario de la restricción. El método tiene que estar entre los métodos de pago del punto de
+  venta para que aparezca en el POS.</li>
+</ul>
+<p style="margin:0 0 12px;">La configuración es <strong>por punto de venta</strong>. Se puede cambiar con la sesión abierta, pero el POS la
+lee al cargar: los cambios se ven después de volver a entrar al POS.</p>
+<p style="margin:0 0 12px;">Las mismas restricciones, de todos los puntos de venta, se consultan también en <em>Punto de venta ›
+Configuración › Restricciones de pago</em>. Ahí cada línea indica su punto de venta.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Crear una restricción</h2>
+<div class="lc-fig"><img alt="Formulario de la restricción: método, clientes, acciones automáticas y campos del popup" src="02_restriccion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Formulario de la restricción: método, clientes, acciones automáticas y campos del popup</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Método de pago</strong>. Obligatorio. El método que queda reservado. No se puede borrar un método de
+  pago que tenga restricciones. Para un convenio a crédito conviene un método de tipo <em>Cuenta de
+  cliente</em>, que no registra entrada de dinero.</li>
+<li style="margin-bottom:7px;"><strong>Clientes autorizados</strong>. Opcional, vacío por defecto. Si queda vacío, el método <strong>no lo ve
+  nadie</strong> en ese punto de venta.</li>
+<li style="margin-bottom:7px;"><strong>Crear entrega de inventario</strong>. Opcional; desmarcada por defecto. Si el inventario se actualiza
+  al cierre de la sesión, las órdenes de estos clientes generan igual su entrega en el momento de la
+  venta, sin importar con qué método se paguen. Si ya se actualiza en tiempo real, no cambia nada.</li>
+<li style="margin-bottom:7px;"><strong>Crear factura</strong>. Opcional; desmarcada por defecto. Decide si las órdenes de estos clientes se
+  facturan en el POS. Desmarcada, la orden queda <em>Pagada</em> sin factura aunque el POS exija factura, y
+  se factura después con la factura agrupada. Marcada, se factura siempre.</li>
+<li style="margin-bottom:7px;"><strong>Crear factura electrónica</strong>. Opcional; desmarcada por defecto. <strong>Hoy no tiene efecto</strong> con
+  Jorels 19 (ver <em>Limitaciones conocidas</em>).</li>
+<li style="margin-bottom:7px;"><strong>Campos del popup</strong>. Opcional. Cada línea es un dato que el cajero escribe al elegir el método:
+  <em>Etiqueta</em> (obligatoria, es el texto que ve el cajero), <em>Tipo</em> (<em>Texto corto</em> por defecto, <em>Texto
+  largo</em> o <em>Número entero</em>) y <em>Requerido</em> (desmarcado por defecto). La <em>Clave</em> se calcula sola a
+  partir de la etiqueta, sin tildes ni espacios (<em>Habitación</em> → <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">habitacion</code>). Sin campos, no hay
+  popup.</li>
+</ul>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Un cliente puede estar en varias restricciones del mismo punto de venta: en ese caso ve todos sus
+  métodos autorizados.</li>
+<li style="margin-bottom:7px;">El popup sale para cualquier método que tenga campos, <strong>aunque la casilla general esté
+  desmarcada</strong>.</li>
+<li style="margin-bottom:7px;">Si las etiquetas son <em>Huésped</em> y <em>Habitación</em>, sus valores se copian además a los campos
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hotel_guest</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hotel_room</code> de la orden (también sirven las claves <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">huesped</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">guest</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">nombre_huesped</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">room</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">numero_habitacion</code>).</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Métodos de pago según el cliente</h2>
+<p style="margin:0 0 12px;">En la pantalla de pago, la lista de métodos se recalcula cada vez que cambia el cliente. Con un
+cliente sin restricción, o sin cliente, los métodos restringidos no aparecen:</p>
+<div class="lc-fig"><img alt="Pantalla de pago con un cliente sin restricción: faltan los métodos restringidos" src="03_pago_sin_restriccion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de pago con un cliente sin restricción: faltan los métodos restringidos</p></div>
+<p style="margin:0 0 12px;">Al elegir un cliente autorizado quedan solo sus métodos, y la casilla <strong>Recibo/Factura</strong> toma el
+valor de <em>Crear factura</em> de la restricción:</p>
+<div class="lc-fig"><img alt="Pantalla de pago con un cliente del convenio: solo su método y sin factura" src="04_pago_con_restriccion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de pago con un cliente del convenio: solo su método y sin factura</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Popup de datos adicionales</h2>
+<p style="margin:0 0 12px;">Si el método tiene campos configurados, al pulsarlo aparece el popup. Los campos marcados con * son
+obligatorios: <em>Confirmar</em> no avanza mientras estén vacíos. <em>Cancelar</em>, la X o la tecla Esc cierran
+el popup sin agregar el pago.</p>
+<div class="lc-fig"><img alt="Popup con los datos del huésped antes de agregar el pago" src="05_popup_datos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Popup con los datos del huésped antes de agregar el pago</p></div>
+<p style="margin:0 0 12px;">Al confirmar, el POS busca órdenes de <strong>hoy</strong> con la misma restricción y algún valor igual (sin
+distinguir mayúsculas). Si encuentra alguna, muestra el aviso con el número y la hora de cada
+orden. <strong>Registrar igualmente</strong> sigue con el pago; <strong>Cancelar</strong> lo descarta. El aviso no bloquea:
+puede haber dos huéspedes en la misma habitación.</p>
+<div class="lc-fig"><img alt="Aviso de posible registro duplicado" src="06_aviso_duplicado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aviso de posible registro duplicado</p></div>
+<p style="margin:0 0 12px;">Los datos quedan guardados en la orden, en la pestaña <strong>Datos de restricción</strong> del formulario de la
+orden en el backend:</p>
+<div class="lc-fig"><img alt="Formulario de la orden: pestaña Datos de restricción con los datos del popup" src="08_orden_datos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Formulario de la orden: pestaña Datos de restricción con los datos del popup</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Factura según la restricción</h2>
+<p style="margin:0 0 12px;">Al sincronizar la orden, el servidor vuelve a aplicar <em>Crear factura</em> de la restricción del
+cliente, aunque otro módulo del POS haya vuelto a marcar <em>Recibo/Factura</em> (por ejemplo la
+facturación obligatoria). Si el cliente está en varias restricciones, manda la del método con que
+se pagó. Hay dos excepciones: una orden que ya tiene factura no se toca, y la devolución de una
+orden facturada sigue facturada (lleva nota crédito).</p>
+<p style="margin:0 0 12px;">Esto solo ocurre si el punto de venta tiene activa la casilla <em>Restricciones por cliente</em>. Los
+clientes sin restricción conservan lo que envió el POS.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Factura agrupada</h2>
+<p style="margin:0 0 12px;">En <em>Punto de venta › Órdenes › Órdenes</em>, seleccionar las órdenes y usar <strong>Acciones › Crear factura
+agrupada</strong> (no el botón <em>Crear facturas</em> del estándar).</p>
+<div class="lc-fig"><img alt="Lista de órdenes: selección y acción Crear factura agrupada" src="07_factura_agrupada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Lista de órdenes: selección y acción Crear factura agrupada</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Solo toma órdenes en estado <em>Pagado</em>, sin factura y con cliente. Las demás se ignoran; si no queda
+  ninguna, muestra un error.</li>
+<li style="margin-bottom:7px;">Crea <strong>una factura por cliente</strong>, con las líneas de todas sus órdenes, y la publica. La
+  referencia y el origen de la factura listan los números de las órdenes.</li>
+<li style="margin-bottom:7px;">Usa el <strong>diario de facturas del punto de venta</strong> de la primera orden del grupo.</li>
+<li style="margin-bottom:7px;">Concilia los pagos de las órdenes con la factura, como el estándar. Las órdenes pasan a
+  <em>Registrado</em> con la factura enlazada, y ya no se pueden volver a agrupar.</li>
+<li style="margin-bottom:7px;">Al terminar abre la lista de facturas creadas.</li>
+</ul>
+<p style="margin:0 0 12px;">Si la factura sale electrónica depende de Jorels 19 y del diario (ver <em>Limitaciones conocidas</em>).
+Verificar en STG.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Informes de convenios</h2>
+<p style="margin:0 0 12px;">El menú <em>Punto de venta › Reportes › Convenios y restricciones</em> (solo administradores del POS)
+tiene tres informes de órdenes con restricción:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Órdenes del día</strong>: lista con fecha, cliente, restricción, datos del popup, total, estado y
+  factura. Se puede agrupar por restricción, cliente, fecha, mes o estado.</li>
+<li style="margin-bottom:7px;"><strong>Reporte mensual</strong>: la misma lista, agrupada por día.</li>
+<li style="margin-bottom:7px;"><strong>Consumo de productos</strong>: las líneas de esas órdenes, agrupadas por producto.</li>
+</ul>
+<div class="lc-fig"><img alt="Reportes › Convenios y restricciones › Órdenes del día" src="09_informe_convenios.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Reportes › Convenios y restricciones › Órdenes del día</p></div>
+<p style="margin:0 0 12px;">Hoy <em>Reporte mensual</em> y <em>Consumo de productos</em> dan error al abrirse (ver <em>Limitaciones conocidas</em>).</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>El cliente ve todos los métodos, o un método restringido no desaparece.</strong> Revisar que la
+  casilla <em>Restricciones por cliente</em> esté marcada en ese punto de venta y volver a entrar al POS:
+  los cambios de configuración no llegan a una sesión ya cargada.</li>
+<li style="margin-bottom:7px;"><strong>Un método no aparece para nadie.</strong> Su restricción tiene la lista de clientes vacía.</li>
+<li style="margin-bottom:7px;"><strong>El popup no aparece.</strong> La restricción de ese método no tiene campos, o el POS no se recargó
+  después de agregarlos.</li>
+<li style="margin-bottom:7px;"><strong>La orden se facturó y debía quedar para la factura agrupada.</strong> Revisar que <em>Crear factura</em> esté
+  desmarcada en la restricción, que el cliente de la orden sea el autorizado y que la casilla general
+  esté activa.</li>
+<li style="margin-bottom:7px;"><strong>"No hay órdenes válidas para facturar".</strong> Las órdenes seleccionadas ya tienen factura, no están
+  pagadas o no tienen cliente.</li>
+<li style="margin-bottom:7px;"><strong>Al abrir <em>Reporte mensual</em> o <em>Consumo de productos</em> sale "Ocurrió un error".</strong> Es la limitación
+  de los filtros de fecha. Usar <em>Órdenes del día</em>, quitar el filtro <em>Hoy</em> y agrupar por mes.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Pendiente de decisión: <em>Crear factura electrónica</em> no tiene efecto.</strong> En Odoo 17 la casilla
+  elegía entre factura normal y electrónica mediante <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">to_electronic_invoice</code> de Jorels. Jorels 19
+  eliminó ese campo, y el POS solo lo marca si existe, así que hoy la casilla no hace nada. Se
+  propuso reemplazarla por un diario opcional en cada restricción, con script de datos. Falta que lo
+  confirme el líder técnico. Verificar en STG, donde la usan las restricciones que facturan con un
+  diario electrónico propio.</li>
+<li style="margin-bottom:7px;"><strong>Pendiente de configuración: la factura agrupada sale electrónica solo si el diario de facturas
+  del POS tiene resolución DIAN.</strong> Con Jorels 19 ya no hay un diario electrónico aparte en el punto
+  de venta: la factura agrupada usa el diario de facturas del POS, y es electrónica si ese diario lo
+  es. Verificar en STG antes de producción.</li>
+<li style="margin-bottom:7px;"><strong>Los filtros <em>Esta semana</em> y <em>Este mes</em> de los informes dan error</strong>, y por eso <em>Reporte mensual</em> y
+  <em>Consumo de productos</em>, que abren con <em>Este mes</em>, muestran "Ocurrió un error" al entrar. Sus
+  dominios usan <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">context_today().replace(day=1)</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">context_today().weekday()</code>, que el evaluador de
+  dominios del navegador no soporta. En el Odoo 17 de referencia los dominios son los mismos y ese
+  evaluador tampoco tiene esos métodos, así que el error viene de antes de la migración.</li>
+<li style="margin-bottom:7px;"><strong>Horas y "hoy" en UTC.</strong> El aviso de duplicado compara con la fecha del servidor y muestra la
+  hora en UTC: una orden de las 2:02 p. m. en Colombia sale como 19:02. El filtro <em>Hoy</em> de los
+  informes arma el rango sin convertir de zona horaria, así que probablemente también corta el día
+  a las 7:00 p. m. hora de Colombia. Esto último no se comprobó con órdenes reales de la noche.</li>
+<li style="margin-bottom:7px;"><strong>La restricción se muestra como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.payment.customer.restriction,3</code></strong> en la orden y en los
+  informes, porque el modelo no tiene un campo de nombre. Pasa igual en 17.</li>
+<li style="margin-bottom:7px;">La lista de restricciones en <em>Ajustes</em> es angosta y corta los encabezados. Para ver todas las
+  columnas conviene el menú <em>Configuración › Restricciones de pago</em>.</li>
+<li style="margin-bottom:7px;">Los campos <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">is_hotel_order</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hotel_guest</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hotel_room</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hotel_data_summary</code> de la orden se
+  calculan y guardan, pero ninguna vista los muestra.</li>
+<li style="margin-bottom:7px;">El requerimiento de negocio (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">REQUERIMIENTO IT DESAYUNOS HOTELES.md</code>) pide también precios de
+  convenio, combo desayuno y bebida, el descuento del 10 % para huéspedes y anulaciones con
+  autorización. Este módulo no implementa esas partes.</li>
+<li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>: en <em>Aplicaciones</em> se ve el ícono genérico de Odoo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_payment_customer_restriction.py</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_payment_restriction_field.py</code>: la
+  restricción (punto de venta, método, clientes, casillas) y los campos del popup, con la clave
+  calculada desde la etiqueta.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_config.py</code>: los campos del punto de venta y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_read</code>, que agrega al
+  POS un diccionario plano de restricciones por método en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">config._payment_restrictions</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/res_config_settings.py</code>: los campos relacionados de <em>Ajustes</em>. Su <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">create</code> escribe las
+  restricciones directo en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code>, porque <em>Ajustes</em> puede descartar cambios en los campos del
+  popup cuando los IDs de las restricciones no cambian.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_order.py</code>: datos del popup (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">restriction_data</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">restriction_id</code> y campos derivados),
+  búsqueda de duplicados, entrega en tiempo real, la decisión de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">to_invoice</code> en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_process_saved_order</code> y la factura agrupada.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/payment_method_restrict.js</code>: parches de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PaymentScreen</code> (filtro de métodos,
+  popup, duplicados), de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosStore.selectPartner</code> (vuelve a aplicar la factura al cambiar el
+  cliente) y de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PosOrder.serializeForORM</code> (envía <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">restriction_id</code>, que el POS descartaría porque su
+  modelo no está cargado en el POS).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/payment_restriction_popup.js</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.xml</code>: el popup, un componente sobre <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Dialog</code> que
+  se abre con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">makeAwaitable</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_config_views.xml</code>: el bloque de <em>Ajustes</em>, las vistas de la restricción y el menú de
+  configuración. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_hotel_report_views.xml</code>: la pestaña de la orden y los informes.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/pos_order_server_actions.xml</code>: la acción <em>Crear factura agrupada</em>.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Tests.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_restriction_invoice.py</code> cubre la decisión de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">to_invoice</code> en el servidor
+  (la restricción manda sobre lo que envía el POS, en los dos sentidos; clientes sin restricción y
+  casilla general apagada no se tocan) y la factura agrupada (una sola factura con el diario del
+  POS, órdenes en <em>Registrado</em>, sin refacturar). El filtro de métodos, el popup y el aviso de
+  duplicado no tienen test automático: se prueban a mano en el navegador.</li>
+<li style="margin-bottom:7px;"><strong>Motor propio de agrupación.</strong> No usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_prepare_invoice_vals</code> del estándar sobre todo el grupo
+  porque en 19 exige un solo punto de venta, usuario y posición fiscal, y partiría la factura de un
+  hotel por cajero. Lo llama sobre la primera orden del grupo: diario, posición fiscal y plazo de
+  pago salen de esa orden. La fecha de la factura es la de esa orden si su sesión sigue abierta, y
+  la del día si está cerrada.</li>
+<li style="margin-bottom:7px;"><strong>Dos lecturas de la restricción.</strong> Si un cliente está en varias restricciones, el POS aplica la
+  primera que encuentra y el servidor la del método de pago usado. El resultado final lo decide el
+  servidor.</li>
+<li style="margin-bottom:7px;"><strong>Interacción con la facturación obligatoria.</strong> La restricción debe seguir prevaleciendo en el
+  servidor. Si otro módulo fuerza <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">to_invoice</code> en Python después de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_process_saved_order</code>, la
+  factura agrupada deja de funcionar. Revisar en particular la versión 19 del módulo de fidelización
+  de Jorels que usa STG.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Libertario Coffee</li>
+<li style="margin-bottom:7px;">Cristian Mira (migración a Odoo 19)</li>
+</ul></div>
+</div>

@@ -12,6 +12,17 @@
     'author': 'Libertario Coffee',
     'license': 'LGPL-3',
     'depends': ['point_of_sale'],
+    'images': [
+        'static/description/01_activar.png',
+        'static/description/02_restriccion.png',
+        'static/description/03_pago_sin_restriccion.png',
+        'static/description/04_pago_con_restriccion.png',
+        'static/description/05_popup_datos.png',
+        'static/description/06_aviso_duplicado.png',
+        'static/description/07_factura_agrupada.png',
+        'static/description/08_orden_datos.png',
+        'static/description/09_informe_convenios.png',
+    ],
     'data': [
         'security/ir.model.access.csv',
         'views/pos_config_views.xml',
