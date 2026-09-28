@@ -1,29 +1,207 @@
-<section class="oe_container oe_dark">
-    <div class="col-md-12">
-        <h2 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Telegram Alerts Connector</b></h2>
-    </div>
-    <div class="col-md-12" style="text-align: left;">
-        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Description</b></h3>
-        <p style="font-size: 18px;">
-            The Odoo module enables users to create connectors for communicating with Telegram groups. Users can configure the module to send alerts to specified Telegram groups or users based on actions and events in Odoo.
-        </p>
-        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Configuration</b></h3>
-        <p style="font-size: 18px;">
-            Configuration can be accessed through Telegram Alerts > Config, where users can specify their Telegram access token and manage the list of user IDs or group IDs to receive alerts.
-        </p>
-        <div class="oe_row oe_spaced">
-            <div class="oe_span12">
-                <div class="oe_demo oe_picture oe_screenshot">
-                    <img src="config.png" style="height: 400px;">
-                </div>
-            </div>
-        </div>
-        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Notes</b></h3>
-        <ul style="font-size: 18px;"> <!-- Add unordered list -->
-            <li>Ensure that the Telegram Bot token is correctly set up in the configuration.</li>
-            <li>The user IDs or group IDs should be accurately specified to receive alerts.</li>
-            <li>Alerts are triggered based on configured server actions or automated rules in Odoo.</li>
-            <li>Verify that the Odoo server can communicate with Telegram's API endpoint.</li>
-        </ul>
-    </div>
-</section>
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Envía <strong>alertas de costos de productos a Telegram</strong>. Cada producto puede tener un <strong>costo de
+referencia</strong> y un <strong>porcentaje de diferencia permitido</strong>; una acción planificada diaria revisa todos
+los productos y manda a uno o varios chats de Telegram la lista de los que tienen el costo por
+fuera de ese umbral.</p>
+<p style="margin:0 0 12px;">Sirve para detectar a tiempo un costo mal cargado o un cambio de precio de compra que no se
+esperaba, sin tener que revisar los productos uno por uno.</p>
+<p style="margin:0 0 12px;">Las alertas salen por un <strong>bot de Telegram</strong> propio del negocio. El módulo guarda la conexión (token
+del bot y chats destino) y ofrece además una acción para enviar un mensaje de prueba y otra para
+calcular la diferencia de productos puntuales.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Módulos de Odoo: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">base</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">product</code>. No depende de otros módulos de este repositorio.</li>
+<li style="margin-bottom:7px;">Librería de Python <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">requests</code>, que ya viene con Odoo (en la imagen <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">odoo:19.0</code> está la versión
+  2.31.0). No hay que instalar nada adicional.</li>
+<li style="margin-bottom:7px;"><strong>API de Telegram para bots.</strong> El servidor de Odoo debe poder salir a internet hacia
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">https://api.telegram.org</code>. Hace falta un bot creado con <strong>@BotFather</strong> (que entrega el token) y
+  que ese bot pueda escribir en cada chat destino: el usuario tiene que haberle iniciado una
+  conversación, o el bot tiene que estar agregado al grupo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
+<p style="margin:0 0 12px;">Instalar <strong>Telegram Alerts</strong> desde <em>Aplicaciones</em>. La instalación crea:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">el menú <strong>Telegram Alerts › Configuration</strong>;</li>
+<li style="margin-bottom:7px;">una conexión de ejemplo llamada <em>Alertas Costos</em> con Custom ID <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code>;</li>
+<li style="margin-bottom:7px;">los campos <em>Reference Cost</em> y <em>Percentage Difference Cost</em> en el producto;</li>
+<li style="margin-bottom:7px;">tres acciones de servidor (<em>Calculate Difference Percentage</em>, <em>Send Cost Differences</em> y <em>Send
+  Telegram Alert</em>) y la acción planificada diaria <em>Send Cost Differences</em>, activa desde el
+  momento de la instalación.</li>
+</ul>
+<p style="margin:0 0 12px;">Después de instalar, revisar la conexión <em>Alertas Costos</em> (ver <em>Configuración</em>) antes de que corra
+la acción planificada.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
+<p style="margin:0 0 12px;">El nombre técnico del módulo, del modelo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">telegram.alerts.config</code> y de los campos de producto
+(<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reference_cost</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">percentage_difference_cost</code>) no cambian respecto de 17, así que los datos se
+conservan sin script. Cambios de la migración: la vista de lista usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">&lt;list&gt;</code> en lugar de
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">&lt;tree&gt;</code>, la acción planificada ya no lleva <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">numbercall</code> (en 19 se repite hasta que se desactiva)
+y se quitaron los archivos de ejemplo del andamiaje de Odoo (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/models.py</code>, controlador,
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/views.xml</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/templates.xml</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">demo/demo.xml</code>), que en 17 estaban completamente
+comentados. La etiqueta del campo <em>Percentage Difference Cost</em> corrigió su ortografía.</p>
+<h2>Configuración</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Conexión con Telegram</h2>
+<p style="margin:0 0 12px;">Ir a <strong>Telegram Alerts › Configuration</strong> y abrir la conexión <em>Alertas Costos</em> (o crear una con
+<strong>Nuevo</strong>). Todos los campos son obligatorios y ninguno tiene valor por defecto en el formulario.</p>
+<div class="lc-fig"><img alt="Telegram Alerts › Configuration: campos de la conexión (token y chats difuminados)" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Telegram Alerts › Configuration: campos de la conexión (token y chats difuminados)</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Custom ID</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">identifier</code>). Obligatorio. Es la clave con la que las acciones encuentran la
+  conexión. La acción planificada y la acción <em>Send Cost Differences</em> buscan exactamente
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code>: si se cambia, dejan de enviar y fallan con <em>Telegram configuration not found</em>.</li>
+<li style="margin-bottom:7px;"><strong>Name</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">name</code>). Obligatorio. Nombre descriptivo; no interviene en el envío.</li>
+<li style="margin-bottom:7px;"><strong>Telegram Bot Token</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">token</code>). Obligatorio. El token que entrega @BotFather. Se muestra
+  enmascarado en pantalla.</li>
+<li style="margin-bottom:7px;"><strong>User IDs (comma-separated)</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">user_ids</code>). Obligatorio. Identificadores de chat de Telegram,
+  separados por coma. Pueden ser usuarios (número positivo) o grupos (número negativo). Los
+  espacios alrededor de cada coma se ignoran. Cada alerta se envía a todos.</li>
+<li style="margin-bottom:7px;"><strong>Testing Message</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">msg_test</code>). Obligatorio. Texto que envía la acción de prueba.</li>
+</ul>
+<p style="margin:0 0 12px;">Para probar la conexión, abrir el registro y, en el engranaje junto al nombre, elegir <strong>Send
+Telegram Alert</strong>. Envía el <em>Testing Message</em> a cada chat de <em>User IDs</em>. Si no hay error, la
+conexión funciona.</p>
+<div class="lc-fig"><img alt="Acción Send Telegram Alert en el engranaje del registro de conexión" src="02_mensaje_prueba.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Acción Send Telegram Alert en el engranaje del registro de conexión</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Umbral de costo por producto</h2>
+<p style="margin:0 0 12px;">En el formulario del producto (por ejemplo desde <strong>Punto de venta › Productos › Productos</strong>),
+pestaña <em>Información general</em>, debajo de <em>Costo</em>, aparecen dos campos nuevos. Un producto solo
+entra en la revisión diaria si tiene <strong>los dos</strong> con valor distinto de cero.</p>
+<div class="lc-fig"><img alt="Formulario de producto: Costo, Reference Cost y Percentage Difference Cost" src="03_producto.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Formulario de producto: Costo, Reference Cost y Percentage Difference Cost</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Reference Cost</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reference_cost</code>). Opcional; 0 por defecto. El costo esperado del producto.</li>
+<li style="margin-bottom:7px;"><strong>Percentage Difference Cost</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">percentage_difference_cost</code>). Opcional; 0 por defecto. Umbral
+  expresado <strong>como fracción entre 0 y 1</strong>: 0,10 significa 10 %. Un valor fuera de ese rango no se
+  puede guardar (<em>The Percentage Difference Cost must be between 0 and 1</em>). Con la interfaz en
+  español el separador decimal es la coma: escribir <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">0,10</code>, no <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">0.10</code>.</li>
+</ul>
+<p style="margin:0 0 12px;">El campo <em>Porcentaje de variación</em> que se ve en la misma pantalla no es de este módulo (lo agrega
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase_price_validation</code>) y usa otra escala.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Acción planificada</h2>
+<p style="margin:0 0 12px;"><strong>Ajustes › Técnico › Automatización › Acciones planificadas</strong> (requiere el modo desarrollador),
+registro <strong>Send Cost Differences</strong>.</p>
+<div class="lc-fig"><img alt="Acción planificada Send Cost Differences: intervalo, activo y código" src="05_accion_planificada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Acción planificada Send Cost Differences: intervalo, activo y código</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Ejecutar cada</strong>: 1 día, valor que instala el módulo. La hora de envío es la de <em>Siguiente
+  fecha de ejecución</em>.</li>
+<li style="margin-bottom:7px;"><strong>Activo</strong>: encendida al instalar. Apagarla detiene la alerta diaria.</li>
+<li style="margin-bottom:7px;"><strong>Código</strong>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">model.send_cost_differences('cost_alert')</code>, es decir, usa la conexión con Custom ID
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code>.</li>
+</ul>
+<p style="margin:0 0 12px;"><strong>Atención:</strong> la conexión de ejemplo y la acción planificada se cargan sin <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">noupdate</code>. Cada vez
+que se actualiza el módulo, Odoo vuelve a escribir los valores del archivo de datos: el token, los
+chats y el mensaje de <em>Alertas Costos</em>, y el intervalo y el estado <em>Activo</em> de la acción
+planificada. Hay que revisarlos después de cada actualización (ver <em>Limitaciones conocidas</em>).</p>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Flujo</h2>
+<ol style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Cargar en cada producto a vigilar su <em>Reference Cost</em> y su <em>Percentage Difference Cost</em>.</li>
+<li style="margin-bottom:7px;">Una vez al día la acción planificada revisa todos los productos activos que tienen los dos
+   campos distintos de cero y compara el costo actual (<em>Costo</em>) con el de referencia.</li>
+<li style="margin-bottom:7px;">Si hay productos por fuera del umbral, envía <strong>un solo mensaje</strong> a cada chat de la conexión
+   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code>, con el encabezado <em>Productos con costo por fuera del umbral</em> y una línea por
+   producto: nombre, costo actual y diferencia en porcentaje.</li>
+<li style="margin-bottom:7px;">Si ningún producto está fuera del umbral, no se envía nada.</li>
+</ol>
+<p style="margin:0 0 12px;">La diferencia es el valor absoluto de (referencia − costo) / costo × 100, y se compara con el umbral × 100.
+Un producto con diferencia exactamente igual al umbral no se informa.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Acciones manuales en productos</h2>
+<p style="margin:0 0 12px;">En la lista de productos, al seleccionar uno o más, el menú <strong>Acciones</strong> muestra dos opciones del
+módulo. Las dos envían a Telegram en cuanto se eligen, sin pedir confirmación.</p>
+<div class="lc-fig"><img alt="Productos › Acciones: Calculate Difference Percentage y Send Cost Differences" src="04_acciones_producto.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Productos › Acciones: Calculate Difference Percentage y Send Cost Differences</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Send Cost Differences</strong> hace exactamente lo mismo que la acción planificada, en el momento.
+  <strong>No tiene en cuenta la selección</strong>: revisa todos los productos con umbral configurado.</li>
+<li style="margin-bottom:7px;"><strong>Calculate Difference Percentage</strong> envía <strong>un mensaje por cada producto seleccionado</strong> con la
+  diferencia entre el costo de referencia y el costo (con signo), sin comparar contra el umbral.
+  El mensaje no incluye el nombre del producto, así que conviene usarla con un solo producto a la
+  vez. Usa la <strong>primera conexión</strong> que encuentre, sin importar su Custom ID.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Producto con costo en cero</strong> y umbral configurado: la revisión diaria lo incluye igual en el
+  mensaje, como <em>nombre with cost: 0.0</em>, para avisar que le falta el costo.
+  <em>Calculate Difference Percentage</em> responde <em>Standard price is zero, cannot calculate
+  difference</em>.</li>
+<li style="margin-bottom:7px;"><strong>Productos archivados</strong>: no se revisan.</li>
+<li style="margin-bottom:7px;"><strong>Varias conexiones</strong>: la revisión diaria usa solo la de Custom ID <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code>. <em>Send Telegram
+  Alert</em> prueba la conexión abierta (o las seleccionadas en la lista).</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Error <em>Telegram configuration not found</em>.</strong> No existe una conexión con Custom ID <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code>
+  (o ninguna conexión, en el caso de <em>Calculate Difference Percentage</em>). Crearla o corregir el
+  Custom ID.</li>
+<li style="margin-bottom:7px;"><strong>Error <em>Client Error ... for url: https://api.telegram.org/...</em> al enviar.</strong> Telegram rechazó
+  el envío. Las causas habituales son un token inválido o revocado (generar uno nuevo con
+  @BotFather), un chat de <em>User IDs</em> incorrecto, un bot que no está en el grupo o un usuario que
+  nunca le escribió al bot. También lo provoca una coma sobrante al final de la lista, porque se
+  intenta enviar a un chat vacío. El texto del error incluye el token: no compartirlo tal cual.</li>
+<li style="margin-bottom:7px;"><strong>Llegó a unos chats y a otros no.</strong> Los envíos son en orden; el primer chat que falla corta el
+  resto. Corregir ese chat y volver a probar con <em>Send Telegram Alert</em>.</li>
+<li style="margin-bottom:7px;"><strong>La alerta diaria dejó de llegar sin error visible.</strong> Revisar en la acción planificada que
+  siga <em>Activa</em>: Odoo 19 desactiva una acción planificada que falla al menos 5 veces seguidas
+  durante más de 7 días. El detalle del fallo queda en el log del servidor.</li>
+<li style="margin-bottom:7px;"><strong>La conexión volvió a tener otro token o otros chats.</strong> Se actualizó el módulo y se recargaron
+  los datos de instalación (ver <em>Configuración › Acción planificada</em>).</li>
+<li style="margin-bottom:7px;"><strong>El servidor tarda o se queda esperando al enviar.</strong> Ver <em>Limitaciones conocidas</em>: la llamada
+  a Telegram no tiene tiempo límite.</li>
+</ul>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Los datos de instalación pisan la configuración.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/telegram_config.xml</code> y la acción
+  planificada de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/server_actions.xml</code> no están en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">noupdate</code>. Al actualizar el módulo se
+  restauran el token, los chats y el mensaje de <em>Alertas Costos</em>, y la acción planificada vuelve a
+  quedar activa cada 1 día aunque se hubiera apagado o cambiado.</li>
+<li style="margin-bottom:7px;"><strong>Token real en el repositorio.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/telegram_config.xml</code> trae un token de bot y dos chat id
+  reales, que se cargan en cualquier base donde se instale el módulo. Mientras eso siga así, una
+  base de pruebas con la acción planificada activa puede enviar mensajes a los chats reales.</li>
+<li style="margin-bottom:7px;"><strong>Permisos abiertos.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">security/ir.model.access.csv</code> da lectura, escritura, creación y borrado
+  del modelo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">telegram.alerts.config</code> sin grupo, es decir, a todos los usuarios; el menú tampoco
+  tiene grupo. El token se enmascara en pantalla (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">password="true"</code>), pero cualquier usuario puede
+  leerlo por la API.</li>
+<li style="margin-bottom:7px;"><strong>Sin tiempo límite ni reintentos.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">send_message</code> llama a Telegram con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">requests.get</code> sin
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">timeout</code>. Si Telegram no responde, el proceso queda esperando. No hay reintentos: un fallo se
+  informa como error y el siguiente intento es la próxima ejecución diaria.</li>
+<li style="margin-bottom:7px;"><strong>El token aparece en los errores.</strong> El token va dentro de la URL del pedido y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">raise_for_status()</code> arma el mensaje de error con esa URL, así que queda visible en el diálogo de
+  error y en el log del servidor.</li>
+<li style="margin-bottom:7px;"><strong>Un fallo corta el envío.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">resp.raise_for_status()</code> lanza una excepción en el primer chat que
+  falla y los chats siguientes no reciben el mensaje.</li>
+<li style="margin-bottom:7px;"><strong>Errores técnicos al usuario.</strong> Si falta la conexión se lanza <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ValueError</code>, no <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">UserError</code>, así
+  que el usuario ve un error del servidor en lugar de un aviso.</li>
+<li style="margin-bottom:7px;"><strong>Textos sin traducir.</strong> Etiquetas, menús, nombres de acciones y el mensaje de <em>Calculate
+  Difference Percentage</em> están en inglés y el módulo no tiene carpeta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">i18n</code>; el encabezado del
+  resumen diario está en español dentro del código.</li>
+<li style="margin-bottom:7px;"><em>Calculate Difference Percentage</em> no incluye el nombre del producto en el mensaje y toma la
+  primera conexión que encuentra, no la <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code>.</li>
+<li style="margin-bottom:7px;">El ícono <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> mide 1024x1024 px; la convención del proyecto es
+  100x100 px.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/telegram_alerts.py</code>: modelo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">telegram.alerts.config</code> (la conexión) y el envío
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">send_message</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">send_alert</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">send_alert_test</code>) a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">https://api.telegram.org/bot&lt;token&gt;/sendMessage</code>,
+  en texto plano.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/product_template.py</code>: campos <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reference_cost</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">percentage_difference_cost</code> en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">product.template</code>, la validación 0–1 y los métodos <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">calculate_difference_percentage</code> y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">send_cost_differences(identifier)</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/telegram_alerts_views.xml</code>: lista, formulario, acción y menú <strong>Telegram Alerts ›
+  Configuration</strong>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/product_view.xml</code>: los dos campos dentro del grupo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">group_standard_price</code> del formulario
+  de producto.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/server_actions.xml</code>: las tres acciones de servidor y la acción planificada diaria.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/telegram_config.xml</code>: la conexión <em>Alertas Costos</em> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code>).</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">El Custom ID <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cost_alert</code> está escrito en dos lugares de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/server_actions.xml</code> (acción de
+  servidor y acción planificada). Si se renombra, hay que cambiar los dos.</li>
+<li style="margin-bottom:7px;">La acción planificada corre con el usuario <em>OdooBot</em>, que es quien lee los costos de los
+  productos.</li>
+<li style="margin-bottom:7px;">El módulo no tiene tests automáticos. Para probar sin enviar a chats reales, usar un bot y un
+  chat de prueba en la conexión, o apagar la acción planificada en la base de pruebas.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee Roasters</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Libertario Coffee Roasters</li>
+</ul></div>
+</div>

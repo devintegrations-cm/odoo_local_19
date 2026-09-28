@@ -22,6 +22,13 @@
     'category': 'Productivity',
     'version': '19.0.1.0.0',
     'license': 'LGPL-3',
+    'images': [
+        'static/description/01_configuracion.png',
+        'static/description/02_mensaje_prueba.png',
+        'static/description/03_producto.png',
+        'static/description/04_acciones_producto.png',
+        'static/description/05_accion_planificada.png',
+    ],
 
     # any module necessary for this one to work correctly
     'depends': ['base', 'product'],
