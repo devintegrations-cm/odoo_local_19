@@ -15,10 +15,6 @@
   (`pos.order._force_create_picking_real_time`). La base local está así; hay que confirmar la
   configuración de producción. La opción se copia a cada sesión al abrirla
   (`pos.session.update_stock_at_closing`), así que un cambio solo aplica a sesiones nuevas.
-- **`_create_order_picking` reemplaza al del core sin llamar a `super()`.** Es copia del de Odoo
-  17 y no incluye dos ramas que agregó Odoo 19: la devolución de una orden de envío posterior, que
-  en el core usa el flujo de pickings, y la escritura de sesión, orden y origen en los
-  `backorder_ids` (PIQ-5).
 - **Presupuesto de tiempo del drenaje.** `_process_queue` corre hasta 240 segundos por pasada. Si
   el límite real de los cron del servidor (`limit_time_real_cron`) es menor, el worker puede morir
   antes y dejar un ítem en *Processing* hasta el reclamo de 5 minutos (PIQ-6, verificar en
@@ -55,8 +51,8 @@
   `CLAIM_MAX_RETRIES = 10`, `STALE_PROCESSING_MINUTES = 5`, `LOCK_TIMEOUT_SECONDS = 5`.
 - `models/inventory_queue_config.py`: la ventana del interruptor (`pos.inventory.queue.config`,
   transitorio), que lee y escribe `pos_inventory_queue.enabled`.
-- `models/pos_order.py`: `_create_order_picking` con el contexto `pos_inventory_queue=True`, que
-  es lo que activa la cola; y `_recompute_cost_after_queue`, que recalcula el costo FIFO/AVCO de
+- `models/pos_order.py`: `_create_order_picking` llama al método del core con el contexto
+  `pos_inventory_queue=True`, que es lo que activa la cola; y `_recompute_cost_after_queue`, que recalcula el costo FIFO/AVCO de
   la orden cuando la cola valida el picking (ver *Casos especiales* en *Uso*).
 - `models/pos_order.py` (factura): `_generate_pos_order_invoice` factura sin PDF y lo agenda en un
   post-commit (`_pos_queue_schedule_invoice_pdf`); `_pos_queue_generate_invoice_pdf_isolated` lo
@@ -78,7 +74,7 @@
 - `views/`: lista, formulario y búsqueda de la cola, y la ventana del interruptor con sus menús.
 - `migrations/17.0.2.1.0/pre-migrate.py`: columna `next_retry_date` (ver *Instalación*).
 - `migrations/19.0.1.2.0/post-migrate.py`: numeración de venta de los POS existentes a `standard`.
-- `tests/test_queue_model.py`: 50 pruebas `TransactionCase` sobre secuencia, duplicados, reclamo,
+- `tests/test_queue_model.py`: 53 pruebas `TransactionCase` sobre secuencia, duplicados, reclamo,
   `next_retry_date`, orden de proceso, reclamo de *Processing* vencido, cierre de sesión (items
   pendientes, fallidos, pickings validados a mano y la confirmación de foto previa a la lectura
   final), limpieza, botones, alerta de fallo permanente (creación, idempotencia y destinatarios) y
@@ -88,7 +84,8 @@
   con el picking en cola y devolución de una venta procesada) y numeración de venta `standard`
   (POS nuevo y conversión idempotente sin saltos), y PDF de la factura después de confirmar
   (sin PDF dentro de la venta, generación aislada, interruptor apagado, `generate_pdf=False`
-  explícito y respaldo al cron).
+  explícito y respaldo al cron), y el picking de la venta por el método del core (encolado normal,
+  devolución de *Enviar más tarde* y backorders vinculados).
 - `tools/`: dos scripts de carga independientes, fuera de la suite de Odoo, que corren contra una
   base real. `test_pos_inventory_concurrency.py` encola `--pickings` ventas y las procesa con
   `--drainers` drenadores concurrentes (1 = cron normal; más = cron y cierres de caja

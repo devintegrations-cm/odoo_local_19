@@ -137,29 +137,21 @@ class PosOrder(models.Model):
             )
 
     def _create_order_picking(self):
-        self.ensure_one()
-        if self.picking_ids:
-            return
-        if self.shipping_date:
-            self.sudo().lines._launch_stock_rule_from_pos_order_lines()
-        else:
-            if self._should_create_picking_real_time():
-                picking_type = self.config_id.picking_type_id
-                if self.partner_id.property_stock_customer:
-                    destination_id = self.partner_id.property_stock_customer.id
-                elif not picking_type or not picking_type.default_location_dest_id:
-                    destination_id = self.env['stock.warehouse']._get_partner_locations()[0].id
-                else:
-                    destination_id = picking_type.default_location_dest_id.id
+        """Crea el picking de la venta con el método de Odoo 19 y la cola activa.
 
-                pickings = self.env['stock.picking'].with_context(
-                    pos_inventory_queue=True
-                )._create_picking_from_pos_order_lines(destination_id, self.lines, picking_type, self.partner_id)
-                pickings.write({
-                    'pos_session_id': self.session_id.id,
-                    'pos_order_id': self.id,
-                    'origin': self.name,
-                })
+        El contexto pos_inventory_queue=True es lo que hace que
+        stock.picking._create_picking_from_pos_order_lines encole el picking
+        en vez de validarlo (ver models/stock_picking.py). El resto es el
+        método del core, sin copiarlo (PIQ-5): antes era una copia del de
+        Odoo 17 y le faltaban dos ramas de 19, la devolución de una venta
+        "Enviar más tarde" (cancela o reduce la entrega pendiente) y la
+        escritura de sesión, orden y origen en los backorders (con la cola,
+        los backorders aparecen al validar: los completa
+        pos.inventory.queue._link_pos_backorders).
+        """
+        return super(
+            PosOrder, self.with_context(pos_inventory_queue=True),
+        )._create_order_picking()
 
     @api.model
     def _recompute_cost_after_queue(self, picking):

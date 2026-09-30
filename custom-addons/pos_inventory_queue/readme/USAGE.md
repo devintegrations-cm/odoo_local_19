@@ -42,7 +42,7 @@ estado.
 Abrir el ítem desde la lista. La sección *Error* muestra la excepción y la traza, y *Retry Count*
 cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar **Retry**.
 
-![Ítem en Failed Permanent con los botones Retry y Procesar ahora (ejemplo DOC)](../static/description/05_item_fallido.png)
+![Ítem PIQ/002889 en Failed Permanent tras 5 ciclos: venta de un producto con lote sin lote asignado, con los botones Retry y Procesar ahora](../static/description/05_item_fallido.png)
 
 - **Retry** (solo *Administrador* del Punto de venta, visible en *Failed* y *Failed Permanent*):
   vuelve el ítem a *Pending*, borra el error, pone el contador en 0 y avisa al cron.
@@ -91,7 +91,22 @@ cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar
   el sistema crea una actividad **To Do** para cada gestor de inventario de la compañía del
   picking, con el picking como referencia, visible en *Actividades* del systray. Se crea una sola
   vez por picking: los reintentos posteriores no la duplican. Para revisar la causa, abrir el
-  picking o el ítem de la cola en *Punto de venta › Órdenes › Cola de Inventario*.
+  picking o el ítem de la cola en *Punto de venta › Órdenes › Cola de Inventario*. La nota de la
+  actividad dice *Punto de Venta › Configuración › Cola de Inventario*, pero la cola está en
+  *Órdenes*.
+
+  ![Picking WH/POS/03049 con la actividad To Do de fallo permanente, que también aparece en Actividades del systray](../static/description/07_alerta_picking.png)
+
+- **Numeración de ventas del POS.** Las secuencias de órdenes, líneas y referencia backend de cada
+  POS usan la implementación *Estándar*, como en Odoo 17, en lugar de *Sin espacio* (la que crea
+  Odoo 19, que hace esperar a los cajeros de una misma tienda). Los POS nuevos nacen así y los
+  existentes se convierten al actualizar el módulo, sin saltos en la numeración. Para verificarlo,
+  en modo desarrollador: *Ajustes › Técnico › Secuencias*, buscar el nombre del POS y abrir *Orden
+  de PdV…*, *Línea de la orden de PdV…* y *Backend de la orden de PdV…*: las tres deben decir
+  *Estándar*. *Dispositivo de PdV…* queda en *Sin espacio*: no se usa al vender. No es numeración
+  fiscal: la factura electrónica numera con su propio diario.
+
+  ![Ajustes › Técnico › Secuencias › Orden de PdV de la configuración #1: Implementación Estándar](../static/description/08_secuencia_standard.png)
 
 ## Solución de problemas
 

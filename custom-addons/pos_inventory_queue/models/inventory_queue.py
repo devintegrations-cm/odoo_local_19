@@ -936,6 +936,7 @@ class PosInventoryQueue(models.Model):
                                 picking_new, item_new.pos_line_ids,
                             )
                         picking_new._action_done()
+                        self._link_pos_backorders(picking_new)
 
                     # (PIQ-1) El picking ya está 'done' y sus moves están
                     # valorados: el costo FIFO/AVCO que el core calculó
@@ -1192,6 +1193,22 @@ class PosInventoryQueue(models.Model):
                 move.quantity = move.product_uom_qty
         confirmed_moves.picked = True
         picking._link_owner_on_return_picking(lines)
+
+    @api.model
+    def _link_pos_backorders(self, picking):
+        """Vincula los backorders del picking a su sesión y orden del POS.
+
+        Es lo que hace el core en pos.order._create_order_picking después de
+        validar (pickings.backorder_ids.write). Con la cola la validación
+        ocurre aquí, así que los backorders aparecen aquí.
+        """
+        backorders = picking.backorder_ids
+        if backorders and picking.pos_order_id:
+            backorders.write({
+                'pos_session_id': picking.pos_session_id.id,
+                'pos_order_id': picking.pos_order_id.id,
+                'origin': picking.pos_order_id.name,
+            })
 
     @api.model
     def _is_queue_enabled(self):

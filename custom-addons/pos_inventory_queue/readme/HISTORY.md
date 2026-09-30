@@ -19,8 +19,15 @@
   corre igual. Si el PDF falla, la factura queda para el cron nativo *Send invoices
   automatically*. Interruptor `pos_inventory_queue.invoice_pdf_after_commit`. Prueba a ritmo real
   (3 tiendas × 3 cajeros): p95 de la venta de 30 s a 6,5 s.
+- **`_create_order_picking` delega en Odoo 19** (PIQ-5): era una copia del método de Odoo 17 sin
+  `super()` y le faltaban dos ramas de 19. Ahora llama al método del core con el contexto
+  `pos_inventory_queue=True`, que es lo que activa la cola. Recupera la devolución de una venta
+  *Enviar más tarde* (cancela o reduce la entrega pendiente en vez de lanzar la regla de
+  abastecimiento) y la cola vincula los backorders a la sesión y la orden al validar. Se pierde el
+  respaldo de 17 para un tipo de operación sin ubicación destino, como en el core 19. En STG 17
+  ningún POS usa *Enviar más tarde*: corrección preventiva.
 
-50 pruebas automatizadas.
+53 pruebas automatizadas.
 
 ## 19.0.1.1.0 (2026-09-29)
 

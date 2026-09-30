@@ -1263,3 +1263,89 @@ class TestPosInventoryQueue(TransactionCase):
         self.assertFalse(invoice.invoice_pdf_report_id)
         self.assertTrue(invoice.sending_data)
         self.assertEqual(invoice.state, 'posted')
+
+    # ------------------------------------------------------------------
+    # PIQ-5: _create_order_picking DELEGA EN ODOO 19
+    # ------------------------------------------------------------------
+
+    def test_create_order_picking_goes_through_queue(self):
+        """La venta normal sigue encolando: el método del core, con el
+        contexto de la cola, deja el picking en borrador con su ítem y lo
+        vincula a la orden."""
+        session, picking_type = self._deferred_setup()
+        self._put_stock(self.product, 10)
+        order = self._pos_order(session, self.product, qty=1)
+
+        order._create_order_picking()
+
+        picking = order.picking_ids
+        self.assertEqual(len(picking), 1)
+        self.assertEqual(picking.state, 'draft')
+        self.assertEqual(picking.pos_session_id, session)
+        self.assertEqual(picking.origin, order.name)
+        item = self.Queue.search([('picking_id', '=', picking.id)])
+        self.assertEqual(item.pos_order_id, order)
+
+    def test_ship_later_full_refund_cancels_pending_delivery(self):
+        """Rama de Odoo 19 que faltaba: devolver una venta "Enviar más
+        tarde" antes de entregarla CANCELA la entrega pendiente (antes el
+        módulo lanzaba la regla de abastecimiento y la entrega salía igual)."""
+        session, picking_type = self._deferred_setup()
+        self._put_stock(self.product, 10)
+        partner = self.env['res.partner'].create({'name': 'PIQ Envío'})
+        tomorrow = fields.Date.add(fields.Date.today(), days=1)
+        order = self._pos_order(session, self.product, qty=1)
+        order.write({'partner_id': partner.id, 'shipping_date': tomorrow})
+        order._create_order_picking()
+        delivery = order.picking_ids
+        if not delivery:
+            self.skipTest('Sin ruta de entrega en la base de pruebas')
+        self.assertNotIn(delivery.state, ('done', 'cancel'))
+
+        refund = self._pos_order(
+            session, self.product, qty=-1, refund_of=order.lines[0])
+        refund.write({
+            'partner_id': partner.id,
+            'shipping_date': tomorrow,
+            'is_refund': True,
+        })
+        refund._create_order_picking()
+
+        self.assertEqual(delivery.state, 'cancel')
+        self.assertFalse(refund.picking_ids)
+
+    def test_backorders_linked_after_queue_validation(self):
+        """Si al validar en la cola queda un pendiente parcial (backorder),
+        queda vinculado a la sesión y la orden del POS, como hace el core."""
+        session, picking_type = self._deferred_setup()
+        self._put_stock(self.product, 10)
+        order = self._pos_order(session, self.product, qty=2)
+        picking = self.Picking.create({
+            'picking_type_id': picking_type.id,
+            'location_id': self.pos_src.id,
+            'location_dest_id': self.pos_dest.id,
+            'origin': order.name,
+            'pos_session_id': session.id,
+            'pos_order_id': order.id,
+        })
+        move = self.env['stock.move'].create({
+            'product_id': self.product.id,
+            'product_uom_qty': 2.0,
+            'product_uom': self.product.uom_id.id,
+            'picking_id': picking.id,
+            'location_id': self.pos_src.id,
+            'location_dest_id': self.pos_dest.id,
+        })
+        picking.action_confirm()
+        move.quantity = 1.0
+        move.picked = True
+        self.Queue.create({'picking_id': picking.id})
+
+        item, status = self._process(picking)
+
+        self.assertEqual(status, 'done')
+        backorder = picking.backorder_ids
+        self.assertTrue(backorder, 'debía quedar un pendiente parcial')
+        self.assertEqual(backorder.pos_order_id, order)
+        self.assertEqual(backorder.pos_session_id, session)
+        self.assertEqual(backorder.origin, order.name)

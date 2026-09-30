@@ -32,6 +32,8 @@
         'static/description/04_cola_procesados.png',
         'static/description/05_item_fallido.png',
         'static/description/06_item_procesado.png',
+        'static/description/07_alerta_picking.png',
+        'static/description/08_secuencia_standard.png',
     ],
     'installable': True,
     'application': False,
