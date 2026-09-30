@@ -124,13 +124,16 @@ Flujo
 
 El cajero no hace nada distinto: vende y cobra como siempre. Lo que cambia ocurre en el servidor:
 
-- Al registrar la orden, el módulo crea el picking **sin validarlo** y un ítem de cola en estado
-  *Pending* con referencia ``PIQ/000NNN``. Si la venta tiene productos a entregar y devueltos, crea
-  un picking y un ítem para cada parte.
+- Al registrar la orden, el módulo crea el picking **en borrador**, sin reservar stock ni validarlo,
+  y un ítem de cola en estado *Pending* con referencia ``PIQ/000NNN`` que guarda las líneas de la
+  venta. Así la venta no toca el stock y no compite con las otras cajas. Si la venta tiene
+  productos a entregar y devueltos, crea un picking y un ítem para cada parte.
 - En la misma transacción pide al worker de cron que drene la cola. Si ese aviso se pierde, la
   acción planificada de cada minuto lo retoma.
-- El worker toma los ítems de a uno, primero los *Pending*, valida el picking y marca el ítem
-  *Done*. Cuando la cola se vacía, termina.
+- El worker toma los ítems de a uno, primero los *Pending*. Confirma el picking, reserva el stock,
+  asigna cantidades, lotes y series desde las líneas de la venta, lo valida y marca el ítem *Done*.
+  Cuando la cola se vacía, termina. En *Inventario* el picking se ve unos segundos en *Borrador*
+  hasta que la cola lo procesa.
 
 Para ver la cola, ir a *Punto de venta › Órdenes › Cola de Inventario*. Abre con el filtro
 **Pendientes + Fallidos**, que muestra solo lo que necesita atención; si la lista está vacía, no hay
@@ -185,34 +188,56 @@ cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar
 Casos especiales
 ----------------
 
+- **Errores de inventario.** Un problema de lote, serie o unidad de medida ya no hace fallar la
+  venta en el POS: la venta entra y el error aparece en la cola (*Failed*, con reintentos y, si
+  persiste, la alerta a los gestores de inventario).
+- **PDF de la factura.** Las ventas facturadas se confirman sin generar el PDF dentro; el PDF se
+  genera justo después, antes de que el POS reciba la respuesta, así que el POS ve la factura con su
+  PDF igual que antes. Mientras tanto el número de factura queda libre para las otras ventas del
+  mismo diario. Si la generación falla, la factura queda publicada y la completa la acción
+  planificada de Odoo *Send invoices automatically* (debe estar activa). Para volver a generar el
+  PDF dentro de la venta: parámetro de sistema ``pos_inventory_queue.invoice_pdf_after_commit`` en
+  ``False``.
+- **Volver a reservar en la venta.** El parámetro de sistema ``pos_inventory_queue.defer_reservation``
+  (por defecto ``True``) activa la reserva en la cola. En ``False`` la venta vuelve a confirmar y
+  reservar el picking como antes y la cola solo lo valida; aplica a las ventas nuevas, y los
+  pickings en borrador que ya estén en cola se completan igual.
+
 - **Contención con otra caja.** Si el intento choca con otro proceso sobre el mismo stock (error
   de serialización o ``lock_not_available``), se reintenta hasta 5 veces con esperas cortas, de hasta
   0,8 segundos. Si sigue chocando, el ítem vuelve a *Pending* sin sumar ciclos de fallo, y queda
   el detalle en *Error Message*.
 - **Picking ya validado.** Si al tomar el ítem el picking ya está *Hecho*, lo marca *Done* sin
-  volver a validar, para no descontar stock dos veces.
+  volver a validar, para no descontar stock dos veces, y le recalcula el costo de la orden.
+- **Costo y margen de la orden.** El costo de los productos con método FIFO o AVCO sale de los
+  movimientos del picking, así que se calcula recién cuando la cola lo valida (si no, quedaría en 0
+  y el margen de la orden, mal). Los productos de costo estándar no se tocan: su costo sale de la
+  tarifa del producto y es el mismo validando la cola o no.
 - **Líneas sin stock.** Servicios y cantidades en cero no generan picking ni ítem.
 - **Devolución total de una orden cuyo picking aún no se validó.** Se cancela el picking original y
   no se crea ninguno nuevo. En una devolución parcial se reducen las cantidades del picking
   pendiente.
 - **Cola apagada con ítems pendientes.** Los pendientes se terminan de procesar; las ventas nuevas
   se validan en el momento.
-- **Cierre de sesión.** Antes de cerrar, Odoo procesa en línea los ítems de esa sesión que no estén
-  *Done* ni *Failed Permanent*. Si después queda alguno sin *Done*, el cierre se detiene con el
-  mensaje "No se puede cerrar la sesión … quedan N movimiento(s) de inventario sin procesar en la
-  cola" y la lista de referencias.
-- **Fallo permanente.** El log registra una línea con el prefijo ``POS Queue: PERMANENT``. El código
-  intenta además crear una actividad para los gestores de inventario, pero en Odoo 19 esa alerta
-  no se crea (ver *Limitaciones conocidas*).
+- **Cierre de sesión.** Antes de cerrar, Odoo procesa en línea todos los ítems de esa sesión que
+  no estén *Done*, incluidos los fallidos: si su causa ya se resolvió (por ejemplo, alguien validó
+  el picking a mano), el cierre los marca *Done* solo. Si después queda alguno sin *Done*, el
+  cierre se detiene con el mensaje "No se puede cerrar la sesión … quedan N movimiento(s) de
+  inventario sin procesar en la cola" y la lista de referencias.
+- **Fallo permanente.** El log registra una línea con el prefijo ``POS Queue: PERMANENT``. Además,
+  el sistema crea una actividad **To Do** para cada gestor de inventario de la compañía del
+  picking, con el picking como referencia, visible en *Actividades* del systray. Se crea una sola
+  vez por picking: los reintentos posteriores no la duplican. Para revisar la causa, abrir el
+  picking o el ítem de la cola en *Punto de venta › Órdenes › Cola de Inventario*.
 
 Solución de problemas
 ---------------------
 
 - **La sesión no cierra por movimientos sin procesar.** Filtrar la cola por la orden o el picking
   que indica el mensaje. Si el ítem está en *Failed* o *Failed Permanent*, corregir la causa y
-  pulsar *Retry*. Si el picking ya está *Hecho* pero el ítem no, también *Retry*: la cola lo marca
-  *Done* sin revalidar. Si el ítem acaba de procesarse durante el propio intento de cierre, volver
-  a intentar el cierre (ver *Limitaciones conocidas*). El mensaje menciona *Punto de Venta ›
+  pulsar *Retry* (o intentar cerrar de nuevo: el propio cierre reintenta los ítems fallidos). Si
+  el picking ya está *Hecho* pero el ítem no, basta con volver a intentar el cierre: la cola lo
+  marca *Done* sin revalidar, ni siquiera hace falta *Retry*. El mensaje menciona *Punto de Venta ›
   Configuración › Cola de Inventario*, pero la cola está en *Órdenes*.
 - **Ítems en *Pending* que no avanzan.** Revisar que la acción planificada *POS Inventory Queue:
   Process pending items* esté activa y que el servidor tenga workers de cron. En el log, cada
@@ -230,21 +255,21 @@ Known issues / Roadmap
 Limitaciones conocidas
 ----------------------
 
-- **La alerta de fallo permanente no se crea en Odoo 19.** ``_notify_permanent_failure`` busca los
-  usuarios con ``('groups_id', 'in', ...)``, pero en Odoo 19 el campo de ``res.users`` se llama
-  ``group_ids``. La búsqueda falla, el ``except`` lo captura y solo queda en el log la línea
-  ``POS Queue: PERMANENT no se pudo crear la alerta``. Además la actividad se crearía sobre
-  ``pos.inventory.queue``, que no hereda de ``mail.activity.mixin``. Hoy la única señal de un fallo
-  permanente es el log y la lista de la cola (QA_PREPRODUCCION_19, PIQ-2).
-- **Costo de la línea en ventas encoladas.** El core calcula ``total_cost`` de las líneas justo
-  después de ``_create_order_picking()``, cuando la cola todavía no validó el picking. Con productos
-  FIFO o AVCO, el costo sale de esos movimientos aún sin validar; QA lo reporta en 0 (PIQ-1). Si
-  producción usa esos métodos, hay que verificarlo en staging.
-- **El cierre de sesión puede fallar en el primer intento.** La guarda procesa los ítems en cursores
-  aparte que confirman por su cuenta, pero la transacción del cierre vuelve a consultar la cola con
-  su foto anterior de la base y todavía los ve sin *Done*. El segundo intento pasa (PIQ-3).
-- **Picking validado a mano.** Si alguien valida el picking desde Inventario, el ítem no se marca
-  *Done* y la guarda lo salta al drenar, así que bloquea el cierre hasta pulsar *Retry* (PIQ-4).
+- **Cliente repetido en las facturas.** Con ``auth_signup.invitation_scope = b2c`` (así está
+  producción), publicar cada factura escribe en la ficha del cliente (``auth_signup`` ›
+  ``signup_prepare``) si no tiene usuario y recibe la notificación. Si todas las tiendas le facturan
+  al mismo cliente ("Consumidor final"), esas ventas chocan en esa fila. Es configuración, no del
+  módulo; verificar en producción qué clientes concentran la facturación.
+- **Devolución parcial de un producto con lote mientras su picking sigue en cola.** Se reduce la
+  demanda del move, pero la cola asigna el lote según la cantidad de la línea original. Es una
+  ventana de segundos; mismo comportamiento que tenía la reserva en la venta.
+
+- **La cola solo actúa con stock "En tiempo real".** Si la compañía tiene *Actualizar cantidades
+  en stock* = *Al cierre de la sesión*, las ventas del POS no crean picking (Odoo arma uno solo al
+  cerrar) y la cola no interviene, salvo en ventas facturadas con contabilidad anglosajona
+  (``pos.order._force_create_picking_real_time``). La base local está así; hay que confirmar la
+  configuración de producción. La opción se copia a cada sesión al abrirla
+  (``pos.session.update_stock_at_closing``), así que un cambio solo aplica a sesiones nuevas.
 - **``_create_order_picking`` reemplaza al del core sin llamar a ``super()``.** Es copia del de Odoo
   17 y no incluye dos ramas que agregó Odoo 19: la devolución de una orden de envío posterior, que
   en el core usa el flujo de pickings, y la escritura de sesión, orden y origen en los
@@ -253,6 +278,16 @@ Limitaciones conocidas
   el límite real de los cron del servidor (``limit_time_real_cron``) es menor, el worker puede morir
   antes y dejar un ítem en *Processing* hasta el reclamo de 5 minutos (PIQ-6, verificar en
   producción).
+- **Un solo drenador en la operación normal.** Odoo no corre el mismo cron dos veces en paralelo,
+  así que fuera de los cierres de caja la cola la procesa un único drenador. Localmente validó 60
+  pickings de una línea a ~15 por segundo; con órdenes reales de varias líneas y la base de
+  producción hay que medirlo en staging antes de crecer a 100 tiendas. Si no alcanza, las
+  opciones son varios crons repartiéndose la cola (ya es seguro con los locks de sesión) y un
+  lock por ubicación además de producto.
+- **El lock de stock no distingue tiendas.** La clave es (producto, compañía): dos tiendas que
+  venden el mismo producto se esperan entre sí aunque sus quants estén en ubicaciones distintas. El
+  comentario del código lo justifica con ``stock_valuation_layer``, tabla que ya no existe en Odoo 19;
+  falta verificar qué comparten de verdad las tiendas en la valoración de 19 antes de cambiarlo.
 - **Rutas equivocadas en los mensajes.** El error de cierre de sesión y la nota de la alerta dicen
   *Punto de Venta › Configuración › Cola de Inventario*; el menú real es *Órdenes › Cola de
   Inventario*.
@@ -271,29 +306,58 @@ Componentes
 -----------
 
 - ``models/inventory_queue.py``: el modelo ``pos.inventory.queue``. Reclamo de ítems, procesamiento
-  en cursor aparte, bloqueos, reintentos, disparo del cron, alerta, botones y limpieza. Constantes:
-  ``MAX_RETRIES = 5``, ``CLAIM_MAX_RETRIES = 10``, ``STALE_PROCESSING_MINUTES = 5``,
-  ``LOCK_TIMEOUT_SECONDS = 5``.
+  en cursor aparte, bloqueos, reintentos, disparo del cron, alerta, recálculo del costo de la
+  orden al validar el picking, botones y limpieza. Constantes: ``MAX_RETRIES = 5``,
+  ``CLAIM_MAX_RETRIES = 10``, ``STALE_PROCESSING_MINUTES = 5``, ``LOCK_TIMEOUT_SECONDS = 5``.
 - ``models/inventory_queue_config.py``: la ventana del interruptor (``pos.inventory.queue.config``,
   transitorio), que lee y escribe ``pos_inventory_queue.enabled``.
 - ``models/pos_order.py``: ``_create_order_picking`` con el contexto ``pos_inventory_queue=True``, que
-  es lo que activa la cola.
+  es lo que activa la cola; y ``_recompute_cost_after_queue``, que recalcula el costo FIFO/AVCO de
+  la orden cuando la cola valida el picking (ver *Casos especiales* en *Uso*).
+- ``models/pos_order.py`` (factura): ``_generate_pos_order_invoice`` factura sin PDF y lo agenda en un
+  post-commit (``_pos_queue_schedule_invoice_pdf``); ``_pos_queue_generate_invoice_pdf_isolated`` lo
+  genera en su propia transacción y, si falla, ``_pos_queue_invoice_pdf_fallback`` deja la factura al
+  cron nativo de envío.
 - ``models/stock_picking.py``: ``_create_picking_from_pos_order_lines`` crea los pickings sin
-  ``_action_done()``, los encola y dispara el cron. Con la cola apagada o sin el contexto delega en el
-  core.
-- ``models/pos_session.py``: la guarda de cierre en ``_validate_session``.
+  ``_action_done()``, los encola con sus líneas y dispara el cron. Con la reserva diferida,
+  ``_pos_queue_create_moves`` solo crea los moves en borrador (mismas agrupaciones que el core); la
+  cola los completa en ``pos.inventory.queue._complete_deferred_picking``. Con la cola apagada o sin
+  el contexto delega en el core.
+- ``models/pos_config.py``: ``_create_sequences`` deja en ``standard`` la numeración de órdenes, líneas y
+  referencia backend de cada POS nuevo (``_pos_queue_standard_sequences``); la usan también
+  ``migrations/19.0.1.2.0/post-migrate.py`` y el ``post_init_hook`` para los POS existentes.
+- ``models/pos_session.py``: la guarda de cierre en ``_validate_session``, que antes de dejar cerrar
+  drena en línea los ítems de la sesión a través de ``_process_session_items``.
 - ``models/stock_move.py``: ``_get_related_invoices`` (ver *Limitaciones conocidas*).
 - ``data/``: secuencia ``PIQ/``, las dos acciones planificadas y el parámetro del interruptor, todo en
   ``noupdate="1"``.
 - ``views/``: lista, formulario y búsqueda de la cola, y la ventana del interruptor con sus menús.
 - ``migrations/17.0.2.1.0/pre-migrate.py``: columna ``next_retry_date`` (ver *Instalación*).
-- ``tests/test_queue_model.py``: 19 pruebas ``TransactionCase`` sobre secuencia, duplicados, reclamo,
-  ``next_retry_date``, orden de proceso, reclamo de *Processing* vencido, cierre de sesión, limpieza
-  y botones.
-- ``tools/``: dos scripts de carga independientes (``test_pos_inventory_concurrency.py`` y
-  ``test_pos_invoice_concurrency.py``) que crean pickings u órdenes concurrentes contra una base real
-  y verifican stock y estados. No forman parte de la suite de Odoo y tienen IDs por defecto de otro
-  entorno: revisar sus parámetros con ``--help`` antes de usarlos.
+- ``migrations/19.0.1.2.0/post-migrate.py``: numeración de venta de los POS existentes a ``standard``.
+- ``tests/test_queue_model.py``: 50 pruebas ``TransactionCase`` sobre secuencia, duplicados, reclamo,
+  ``next_retry_date``, orden de proceso, reclamo de *Processing* vencido, cierre de sesión (items
+  pendientes, fallidos, pickings validados a mano y la confirmación de foto previa a la lectura
+  final), limpieza, botones, alerta de fallo permanente (creación, idempotencia y destinatarios) y
+  recálculo del costo FIFO/AVCO tras validar el picking, conexión que no abre y liberación de
+  los locks de stock de sesión (tras éxito, error de lógica y contención), y reserva diferida
+  (venta sin reserva, la cola completa el picking, lote, interruptor apagado, devolución parcial
+  con el picking en cola y devolución de una venta procesada) y numeración de venta ``standard``
+  (POS nuevo y conversión idempotente sin saltos), y PDF de la factura después de confirmar
+  (sin PDF dentro de la venta, generación aislada, interruptor apagado, ``generate_pdf=False``
+  explícito y respaldo al cron).
+- ``tools/``: dos scripts de carga independientes, fuera de la suite de Odoo, que corren contra una
+  base real. ``test_pos_inventory_concurrency.py`` encola ``--pickings`` ventas y las procesa con
+  ``--drainers`` drenadores concurrentes (1 = cron normal; más = cron y cierres de caja
+  simultáneos); verifica conexiones, stock y cola antes de empezar, valida pickings, stock físico,
+  fechas y locks al terminar, y clasifica el resultado: ⛔ entorno (código 2), ❌ módulo (código 1),
+  ⚠️ mejora u ✅ OK (código 0). ``--workers`` queda como alias de ``--drainers``.
+  ``test_pos_sales_concurrency.py`` simula tiendas vendiendo a la vez: un proceso por cajero
+  (``--cashiers`` por sesión abierta), ventas por ``pos.order.sync_from_ui`` con el reintento
+  automático del servidor, reenvío de las que fallan como hace el POS, y la cola drenada por el cron
+  real; valida ventas únicas, pickings, cola, stock físico y locks, con la misma clasificación.
+  ``test_pos_invoice_concurrency.py`` es la versión anterior: pone todos los workers en una sesión,
+  hace que cada venta drene la cola y da *PASS* aunque fallen órdenes, así que su veredicto no es
+  confiable.
 
 Notas para mantenimiento
 ------------------------
@@ -307,8 +371,11 @@ Notas para mantenimiento
   desde una petición con trabajo propio sin confirmar.
 - **Procesamiento.** Cada ítem se procesa en un cursor nuevo del registro, con ``SUPERUSER_ID`` y la
   compañía del picking, en un savepoint. Al empezar cada intento repite ``SET LOCAL lock_timeout``
-  (5 s), porque un rollback lo borra, y toma ``pg_advisory_xact_lock`` por cada par (producto,
-  compañía), en orden ascendente para evitar interbloqueos entre workers.
+  (5 s), porque un rollback lo borra, y toma un lock de sesión ``pg_advisory_lock`` por cada par
+  (producto, compañía), en orden ascendente para evitar interbloqueos entre workers. Después de
+  tomarlos confirma, para que la transacción de trabajo arranque con una foto posterior a la
+  espera, y en el ``finally`` los suelta con ``pg_advisory_unlock_all()``: la conexión vuelve al pool
+  sin limpiarse y, si no, el siguiente uso los heredaría.
 - **Concurrencia.** Varios workers pueden drenar en paralelo; no hay bloqueo global. Dos ítems
   con productos distintos avanzan a la vez; dos con el mismo producto y compañía se esperan.
 - **Idempotencia.** ``create`` devuelve el ítem existente si el picking ya está en cola, y la
@@ -318,11 +385,85 @@ Notas para mantenimiento
   ``IF NOT EXISTS`` en cada instalación o actualización.
 - **Dos políticas de reintento.** Contención: reintento inmediato, hasta 5 intentos, y vuelta a
   *Pending* sin consumir ciclos. Error de lógica: *Failed* con `next_retry_date = ahora + 2^n
-  minutos` y *Failed Permanent* al quinto ciclo. Un error de conexión deja el ítem en *Processing*
-  para el reclamo por vencimiento; si el pool de conexiones está agotado, el ítem vuelve a *Pending*
-  y esa pasada termina.
+  minutos` y *Failed Permanent* al quinto ciclo. Un error de conexión a mitad del trabajo deja el
+  ítem en *Processing* para el reclamo por vencimiento; si no se puede abrir la conexión (pool de
+  Odoo agotado o PostgreSQL sin cupo), el ítem vuelve a *Pending* y esa pasada termina.
 - **El interruptor solo decide el encolado.** El procesador drena siempre, para que apagar la cola
   no deje pickings sin validar.
+
+Changelog
+=========
+
+19.0.1.2.0 (2026-09-30)
+-----------------------
+
+- **Numeración de venta del POS como en Odoo 17**: Odoo 19 crea las secuencias de órdenes, líneas y
+  referencia backend de cada POS ``no_gap`` (``pos_config._create_sequences``); la venta las bloquea
+  (``FOR UPDATE NOWAIT``) hasta el commit, así que los cajeros de una tienda se esperaban entre sí y,
+  con carga, el POS mostraba *could not obtain lock on row in relation "ir_sequence"*. En Odoo 17
+  eran ``standard`` (verificado en staging: las 21 tiendas). Los POS nuevos nacen ``standard`` y el
+  script ``migrations/19.0.1.2.0/post-migrate.py`` (idempotente) convierte los existentes; la
+  numeración continúa sin saltos. No es numeración fiscal: la factura electrónica (Jorels 19) usa
+  ``account_move.name`` y la resolución DIAN. Efecto esperado: un reintento de venta puede saltar un
+  número interno de orden, igual que en 17.
+- **PDF de la factura después de confirmar la venta**: el core publica la factura (toma el número
+  del diario, sin huecos) y en la misma transacción genera y envía el PDF (``_generate_and_send``,
+  2-3 s), con el número tomado: las ventas del mismo diario hacían fila (en producción ~20 POS
+  comparten el diario ``FECO``). Ahora la venta factura sin PDF (``generate_pdf=False``, opción del
+  core) y el PDF se genera en un post-commit, con el mismo llamado, usuario y contexto: después de
+  confirmar la venta y antes de responder al POS, que recibe la factura con su PDF real. La
+  validación DIAN de Jorels sigue en ``_post`` y su extensión del envío (ZIP firmado en el correo)
+  corre igual. Si el PDF falla, la factura queda para el cron nativo *Send invoices
+  automatically*. Interruptor ``pos_inventory_queue.invoice_pdf_after_commit``. Prueba a ritmo real
+  (3 tiendas × 3 cajeros): p95 de la venta de 30 s a 6,5 s.
+
+50 pruebas automatizadas.
+
+19.0.1.1.0 (2026-09-29)
+-----------------------
+
+Corrección de los cuatro hallazgos de la validación en Odoo 19 (PIQ-1 a PIQ-4). No cambia datos
+ni esquema: no hace falta script de migración.
+
+- **Costo FIFO/AVCO de la orden** (PIQ-1): el costo de las líneas FIFO/AVCO se recalcula recién
+  cuando la cola valida el picking; antes salía en 0 porque el core lo calcula con movimientos sin
+  validar, y el cierre de sesión nunca lo corregía. El margen de esas órdenes quedaba mal.
+- **Alerta de fallo permanente** (PIQ-2): nunca se creaba: el dominio usaba ``groups_id`` (en 19 es
+  ``group_ids``) y la actividad se anclaba a la cola, que no tiene ``mail.thread``. Ahora se ancla al
+  picking y se crea una sola vez por picking y gestor de inventario.
+- **Cierre de sesión en el primer intento** (PIQ-3): la lectura final de la guarda se hacía con la
+  foto antigua de la transacción (los cursores de Odoo corren en REPEATABLE READ) y no veía que los
+  cursores aislados habían marcado los ítems *Done*. Ahora confirma antes de leer.
+- **Pickings validados a mano** (PIQ-4): la guarda del cierre saltaba esos ítems y quedaban
+  bloqueando hasta pulsar *Retry*; ahora se reconcilian a *Done* (sin revalidar) y los ítems
+  fallidos se reintentan en el cierre, de modo que si su causa ya se resolvió no bloquean.
+- **Choques entre drenadores simultáneos**: el lock por producto se tomaba con
+  ``pg_advisory_xact_lock``, pero PostgreSQL fija la foto de la transacción al empezar a esperar el
+  lock, no al obtenerlo. El drenador que esperaba su turno trabajaba con datos viejos y chocaba
+  igual en ``stock_quant``. Ahora el lock es de sesión (``pg_advisory_lock``), se confirma antes de
+  trabajar y se suelta siempre. Con 30 drenadores sobre un mismo producto: de 368 choques y 84
+  ventas devueltas a *Pending* a ninguno. Importa a la hora de cierre, cuando el cron y los cierres
+  de caja de varias tiendas drenan a la vez.
+- **Sin conexión para procesar**: si PostgreSQL no daba conexión (``too many clients``), el ítem
+  quedaba en *Processing* hasta el reclamo de 5 minutos, sin fecha de fin. Ahora vuelve a *Pending*
+  al instante y el cron lo toma en el siguiente ciclo.
+- **La reserva de stock pasa de la venta a la cola**: la venta creaba el picking, lo confirmaba
+  (con ``reservation_method = at_confirm`` eso reserva) y asignaba lotes con
+  ``_add_mls_related_to_order``, todo dentro de su transacción y bloqueando ``stock_quant``: con varios
+  cajeros vendiendo los mismos productos, chocaban. Ahora la venta deja el picking en borrador y el
+  ítem guarda sus líneas (``pos_line_ids``, campo nuevo); la cola confirma, reserva, asigna lotes y
+  valida con las mismas funciones del core. Interruptor ``pos_inventory_queue.defer_reservation``
+  para volver al comportamiento anterior sin desinstalar. Los ítems que ya estaban en cola siguen
+  el camino anterior: no hace falta script de migración.
+- **Prueba de carga reescrita** (``tools/test_pos_inventory_concurrency.py``): separa ventas
+  (``--pickings``) de drenadores (``--drainers``), verifica el entorno antes de empezar, valida el
+  stock físico (no el disponible, que las reservas distorsionan) y clasifica el resultado en error
+  del entorno, error del módulo u oportunidad de mejora.
+
+Nueva prueba de ventas concurrentes ``tools/test_pos_sales_concurrency.py`` (tiendas, cajeros,
+``sync_from_ui`` con el reintento del servidor, cron real).
+
+19 → 43 pruebas automatizadas.
 
 Credits
 =======

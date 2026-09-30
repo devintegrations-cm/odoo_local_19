@@ -109,6 +109,16 @@ class PosInventoryQueue(models.Model):
              'aplica ya o si el item esta en otro estado.',
     )
 
+    pos_line_ids = fields.Many2many(
+        'pos.order.line',
+        string='Líneas de venta',
+        readonly=True,
+        help='Líneas de la orden que originaron este picking. Con la reserva '
+             'diferida, la cola las usa para asignar cantidades, lotes y '
+             'series al validar. Vacío en ítems creados con la reserva en la '
+             'venta (comportamiento anterior).',
+    )
+
     active = fields.Boolean(
         string='Active',
         default=True,
@@ -350,22 +360,27 @@ class PosInventoryQueue(models.Model):
         independiente: NO se contamina ni se commitea antes de tiempo la
         transacción del cierre de sesión que corre en el cursor HTTP.
 
-        Procesa pending / processing (stale) / failed (reintentables). NO
-        reintenta failed_permanent: esos exigen intervención manual y
-        deben bloquear el cierre.
+        Procesa todos los ítems de la sesión que no estén 'done': pending,
+        processing (stale), failed y también failed_permanent. Un ítem
+        fallido se reintenta aquí: si su causa ya se resolvió (p. ej. el
+        picking se validó a mano), pasa a 'done' y desbloquea el cierre;
+        si no, vuelve a fallar y el cierre sigue bloqueado. Un picking ya
+        validado por la cola o a mano se reconcilia a 'done' sin
+        revalidarlo, dentro de _process_item_in_new_cursor (PIQ-4: antes la
+        guarda lo saltaba y el ítem quedaba sin 'done' hasta un Retry
+        manual).
 
         Returns el recordset de ítems que siguen sin 'done' tras el
-        drenaje (para que la guarda decida si bloquea).
+        drenaje (para que la guarda decida si bloquea). Antes de esa
+        lectura confirma la transacción del cierre si hubo trabajo: la
+        foto REPEATABLE READ de la transacción no vería los commits de
+        los cursores aislados (PIQ-3, ver comentario más abajo).
         """
         remaining = self.sudo().search([
             ('pos_order_id.session_id', '=', session.id),
             ('state', '!=', 'done'),
         ])
         for item in remaining:
-            if item.state == 'failed_permanent':
-                continue
-            if item.picking_id.state == 'done':
-                continue
             try:
                 self._process_item_in_new_cursor(item.id)
             except Exception:
@@ -373,6 +388,26 @@ class PosInventoryQueue(models.Model):
                     'POS Queue: session close inline drain failed item %s',
                     item.id,
                 )
+
+        if not remaining:
+            return remaining
+
+        # (PIQ-3) Los cursores aislados confirman por su cuenta, pero los
+        # cursores de Odoo corren en REPEATABLE READ (sql_db.py:373): la
+        # transacción del cierre tiene la foto fija desde antes de drenar
+        # y NO ve los commits que acaban de hacer los cursores aislados.
+        # Por eso la lectura de abajo seguía viendo los ítems sin 'done'
+        # y el cierre fallaba el primer intento (el segundo pasaba porque
+        # era otra petición, con foto nueva).
+        #
+        # Se confirma aquí, con el trabajo de la cola ya hecho y ANTES de
+        # super()._validate_session(), cuyo trabajo crítico todavía no
+        # corrió: abre una transacción nueva cuya PRIMERA consulta es la
+        # lectura de abajo, así que fija la foto ya con todos los ítems
+        # 'done' confirmados.
+        self.env.flush_all()
+        self.env.cr.commit()
+        self.env.invalidate_all()
         return self.sudo().search([
             ('pos_order_id.session_id', '=', session.id),
             ('state', '!=', 'done'),
@@ -436,10 +471,26 @@ class PosInventoryQueue(models.Model):
         afecte al drenaje ni al worker de cron.
 
         Mecanismo: mail.activity a los gestores de inventario de la compania
-        del picking. Se evita acoplar el modulo a 'telegram_alerts' (modulo
-        de terceros no presente en todos los entornos) para no romper
-        installs en staging/dev; si se quiere Telegram, se engancha aqui
-        mismo de forma guardada (if 'telegram.xxx' in self.env).
+        del picking (all_group_ids -> incluye grupos implicitos).
+
+        La actividad se ancla al PICKING y no al item de la cola:
+        'pos.inventory.queue' no hereda 'mail.thread' y en Odoo 19
+        mail.activity.create exige message_notify()/message_subscribe()
+        del modelo destino (AttributeError si no las tiene). stock.picking
+        si las trae de fabrica (mail.thread + mail.activity.mixin), ademas
+        de ser el objeto operativo sobre el que trabaja el responsable de
+        inventario. Anclar mail.thread a la cola meteria auto-subscribe en
+        el hot path de creacion de items, que es justamente lo que este
+        modulo trata de no cargar.
+
+        Se evita acoplar el modulo a 'telegram_alerts' (modulo de terceros
+        no presente en todos los entornos) para no romper installs en
+        staging/dev; si se quiere Telegram, se engancha aqui mismo de
+        forma guardada (if 'telegram.xxx' in self.env).
+
+        Idempotente: si el usuario ya tiene una actividad ABIERTA para
+        ESTE picking no se le crea otra (varios reintentos del mismo
+        fallo generan UNA sola alerta). La actividad se marca 'automated'.
         """
         try:
             if 'mail.activity' not in self.env:
@@ -457,38 +508,66 @@ class PosInventoryQueue(models.Model):
                 item = alert_env['pos.inventory.queue'].browse(item_id)
                 if not item.exists() or item.state != 'failed_permanent':
                     return
+                picking = item.picking_id
+                if not picking:
+                    # Sin picking no hay ancla para la actividad (caso
+                    # teorico: el item siempre nace de un picking).
+                    return
                 activity_type = alert_env.ref(
                     'mail.mail_activity_data_todo',
                     raise_if_not_found=False,
                 )
                 if not activity_type:
                     return
-                company = item.picking_id.company_id or self.env.company
+                company = picking.company_id or self.env.company
                 stock_mgr = alert_env.ref('stock.group_stock_manager')
-                users = alert_env['res.users'].sudo().search([
-                    ('groups_id', 'in', stock_mgr.id),
+                # all_group_ids y no group_ids: en Odoo 17 el campo era
+                # 'res.users.groups_id'; en Odoo 19 se llama 'group_ids',
+                # y un dominio sobre un campo inexistente lanza ValueError
+                # (orm/domains) que este except tragaba => la alerta jamas
+                # se creaba. all_group_ids incluye los grupos implicitos y
+                # es el patron del core 19 (hr_expense, mrp, fleet).
+                candidates = alert_env['res.users'].sudo().search([
+                    ('all_group_ids', 'in', stock_mgr.id),
                     ('company_ids', 'in', company.id),
+                    ('share', '=', False),
                     ('active', '=', True),
                 ])
+                if not candidates:
+                    return
+                # Idempotente: cada reintento de un 'failed_permanent'
+                # (p.ej. el drenaje en linea del cierre de sesion) vuelve
+                # a invocar este metodo. Solo se alerta a los usuarios
+                # que aun NO tengan una actividad abierta para este
+                # picking.
+                already_alerted = alert_env['mail.activity'].sudo().search([
+                    ('res_model', '=', 'stock.picking'),
+                    ('res_id', '=', picking.id),
+                    ('active', '=', True),
+                ]).mapped('user_id')
+                users = candidates - already_alerted
                 if not users:
                     return
-                label = item.picking_id.name or item.name
+                label = picking.name or item.name
                 alert_env['mail.activity'].sudo().create([{
                     'res_model_id': alert_env['ir.model']._get_id(
-                        'pos.inventory.queue'),
-                    'res_id': item.id,
+                        'stock.picking'),
+                    'res_id': picking.id,
                     'user_id': user.id,
                     'activity_type_id': activity_type.id,
+                    'automated': True,
                     'summary': 'POS Inventory Queue: fallo permanente en %s'
                                % label,
                     'note': _(
                         'El picking %(picking)s de la cola de inventario '
                         'del POS quedo en FAILED PERMANENT tras %(count)s '
-                        'ciclos. Requiere revision manual en Punto de '
-                        'Venta > Configuracion > Cola de Inventario.\n'
+                        'ciclos (item de cola %(item)s).\n'
+                        'Requiere revision manual en Punto de Venta > '
+                        'Configuracion > Cola de Inventario.\n'
                         'Ultimo error: %(err)s',
                         picking=label,
                         count=item.retry_count,
+                        item=item.name,
                         err=(item.error_message or '')[:1500],
                     ),
                 } for user in users])
@@ -523,7 +602,8 @@ class PosInventoryQueue(models.Model):
         es reclamado por un solo procesador. No hay advisory lock global
         (eso serializaba incluso productos independientes): la
         serialización por recurso de stock la aplica cada item con
-        pg_advisory_xact_lock en _process_item_in_new_cursor.
+        un lock de stock por (producto, compañía) en
+        _process_item_in_new_cursor (_acquire_stock_locks).
 
         CONTRATO:
         - Los items deben estar COMMITTEADOS para ser visibles al
@@ -545,7 +625,7 @@ class PosInventoryQueue(models.Model):
         # item es reclamado por un solo procesador. NO hay advisory lock
         # global: eso serializaba incluso productos independientes. La
         # serialización por recurso de stock la aplica cada item con
-        # pg_advisory_xact_lock (ver _process_item_in_new_cursor).
+        # _acquire_stock_locks (ver _process_item_in_new_cursor).
         start = time.monotonic()
         # (P1-4) Contadores por pasada de drenaje para monitoreo con
         # analyze_logs.py: una linea 'summary' estable por ejecucion.
@@ -593,9 +673,13 @@ class PosInventoryQueue(models.Model):
                 status = self._process_item_in_new_cursor(item_id)
                 if status in counts:
                     counts[status] += 1
-            except PoolError as exc:
-                # No se pudo obtener una conexion del pool de Odoo para
-                # abrir el cursor aislado (pool agotado bajo carga). No
+            except (PoolError, psycopg2.OperationalError) as exc:
+                # No se pudo abrir la conexion del cursor aislado: pool de
+                # Odoo agotado (PoolError) o PostgreSQL sin cupo
+                # (OperationalError 'too many clients'; la apertura de
+                # new_cr esta fuera del try interno, asi que es lo unico
+                # que llega aqui: los OperationalError del trabajo ya los
+                # maneja _process_item_in_new_cursor). No
                 # dejamos el item en 'processing' (eso seria un stuck
                 # permanente hasta el reclaim por
                 # STALE_PROCESSING_MINUTES): lo revertimos a 'pending' en
@@ -612,8 +696,9 @@ class PosInventoryQueue(models.Model):
                           WHERE id = %s
                     """,
                     (
-                        'PoolError: pool de conexiones agotado; '
-                        'revertido a pending para reclaim por cron',
+                        '%s: sin conexion disponible para procesar; '
+                        'revertido a pending para reclaim por cron | %s'
+                        % (type(exc).__name__, exc),
                         item_id,
                     ),
                 )
@@ -621,8 +706,9 @@ class PosInventoryQueue(models.Model):
                 counts['contention'] += 1
                 _logger.warning(
                     'POS Queue: contention item %s revertido a pending '
-                    '(PoolError): %s',
+                    '(%s): %s',
                     item_id,
+                    type(exc).__name__,
                     exc,
                 )
                 break
@@ -638,7 +724,7 @@ class PosInventoryQueue(models.Model):
         product_id,
         company_id,
     ):
-        """Clave int8 estable para pg_advisory_xact_lock.
+        """Clave int8 estable para los locks de stock (pg_advisory_lock).
 
         Bloquea por (producto, compañía). NO incluye ubicación porque
         stock_valuation_layer es por producto+compañía, sin ubicación:
@@ -654,7 +740,7 @@ class PosInventoryQueue(models.Model):
         ).hexdigest()[:15], 16)
 
     def _stock_lock_keys(self, picking):
-        """Claves int8 ordenadas de pg_advisory_xact_lock para un picking.
+        """Claves int8 ordenadas de los locks de stock de un picking.
 
         Una sola clave por move: (producto, compañía). Se omite la
         ubicación porque stock_valuation_layer no la tiene; el recurso
@@ -672,9 +758,78 @@ class PosInventoryQueue(models.Model):
                 move.product_id.id, move.company_id.id))
         return sorted(keys)
 
+    @api.model
+    def _acquire_stock_locks(self, cr, lock_keys):
+        """Toma los locks de stock del picking y confirma la transacción.
+
+        Son locks de SESIÓN (pg_advisory_lock), no de transacción, porque
+        hay que confirmar después de obtenerlos. Los cursores de Odoo corren
+        en REPEATABLE READ y PostgreSQL fija la foto de la transacción al
+        empezar la PRIMERA consulta, que es la del propio lock: con
+        pg_advisory_xact_lock, el drenador que esperaba su turno trabajaba
+        con la foto de ANTES de la espera, no veía el quant que el anterior
+        dueño del lock acababa de confirmar y chocaba igual
+        (SerializationFailure en stock_quant ... FOR NO KEY UPDATE). El
+        commit de aquí descarta esa foto: la transacción de trabajo arranca
+        después, con el lock en mano y los datos al día.
+
+        Si el lock no llega en LOCK_TIMEOUT_SECONDS salta LockNotAvailable,
+        que el llamador trata como contención. Las claves van ordenadas
+        (_stock_lock_keys) para no crear interbloqueos entre drenadores.
+        El llamador DEBE liberar con _release_stock_locks.
+        """
+        for key in lock_keys:
+            cr.execute("SELECT pg_advisory_lock(%s)", (key,))
+        cr.commit()
+
+    @api.model
+    def _release_stock_locks(self, cr, lock_keys):
+        """Suelta los locks de stock de sesión de este cursor.
+
+        pg_advisory_unlock_all solo afecta a locks de sesión, y el core de
+        Odoo 19 no usa ninguno: los únicos de esta conexión son los de la
+        cola. Best-effort: si la conexión murió, PostgreSQL ya los soltó al
+        cerrar la sesión.
+        """
+        if not lock_keys:
+            return
+        try:
+            cr.execute("SELECT pg_advisory_unlock_all()")
+            cr.commit()
+        except Exception:
+            _logger.warning(
+                'POS Queue: no se pudieron soltar los locks de stock de '
+                'la conexión', exc_info=True,
+            )
+
     # -------------------------------------------------------------------------
     # ITEM PROCESSOR — each item gets its own cursor
     # -------------------------------------------------------------------------
+
+    @api.model
+    def _recompute_pos_order_cost(self, env, picking):
+        """(PIQ-1) Recalcula el costo FIFO/AVCO de la orden del picking.
+
+        Corre DESPUÉS de validar el picking y ANTES del UPDATE que marca
+        el item 'done' (así el new_cr.commit() de más abajo incluye las
+        escrituras del ORM).
+
+        Best-effort en su propio savepoint: si falla, no se invalida la
+        validación del picking ni el éxito del item. El próximo intento
+        pasa por la rama idempotente (picking ya 'done') y vuelve a
+        intentarlo.
+        """
+        try:
+            with env.cr.savepoint():
+                env['pos.order']._recompute_cost_after_queue(picking)
+        except Exception:
+            _logger.warning(
+                'POS Queue: no se pudo recalcular el costo de la orden '
+                'del picking %s (id %s); el margin puede quedar en 0',
+                picking.name,
+                picking.id,
+                exc_info=True,
+            )
 
     def _process_item_in_new_cursor(self, item_id):
         """
@@ -723,19 +878,14 @@ class PosInventoryQueue(models.Model):
                         "SET LOCAL lock_timeout = %s",
                         ("%d s" % self.LOCK_TIMEOUT_SECONDS,),
                     )
-                    # ADQUIRIR locks por recurso de stock COMO PRIMER
-                    # COMANDO sobre new_cr. El snapshot de la transacción
-                    # se fija en la primera lectura (el reclaim de abajo),
-                    # que ocurre DESPUÉS de tomar el lock, así el worker
-                    # concurrente ve el quant ya comprometido por quien
-                    # poseía el lock -> 0 SerializationFailure entre
-                    # workers de la cola. pg_advisory_xact_lock se libera
-                    # solo al commit/rollback; tras new_cr.rollback() por
-                    # contención el lock se libera y se re-adquiere aquí.
-                    for key in lock_keys:
+                    if lock_keys:
+                        # Toma los locks de stock y confirma para que la
+                        # foto de la transacción de trabajo sea posterior
+                        # a la espera (ver _acquire_stock_locks).
+                        self._acquire_stock_locks(new_cr, lock_keys)
                         new_cr.execute(
-                            "SELECT pg_advisory_xact_lock(%s)",
-                            (key,),
+                            "SET LOCAL lock_timeout = %s",
+                            ("%d s" % self.LOCK_TIMEOUT_SECONDS,),
                         )
 
                     # Reclaim seguro: si este item quedó 'processing'
@@ -744,6 +894,13 @@ class PosInventoryQueue(models.Model):
                     # mientras tanto, marcarlo 'done' sin re-ejecutar
                     # _action_done() para no duplicar quants.
                     if item_new.picking_id.state == 'done':
+                        # (PIQ-1) El picking ya estaba validado (por esta
+                        # cola o a mano): el core calculó el costo
+                        # FIFO/AVCO con moves sin validar, así que se
+                        # recalcula con move.value ya poblado.
+                        self._recompute_pos_order_cost(
+                            env, item_new.picking_id,
+                        )
                         new_cr.execute(
                             """
                                 UPDATE pos_inventory_queue
@@ -767,9 +924,25 @@ class PosInventoryQueue(models.Model):
                         return 'done'
 
                     with new_cr.savepoint():
-                        item_new.picking_id.with_company(
+                        picking_new = item_new.picking_id.with_company(
                             item_new.picking_id.company_id,
-                        )._action_done()
+                        )
+                        if picking_new.state == 'draft':
+                            # Reserva diferida: la venta solo creó el
+                            # picking en borrador; confirmar, reservar y
+                            # asignar lotes se hace aquí, con el lock de
+                            # stock en mano.
+                            self._complete_deferred_picking(
+                                picking_new, item_new.pos_line_ids,
+                            )
+                        picking_new._action_done()
+
+                    # (PIQ-1) El picking ya está 'done' y sus moves están
+                    # valorados: el costo FIFO/AVCO que el core calculó
+                    # con value = 0 ahora se recalcula.
+                    self._recompute_pos_order_cost(
+                        env, item_new.picking_id,
+                    )
 
                     new_cr.execute(
                         """
@@ -800,6 +973,10 @@ class PosInventoryQueue(models.Model):
                     psycopg2_errors.LockNotAvailable,
                 ) as exc:
                     new_cr.rollback()
+                    # Soltar los locks de stock antes del backoff: el
+                    # siguiente intento los vuelve a pedir, y mientras
+                    # tanto otro drenador puede avanzar.
+                    self._release_stock_locks(new_cr, lock_keys)
 
                     if attempt >= self.MAX_RETRIES:
                         # Contención (no error de lógica): ceder el item a
@@ -900,8 +1077,11 @@ class PosInventoryQueue(models.Model):
                     # (next_retry_date = now + 2^n minutos) y el CRON lo
                     # re-clama cuando vence, dando tiempo a que se corrija
                     # la causa raiz. 'failed_permanent' solo al agotar
-                    # MAX_RETRIES ciclos (~1 h acumulada).
-                    cycles = item.retry_count + 1
+                    # MAX_RETRIES ciclos (~1 h acumulada). El contador se
+                    # topa en MAX_RETRIES: los ítems fallidos se reintentan
+                    # también en cada cierre de sesión (PIQ-4) y sin tope
+                    # crecería sin límite.
+                    cycles = min(item.retry_count + 1, self.MAX_RETRIES)
                     permanent = cycles >= self.MAX_RETRIES
                     new_cr.execute(
                         """
@@ -954,11 +1134,64 @@ class PosInventoryQueue(models.Model):
                     return 'permanent' if permanent else 'failed'
 
         finally:
+            # Los locks de stock son de SESIÓN y la conexión vuelve al pool
+            # sin limpiarse (sql_db.ConnectionPool.give_back): hay que
+            # soltarlos siempre, o el próximo uso de esa conexión los
+            # heredaría y bloquearía ese producto sin límite.
+            try:
+                new_cr.rollback()
+            except Exception:
+                pass
+            self._release_stock_locks(new_cr, lock_keys)
             new_cr.close()
 
     # -------------------------------------------------------------------------
     # HELPER: global on/off switch (NOT per POS)
     # -------------------------------------------------------------------------
+
+    @api.model
+    def _is_reservation_deferred(self):
+        """Interruptor de la reserva diferida (parámetro de sistema).
+
+        'pos_inventory_queue.defer_reservation' (por defecto activado): la
+        venta crea el picking en borrador y la cola confirma, reserva y
+        asigna lotes al validar, así la venta no toca stock_quant. En
+        'False' se vuelve al comportamiento anterior (la venta confirma y
+        reserva) sin desinstalar el módulo. Solo afecta a ventas NUEVAS: el
+        procesador completa cualquier picking en borrador que ya esté en
+        cola, esté o no activado.
+        """
+        return str2bool(
+            self.env['ir.config_parameter'].sudo().get_param(
+                'pos_inventory_queue.defer_reservation',
+                default='True',
+            ),
+            default=True,
+        )
+
+    @api.model
+    def _complete_deferred_picking(self, picking, lines):
+        """Completa en la cola lo que el core hace en la venta.
+
+        Mismos pasos y mismas funciones que
+        stock.picking._create_move_from_pos_order_lines (point_of_sale),
+        después de crear los moves: confirmar (reserva, por
+        reservation_method 'at_confirm'), asignar cantidades, lotes y series
+        desde las líneas del POS, marcar 'picked' y vincular el propietario
+        en devoluciones. Sin lógica propia.
+
+        Sin líneas (no debería pasar en el camino diferido) cada move toma su
+        demanda completa, sin lotes.
+        """
+        moves = picking.move_ids.filtered(lambda m: m.state == 'draft')
+        confirmed_moves = moves._action_confirm()
+        if lines:
+            confirmed_moves._add_mls_related_to_order(lines, are_qties_done=True)
+        else:
+            for move in confirmed_moves:
+                move.quantity = move.product_uom_qty
+        confirmed_moves.picked = True
+        picking._link_owner_on_return_picking(lines)
 
     @api.model
     def _is_queue_enabled(self):

@@ -1037,7 +1037,9 @@ def worker_process(
 ):
     try:
         import odoo
+        import odoo.tools.config
         from odoo import api, SUPERUSER_ID
+        from odoo.modules.registry import Registry
 
         odoo.tools.config.parse_config([
             '-c',
@@ -1049,7 +1051,7 @@ def worker_process(
             '/mnt/extra-addons/custom-addons,/usr/lib/python3/dist-packages/odoo/addons',
         ])
 
-        registry = odoo.registry(db_name)
+        registry = Registry(db_name)
 
         with registry.cursor() as cr:
             tenv = api.Environment(
@@ -1895,6 +1897,8 @@ def main_cli():
     print()
 
     import odoo
+    import odoo.tools.config
+    from odoo.modules.registry import Registry
 
     odoo.tools.config.parse_config([
         '-c',
@@ -1906,7 +1910,7 @@ def main_cli():
         #'/home/odoo/src/user,/home/odoo/src/user/Jorels-Community/jorels-odoo-addons,/home/odoo/src/user/ffjuanzuluaga,/home/odoo/src/odoo/addons,/home/odoo/src/odoo/odoo/addons,/home/odoo/src/enterprise,/home/odoo/src/themes',
     ])
 
-    registry = odoo.registry(
+    registry = Registry(
         args.db
     )
 

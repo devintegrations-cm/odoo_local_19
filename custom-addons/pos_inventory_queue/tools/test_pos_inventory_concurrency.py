@@ -1,758 +1,549 @@
 #!/usr/bin/env python3
+"""Prueba de carga de la cola de inventario del POS (pos_inventory_queue).
+
+Qué simula
+----------
+N ventas ya registradas (``--pickings``) cuyos pickings esperan en la cola, y
+D drenadores (``--drainers``) procesándola a la vez con el método real
+``pos.inventory.queue._process_queue()``.
+
+- ``--drainers 1`` es la operación normal: Odoo nunca corre el mismo cron dos
+  veces en paralelo, así que en producción hay UN drenador (el cron).
+- ``--drainers > 1`` simula la hora de cierre: el cron más los cierres de caja
+  de varias tiendas, que también drenan la cola.
+
+Ventas y drenadores son números independientes: 300 cajeros vendiendo no son
+300 drenadores. Para probar muchas ventas concurrentes (el request del POS)
+usar ``test_pos_invoice_concurrency.py``.
+
+Cómo leer el resultado
+----------------------
+- ⛔ ERROR DEL ENTORNO / DEL TEST: el entorno no permite la prueba (faltan
+  conexiones, sesión cerrada, poco stock, cola sucia). No dice nada del módulo.
+- ❌ ERROR DEL MÓDULO: al terminar, algún picking no quedó validado, el stock
+  físico no cuadra, falta una fecha o quedó un lock de stock pegado.
+- ⚠️ OPORTUNIDAD DE MEJORA: todo terminó bien, pero hubo choques que el módulo
+  resolvió reintentando, o hizo falta una pasada extra del cron.
+- ✅ OK.
+
+Códigos de salida: 0 = OK o solo mejoras, 1 = error del módulo, 2 = entorno.
+
+Ejemplo
+-------
+docker compose -f stack.yml exec -T web python3 \\
+    /mnt/extra-addons/custom-addons/pos_inventory_queue/tools/test_pos_inventory_concurrency.py \\
+    --config /etc/odoo/odoo.conf --db odoo_col_19 --session "LIbertario/00042" \\
+    --template-ids 403 --pickings 100 --drainers 20
+"""
 
 import argparse
+import logging
 import multiprocessing
 import os
 import sys
+import threading
 import time
 import traceback
 
+# Conexiones por drenador: la del drenador (cursor del cron) y la del cursor
+# aislado donde se valida cada picking.
+CONNECTIONS_PER_DRAINER = 2
+# Proceso principal + margen para el servidor web y el cron del servidor.
+CONNECTIONS_MARGIN = 5
+# Pasadas extra de drenaje (como haría el cron) para los ítems que un
+# drenador devolvió a 'pending' por contención.
+CONVERGENCE_PASSES = 3
 
-def prepare_test_data(
-    config_path,
-    db_name,
-    session_name,
-    template_id,
-    quantity,
-):
-    """
-    Crea N pickings reales y sus registros de cola.
+QUEUE_LOGGER = 'odoo.addons.pos_inventory_queue.models.inventory_queue'
 
-    IMPORTANTE:
-    Aquí NO se procesan los pickings.
 
-    Solamente se crean:
-        stock.picking
-        stock.move
-        pos.inventory.queue
+class EnvironmentProblem(Exception):
+    """El entorno no permite correr la prueba: no es un error del módulo."""
 
-    Después los workers competirán por procesar la cola.
-    """
 
-    import odoo
+def _registry(config_path, db_name):
+    import odoo.tools.config
+    from odoo.modules.registry import Registry
+
+    odoo.tools.config.parse_config(["-c", config_path, "-d", db_name])
+    return Registry(db_name)
+
+
+def _env(cr):
     from odoo import api, SUPERUSER_ID
 
-    registry = odoo.registry(db_name)
+    return api.Environment(cr, SUPERUSER_ID, {})
 
+
+def _is_environment_error(exc):
+    """'too many clients' o pool de Odoo agotado: límite del entorno."""
+    from psycopg2.pool import PoolError
+
+    text = str(exc)
+    return isinstance(exc, PoolError) or (
+        'too many clients' in text
+        or 'too many connections' in text
+        or 'remaining connection slots' in text
+    )
+
+
+# ---------------------------------------------------------------------------
+# PASO 0: VERIFICACIÓN DEL ENTORNO
+# ---------------------------------------------------------------------------
+
+def check_environment(env, args, products, source_location):
+    problems = []
+
+    session = env["pos.session"].search([("name", "=", args.session)], limit=1)
+    if not session:
+        problems.append(f"No existe la sesión {args.session}")
+    elif session.state != "opened":
+        problems.append(
+            f"La sesión {args.session} no está abierta (estado: {session.state})")
+
+    stuck = env["pos.inventory.queue"].search_count(
+        [("state", "in", ["pending", "processing"])])
+    if stuck:
+        problems.append(
+            f"Hay {stuck} ítem(s) pending/processing en la cola de pruebas o "
+            "ventas anteriores. Esperá a que el cron los procese (los "
+            "'processing' se reclaman a los 5 min) o revisalos antes de medir.")
+
+    per_product = _split_pickings(args.pickings, products)
+    for product, count in per_product.items():
+        free = product.with_context(location=source_location.id).free_qty
+        if free < count:
+            problems.append(
+                f"Stock libre insuficiente de {product.display_name}: "
+                f"libre={free}, necesario={count}")
+
+    env.cr.execute("SHOW max_connections")
+    max_connections = int(env.cr.fetchone()[0])
+    env.cr.execute("SHOW superuser_reserved_connections")
+    reserved = int(env.cr.fetchone()[0])
+    env.cr.execute("SELECT count(*) FROM pg_stat_activity")
+    in_use = env.cr.fetchone()[0]
+    available = max_connections - reserved - in_use
+    needed = args.drainers * CONNECTIONS_PER_DRAINER + CONNECTIONS_MARGIN
+    print(f"Conexiones PostgreSQL : max={max_connections}, reservadas={reserved}, "
+          f"en uso={in_use}, libres={available}, necesarias={needed}")
+    if needed > available:
+        max_drainers = max(0, (available - CONNECTIONS_MARGIN) // CONNECTIONS_PER_DRAINER)
+        problems.append(
+            f"{args.drainers} drenadores necesitan ~{needed} conexiones y hay "
+            f"{available} libres. Bajá a --drainers {max_drainers} o subí "
+            "max_connections de PostgreSQL. (En producción los drenadores son "
+            "el cron + los cierres de caja simultáneos, no uno por cajero.)")
+
+    if problems:
+        raise EnvironmentProblem("\n".join(f"  - {p}" for p in problems))
+    return session
+
+
+def _split_pickings(total, products):
+    """Reparte las ventas entre los productos, en ronda."""
+    counts = {product: 0 for product in products}
+    for index in range(total):
+        counts[products[index % len(products)]] += 1
+    return counts
+
+
+# ---------------------------------------------------------------------------
+# PASO 1: CREAR LAS VENTAS (PICKINGS EN COLA, SIN VALIDAR)
+# ---------------------------------------------------------------------------
+
+def prepare(args):
+    registry = _registry(args.config, args.db)
     with registry.cursor() as cr:
+        env = _env(cr)
+        templates = env["product.template"].browse(args.template_ids).exists()
+        missing = set(args.template_ids) - set(templates.ids)
+        if missing:
+            raise EnvironmentProblem(f"  - No existen los product.template {sorted(missing)}")
+        products = [t.product_variant_id for t in templates]
+        not_storable = [p.display_name for p in products if not p.is_storable]
+        if not_storable:
+            raise EnvironmentProblem(
+                f"  - Productos sin control de inventario: {not_storable}")
 
-        env = api.Environment(
-            cr,
-            SUPERUSER_ID,
-            {},
-        )
+        session = env["pos.session"].search([("name", "=", args.session)], limit=1)
+        picking_type = session.config_id.picking_type_id if session else None
+        if not picking_type or not picking_type.default_location_src_id:
+            raise EnvironmentProblem(
+                "  - La sesión no existe o su tipo de operación no tiene ubicación origen")
+        source = picking_type.default_location_src_id
+        destination = picking_type.default_location_dest_id
+        if not destination:
+            raise EnvironmentProblem("  - El tipo de operación no tiene ubicación destino")
 
-        session = env["pos.session"].search(
-            [
-                ("name", "=", session_name),
-            ],
-            limit=1,
-        )
+        check_environment(env, args, products, source)
 
-        if not session:
-            raise RuntimeError(
-                f"No existe la sesión {session_name}"
-            )
+        # Stock FÍSICO (a mano) y no disponible: un picking reservado baja el
+        # disponible sin mover inventario y escondería pickings sin validar.
+        initial_on_hand = {
+            p.id: p.with_context(location=source.id).qty_available for p in products}
 
-        if session.state != "opened":
-            raise RuntimeError(
-                f"La sesión {session_name} no está abierta. "
-                f"Estado actual: {session.state}"
-            )
-
-        template = env[
-            "product.template"
-        ].browse(template_id).exists()
-
-        if not template:
-            raise RuntimeError(
-                f"No existe product.template {template_id}"
-            )
-
-        product = template.product_variant_id
-
-        if not product:
-            raise RuntimeError(
-                f"El template {template_id} no tiene variante"
-            )
-
-        picking_type = session.config_id.picking_type_id
-
-        if not picking_type:
-            raise RuntimeError(
-                "El POS no tiene picking type configurado"
-            )
-
-        source_location = (
-            picking_type.default_location_src_id
-        )
-
-        destination_location = (
-            picking_type.default_location_dest_id
-        )
-
-        if not source_location:
-            raise RuntimeError(
-                "El picking type no tiene ubicación origen"
-            )
-
-        if not destination_location:
-            raise RuntimeError(
-                "El picking type no tiene ubicación destino"
-            )
-
-        # ---------------------------------------------------------
-        # STOCK INICIAL
-        # ---------------------------------------------------------
-
-        initial_qty = env[
-            "stock.quant"
-        ]._get_available_quantity(
-            product,
-            source_location,
-        )
-
-        print()
-        print("=" * 70)
-        print(" PREPARACIÓN DE PRUEBA")
-        print("=" * 70)
-        print()
-        print(f"Sesión              : {session.name} (ID {session.id})")
-        print(
-            f"Producto             : "
-            f"{product.display_name} (ID {product.id})"
-        )
-        print(
-            f"Origen               : "
-            f"{source_location.display_name} "
-            f"(ID {source_location.id})"
-        )
-        print(
-            f"Destino              : "
-            f"{destination_location.display_name} "
-            f"(ID {destination_location.id})"
-        )
-        print(f"Stock inicial        : {initial_qty}")
-        print(f"Pickings a procesar  : {quantity}")
-        print()
-
-        if initial_qty < quantity:
-            raise RuntimeError(
-                f"Stock insuficiente. "
-                f"Disponible={initial_qty}, "
-                f"necesario={quantity}"
-            )
-
-        # ---------------------------------------------------------
-        # LIMPIEZA:
-        #
-        # No reutilizamos registros pendientes de pruebas anteriores.
-        # ---------------------------------------------------------
-
-        old_pending = env[
-            "pos.inventory.queue"
-        ].search([
-            ("state", "in", ["pending", "processing"])
-        ])
-
-        if old_pending:
-            raise RuntimeError(
-                "Hay elementos pendientes/processing en la cola. "
-                "Limpia la cola antes de ejecutar esta prueba. "
-                f"Encontrados: {old_pending.ids}"
-            )
-
-        created_pickings = []
-
-        # ---------------------------------------------------------
-        # CREAR PICKINGS SIN PROCESARLOS
-        # ---------------------------------------------------------
-
-        for index in range(quantity):
-
-            picking = env[
-                "stock.picking"
-            ].create({
+        picking_ids = []
+        for index in range(args.pickings):
+            product = products[index % len(products)]
+            picking = env["stock.picking"].create({
                 "partner_id": session.config_id.company_id.partner_id.id,
                 "picking_type_id": picking_type.id,
-                "location_id": source_location.id,
-                "location_dest_id": destination_location.id,
-                "origin": (
-                    f"QUEUE-CONCURRENCY-"
-                    f"{session.name}-"
-                    f"{index + 1}"
-                ),
+                "location_id": source.id,
+                "location_dest_id": destination.id,
+                "origin": f"QUEUE-LOAD-{session.name}-{index + 1}",
                 "pos_session_id": session.id,
             })
-
-            move = env[
-                "stock.move"
-            ].create({
-                "name": (
-                    f"QUEUE-CONCURRENCY "
-                    f"{index + 1}"
-                ),
+            env["stock.move"].create({
                 "product_id": product.id,
                 "product_uom_qty": 1.0,
                 "product_uom": product.uom_id.id,
                 "picking_id": picking.id,
                 "picking_type_id": picking_type.id,
-                "location_id": source_location.id,
-                "location_dest_id": destination_location.id,
+                "location_id": source.id,
+                "location_dest_id": destination.id,
                 "company_id": session.config_id.company_id.id,
             })
-
             picking.action_confirm()
-
-            # POS normalmente marca los movimientos como picked.
-            move.picked = True
-
-            # -----------------------------------------------------
-            # CREAR REGISTRO REAL DE LA COLA
-            # -----------------------------------------------------
-
-            queue_item = env[
-                "pos.inventory.queue"
-            ].create({
-                "picking_id": picking.id,
-                "state": "pending",
-            })
-
-            created_pickings.append(
-                (
-                    picking.id,
-                    picking.name,
-                    queue_item.id,
-                    queue_item.name,
-                    queue_item.sequence,
-                )
-            )
-
+            picking.move_ids.picked = True  # el POS entrega los moves 'picked'
+            env["pos.inventory.queue"].create({"picking_id": picking.id})
+            picking_ids.append(picking.id)
         cr.commit()
 
-        print("Pickings creados:")
-        print()
-
-        for data in created_pickings:
-            (
-                picking_id,
-                picking_name,
-                queue_id,
-                queue_name,
-                sequence,
-            ) = data
-
-            print(
-                f"  Queue {queue_id:4d} | "
-                f"{queue_name:15s} | "
-                f"Picking {picking_name:20s} | "
-                f"sequence={sequence}"
-            )
-
-        print()
-        print(
-            "Todos los pickings están PENDIENTES. "
-            "Todavía no se ha actualizado el stock."
-        )
-        print()
-
-        picking_ids = [p[0] for p in created_pickings]
-
-        return initial_qty, product.id, source_location.id, picking_ids
+        print(f"Sesión                : {session.name} (ID {session.id})")
+        print(f"Ubicación origen      : {source.display_name}")
+        for product in products:
+            print(f"Producto              : {product.display_name} (ID {product.id}) "
+                  f"stock a mano={initial_on_hand[product.id]}")
+        print(f"Ventas en cola        : {len(picking_ids)} pickings sin validar")
+        return {
+            "picking_ids": picking_ids,
+            "product_ids": [p.id for p in products],
+            "source_id": source.id,
+            "initial_on_hand": initial_on_hand,
+        }
 
 
-def worker(
-    config_path,
-    db_name,
-    worker_id,
-    barrier,
-):
-    """
-    Cada worker tiene su propio proceso y su propia conexión.
+# ---------------------------------------------------------------------------
+# PASO 2: DRENADORES CONCURRENTES
+# ---------------------------------------------------------------------------
 
-    Todos llaman al método REAL:
-        pos.inventory.queue._process_queue()
-    """
+class _CountingHandler(logging.Handler):
+    """Cuenta los choques que el módulo resolvió reintentando."""
 
+    def __init__(self):
+        super().__init__(level=logging.DEBUG)
+        self.transient = 0
+        self.yielded = 0
+
+    def emit(self, record):
+        message = record.getMessage()
+        if 'contention transient conflict' in message:
+            self.transient += 1
+        elif 'cede a pending' in message or 'revertido a pending' in message:
+            self.yielded += 1
+
+
+def drainer(config_path, db_name, drainer_id, barrier, results):
+    outcome = {"id": drainer_id, "status": "ok", "error": None,
+               "statuses": {}, "transient": 0, "yielded": 0, "elapsed": 0.0}
     try:
-
-        import odoo
-        from odoo import api, SUPERUSER_ID
-
-        odoo.tools.config.parse_config([
-            "-c",
-            config_path,
-            "-d",
-            db_name,
-        ])
-
-        registry = odoo.registry(db_name)
-
-        print(
-            f"[WORKER {worker_id}] "
-            f"PID={os.getpid()} preparado",
-            flush=True,
-        )
+        registry = _registry(config_path, db_name)
+        handler = _CountingHandler()
+        logging.getLogger(QUEUE_LOGGER).addHandler(handler)
 
         with registry.cursor() as cr:
+            Queue = _env(cr)["pos.inventory.queue"]
+            # Contar el resultado de cada ítem que procesa este drenador.
+            QueueClass = type(Queue)
+            original = QueueClass._process_item_in_new_cursor
 
-            env = api.Environment(
-                cr,
-                SUPERUSER_ID,
-                {},
-            )
+            def counted(self, item_id):
+                status = original(self, item_id)
+                outcome["statuses"][status] = outcome["statuses"].get(status, 0) + 1
+                return status
 
-            Queue = env[
-                "pos.inventory.queue"
-            ]
-
-            pending = Queue.search(
-                [
-                    ("state", "=", "pending"),
-                ],
-                order="sequence, id",
-            )
-
-            print(
-                f"[WORKER {worker_id}] "
-                f"Pendientes antes de comenzar: "
-                f"{pending.ids}",
-                flush=True,
-            )
-
-            print(
-                f"[WORKER {worker_id}] "
-                f"ESPERANDO BARRERA",
-                flush=True,
-            )
+            QueueClass._process_item_in_new_cursor = counted
 
             barrier.wait()
+            start = time.monotonic()
+            Queue._process_queue(time_budget=0)
+            cr.commit()
+            outcome["elapsed"] = time.monotonic() - start
 
-            start = time.time()
-
-            print(
-                f"[WORKER {worker_id}] "
-                f"ENTRANDO A _process_queue() "
-                f"{start:.6f}",
-                flush=True,
-            )
-
-            try:
-
-                # =================================================
-                # ESTE ES EL PUNTO CLAVE.
-                #
-                # Estamos ejecutando TU método real.
-                #
-                # _process_queue() adquiere:
-                #
-                # pg_advisory_xact_lock(54321)
-                #
-                # y después procesa los pending.
-                # =================================================
-
-                Queue._process_queue()
-
-                elapsed = time.time() - start
-
-                print(
-                    f"[WORKER {worker_id}] "
-                    f"_process_queue() FINALIZÓ "
-                    f"en {elapsed:.3f}s",
-                    flush=True,
-                )
-
-                cr.commit()
-
-                print(
-                    f"[WORKER {worker_id}] "
-                    f"COMMIT OK",
-                    flush=True,
-                )
-
-            except Exception as exc:
-
-                print(
-                    f"[WORKER {worker_id}] "
-                    f"ERROR DURANTE _process_queue(): "
-                    f"{type(exc).__name__}: {exc}",
-                    flush=True,
-                )
-
-                traceback.print_exc()
-
-                cr.rollback()
-
+        outcome["transient"] = handler.transient
+        outcome["yielded"] = handler.yielded
+    except threading.BrokenBarrierError:
+        outcome["status"] = "entorno"
+        outcome["error"] = "abortado: otro drenador no pudo arrancar"
     except Exception as exc:
+        outcome["status"] = "entorno" if _is_environment_error(exc) else "modulo"
+        outcome["error"] = f"{type(exc).__name__}: {exc}"
+        outcome["traceback"] = traceback.format_exc()
+        try:
+            barrier.abort()  # que el resto no espere para siempre
+        except Exception:
+            pass
+    results.put(outcome)
 
-        print(
-            f"[WORKER {worker_id}] "
-            f"ERROR GENERAL: "
-            f"{type(exc).__name__}: {exc}",
-            flush=True,
-        )
 
-        traceback.print_exc()
+def run_drainers(args):
+    barrier = multiprocessing.Barrier(args.drainers)
+    results = multiprocessing.Queue()
+    processes = [
+        multiprocessing.Process(
+            target=drainer, args=(args.config, args.db, i, barrier, results))
+        for i in range(1, args.drainers + 1)
+    ]
+    start = time.monotonic()
+    for process in processes:
+        process.start()
+    outcomes = [results.get() for _ in processes]
+    for process in processes:
+        process.join()
+    return outcomes, time.monotonic() - start
 
 
-def validate_results(
-    config_path,
-    db_name,
-    session_name,
-    template_id,
-    initial_qty,
-    expected_processed,
-    created_picking_ids,
-):
-    """
-    Valida el resultado final desde una conexión nueva.
-    """
-
-    import odoo
-    from odoo import api, SUPERUSER_ID
-
-    registry = odoo.registry(db_name)
-
+def converge(args):
+    """Pasadas extra de drenaje, como haría el cron, para los ítems que un
+    drenador devolvió a 'pending' por contención o falta de conexión."""
+    registry = _registry(args.config, args.db)
+    passes = 0
     with registry.cursor() as cr:
+        env = _env(cr)
+        Queue = env["pos.inventory.queue"]
+        for _ in range(CONVERGENCE_PASSES):
+            pending = Queue.search_count([
+                ("picking_id", "in", args.state["picking_ids"]),
+                ("state", "=", "pending"),
+            ])
+            if not pending:
+                break
+            passes += 1
+            Queue._process_queue(time_budget=0)
+            cr.commit()
+            env.invalidate_all()
+    return passes
 
-        env = api.Environment(
-            cr,
-            SUPERUSER_ID,
-            {},
-        )
 
-        session = env[
-            "pos.session"
-        ].search(
-            [
-                ("name", "=", session_name),
-            ],
-            limit=1,
-        )
+# ---------------------------------------------------------------------------
+# PASO 3: VALIDACIÓN
+# ---------------------------------------------------------------------------
 
-        template = env[
-            "product.template"
-        ].browse(template_id)
+def _percentile(values, fraction):
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, int(round(fraction * (len(ordered) - 1))))]
 
-        product = template.product_variant_id
 
-        picking_type = session.config_id.picking_type_id
+def validate(args, outcomes, drain_seconds, extra_passes):
+    state = args.state
+    module_errors, env_errors, improvements = [], [], []
 
-        source_location = (
-            picking_type.default_location_src_id
-        )
+    for outcome in outcomes:
+        if outcome["status"] == "entorno":
+            env_errors.append(f"Drenador {outcome['id']}: {outcome['error']}")
+        elif outcome["status"] == "modulo":
+            module_errors.append(f"Drenador {outcome['id']} terminó con excepción: "
+                                 f"{outcome['error']}")
 
-        Queue = env[
-            "pos.inventory.queue"
+    registry = _registry(args.config, args.db)
+    with registry.cursor() as cr:
+        env = _env(cr)
+        items = env["pos.inventory.queue"].search(
+            [("picking_id", "in", state["picking_ids"])], order="id")
+        pickings = env["stock.picking"].browse(state["picking_ids"])
+
+        if len(items) != len(state["picking_ids"]):
+            module_errors.append(
+                f"Se esperaban {len(state['picking_ids'])} ítems de cola y hay {len(items)}")
+
+        not_done_pickings = pickings.filtered(lambda p: p.state != "done")
+        if not_done_pickings:
+            module_errors.append(
+                f"{len(not_done_pickings)} picking(s) sin validar: "
+                f"{', '.join(not_done_pickings[:10].mapped('name'))}")
+
+        by_state = {}
+        for item in items:
+            by_state[item.state] = by_state.get(item.state, 0) + 1
+            if item.state != "done":
+                continue
+            if not item.start_date or not item.done_date:
+                module_errors.append(f"{item.name}: Done sin start_date/done_date")
+        not_done = {k: v for k, v in by_state.items() if k != "done"}
+        if not_done:
+            module_errors.append(f"Ítems de cola sin 'done': {not_done}")
+
+        source = env["stock.location"].browse(state["source_id"])
+        per_product = {}
+        for picking in pickings:
+            for move in picking.move_ids:
+                per_product[move.product_id.id] = per_product.get(move.product_id.id, 0) + 1
+        for product in env["product.product"].browse(state["product_ids"]):
+            on_hand = product.with_context(location=source.id).qty_available
+            expected = state["initial_on_hand"][product.id] - per_product.get(product.id, 0)
+            print(f"Stock a mano {product.display_name}: inicial="
+                  f"{state['initial_on_hand'][product.id]} final={on_hand} esperado={expected}")
+            if abs(on_hand - expected) > 1e-6:
+                module_errors.append(
+                    f"Stock físico descuadrado en {product.display_name}: "
+                    f"final={on_hand}, esperado={expected}")
+
+        # Locks de stock de SESIÓN pegados en alguna conexión (fuga).
+        cr.execute("""
+            SELECT count(*) FROM pg_locks l
+              JOIN pg_stat_activity a ON a.pid = l.pid
+             WHERE l.locktype = 'advisory' AND a.datname = current_database()
+        """)
+        leaked = cr.fetchone()[0]
+        if leaked:
+            module_errors.append(f"{leaked} lock(s) advisory siguen tomados tras el drenaje")
+
+        latencies = [
+            (i.done_date - i.start_date).total_seconds()
+            for i in items if i.start_date and i.done_date
         ]
 
-        items = Queue.search(
-            [
-                ('picking_id', 'in', created_picking_ids),
-            ],
-            order="sequence, id",
-        )
+    transient = sum(o["transient"] for o in outcomes)
+    yielded = sum(o["yielded"] for o in outcomes)
+    statuses = {}
+    for outcome in outcomes:
+        for key, value in outcome["statuses"].items():
+            statuses[key] = statuses.get(key, 0) + value
 
-        final_qty = env[
-            "stock.quant"
-        ]._get_available_quantity(
-            product,
-            source_location,
-        )
+    print()
+    print("=" * 70)
+    print(" MÉTRICAS")
+    print("=" * 70)
+    print(f"Drenadores            : {args.drainers}")
+    print(f"Ventas (pickings)     : {len(state['picking_ids'])}")
+    print(f"Tiempo de drenaje     : {drain_seconds:.2f}s "
+          f"({len(state['picking_ids']) / drain_seconds:.1f} pickings/s, incluye arranque "
+          "de procesos)" if drain_seconds else "")
+    print(f"Resultados por ítem   : {statuses}")
+    print(f"Choques resueltos     : {transient} reintento(s) dentro del ítem, "
+          f"{yielded} ítem(s) devueltos a pending")
+    print(f"Pasadas extra (cron)  : {extra_passes}")
+    print(f"Duración por ítem     : p50={_percentile(latencies, .5):.2f}s "
+          f"p95={_percentile(latencies, .95):.2f}s max={max(latencies or [0]):.2f}s")
+    print("(Nota: el cron del servidor también drena si coincide con la prueba.)")
 
-        print()
-        print("=" * 70)
-        print(" RESULTADO DE LA PRUEBA")
-        print("=" * 70)
-        print()
+    if transient or yielded:
+        improvements.append(
+            f"Hubo {transient} choque(s) resueltos con reintento y {yielded} ítem(s) "
+            "devueltos a pending: con más drenadores sobre los mismos productos el "
+            "módulo espera turnos; terminó bien, pero es tiempo perdido.")
+    if extra_passes:
+        improvements.append(
+            f"Hicieron falta {extra_passes} pasada(s) extra para terminar: en producción "
+            "eso es esperar al siguiente ciclo del cron (hasta 1 minuto).")
 
-        print(
-            f"Stock inicial esperado : {initial_qty}"
-        )
+    return module_errors, env_errors, improvements
 
-        print(
-            f"Stock final             : {final_qty}"
-        )
 
-        expected_final = (
-            initial_qty - expected_processed
-        )
+# ---------------------------------------------------------------------------
+# MAIN
+# ---------------------------------------------------------------------------
 
-        print(
-            f"Stock final esperado    : {expected_final}"
-        )
-
-        print()
-
-        print(
-            f"Elementos de cola      : {len(items)}"
-        )
-
-        print()
-
-        errors = []
-
-        # ---------------------------------------------------------
-        # VALIDAR CADA ITEM
-        # ---------------------------------------------------------
-
-        for item in items:
-
-            start = item.start_date
-            done = item.done_date
-
-            duration = None
-
-            if start and done:
-                duration = (
-                    done - start
-                ).total_seconds()
-
-            print(
-                f"Queue {item.id:4d} | "
-                f"{item.name:15s} | "
-                f"Picking={item.picking_id.name:20s} | "
-                f"State={item.state:18s} | "
-                f"Retry={item.retry_count} | "
-                f"Start={start} | "
-                f"Done={done} | "
-                f"Duration={duration}"
-            )
-
-            if item.state != "done":
-                errors.append(
-                    f"Queue {item.id} no está done: "
-                    f"{item.state}"
-                )
-
-            if item.retry_count != 0:
-                errors.append(
-                    f"Queue {item.id} tuvo retries: "
-                    f"{item.retry_count}"
-                )
-
-            if item.error_message:
-                errors.append(
-                    f"Queue {item.id} tiene error: "
-                    f"{item.error_message}"
-                )
-
-            if not start:
-                errors.append(
-                    f"Queue {item.id} no tiene start_date"
-                )
-
-            if not done:
-                errors.append(
-                    f"Queue {item.id} no tiene done_date"
-                )
-
-        # ---------------------------------------------------------
-        # VALIDAR CANTIDAD
-        # ---------------------------------------------------------
-
-        if len(items) != expected_processed:
-
-            errors.append(
-                f"Se esperaban {expected_processed} "
-                f"elementos de cola pero existen "
-                f"{len(items)}"
-            )
-
-        # ---------------------------------------------------------
-        # VALIDAR STOCK
-        # ---------------------------------------------------------
-
-        if final_qty != expected_final:
-
-            errors.append(
-                f"Stock incorrecto. "
-                f"Esperado={expected_final}, "
-                f"actual={final_qty}"
-            )
-
-        print()
-
-        if errors:
-
-            print("❌ PRUEBA FALLIDA")
-            print()
-
-            for error in errors:
-                print(f"  - {error}")
-
-        else:
-
-            print(
-                "✅ PRUEBA FUNCIONAL SUPERADA"
-            )
-
-            print()
-            print(
-                "Los pickings fueron procesados "
-                "por la cola y el stock final "
-                "coincide con el esperado."
-            )
-
-        print()
-
-        cr.commit()
-
-        return not errors
+def _print_list(title, lines):
+    print()
+    print(title)
+    for line in lines:
+        print(f"  - {line}")
 
 
 def main():
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "--config",
-        required=True,
-    )
-
-    parser.add_argument(
-        "--db",
-        required=True,
-    )
-
-    parser.add_argument(
-        "--session",
-        default="POS/00148",
-    )
-
-    parser.add_argument(
-        "--template-id",
-        type=int,
-        default=62,
-    )
-
-    parser.add_argument(
-        "--workers",
-        type=int,
-        default=5,
-    )
-
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--db", required=True)
+    parser.add_argument("--session", required=True)
+    parser.add_argument("--template-ids", default=None,
+                        help="CSV de product.template; las ventas se reparten entre ellos")
+    parser.add_argument("--template-id", type=int, default=None,
+                        help="Un solo product.template (compatibilidad)")
+    parser.add_argument("--pickings", type=int, default=None,
+                        help="Ventas en cola (por defecto 100)")
+    parser.add_argument("--drainers", type=int, default=None,
+                        help="Drenadores concurrentes (1 = cron normal; por defecto 1)")
+    parser.add_argument("--workers", type=int, default=None,
+                        help="Obsoleto: alias de --drainers")
     args = parser.parse_args()
 
-    if args.workers < 2:
-        raise SystemExit(
-            "--workers debe ser >= 2"
-        )
+    if args.workers is not None:
+        print("Aviso: --workers es obsoleto; se usa como --drainers. Antes también "
+              "fijaba el número de ventas; ahora las ventas van en --pickings.")
+        args.drainers = args.drainers or args.workers
+    args.drainers = args.drainers or 1
+    args.pickings = args.pickings or 100
 
-    # -------------------------------------------------------------
-    # IMPORTANTE:
-    # Cada worker empieza desde cero.
-    # NO hereda conexiones PostgreSQL.
-    # -------------------------------------------------------------
+    ids = args.template_ids or (str(args.template_id) if args.template_id else "")
+    try:
+        args.template_ids = [int(x) for x in ids.split(",") if x.strip()]
+    except ValueError:
+        parser.error("--template-ids debe ser una lista de enteros separada por comas")
+    if not args.template_ids:
+        parser.error("indicá --template-ids (o --template-id)")
+    if args.drainers < 1 or args.pickings < 1:
+        parser.error("--drainers y --pickings deben ser >= 1")
 
-    multiprocessing.set_start_method(
-        "spawn",
-        force=True,
-    )
+    multiprocessing.set_start_method("spawn", force=True)
+
+    print("=" * 70)
+    print(" POS INVENTORY QUEUE — PRUEBA DE CARGA")
+    print("=" * 70)
+    print(f"BD {args.db} · sesión {args.session} · productos {args.template_ids} · "
+          f"{args.pickings} ventas · {args.drainers} drenador(es)")
+    print()
+
+    try:
+        args.state = prepare(args)
+    except EnvironmentProblem as exc:
+        print()
+        print("⛔ ERROR DEL ENTORNO / DEL TEST — la prueba no se ejecutó:")
+        print(exc)
+        print()
+        print(" RESULTADO FINAL: ENTORNO (no dice nada del módulo)")
+        sys.exit(2)
+
+    print()
+    print(f"Lanzando {args.drainers} drenador(es)...")
+    outcomes, drain_seconds = run_drainers(args)
+    extra_passes = converge(args)
+    module_errors, env_errors, improvements = validate(
+        args, outcomes, drain_seconds, extra_passes)
 
     print()
     print("=" * 70)
-    print(" POS INVENTORY QUEUE")
-    print(" PRUEBA REAL DE CONCURRENCIA")
-    print("=" * 70)
+    if env_errors:
+        _print_list("⛔ ERRORES DEL ENTORNO (límites de la máquina, no del módulo):",
+                    env_errors[:10] + ([f"... y {len(env_errors) - 10} más"]
+                                       if len(env_errors) > 10 else []))
+    if module_errors:
+        _print_list("❌ ERRORES DEL MÓDULO:", module_errors[:30])
+        for outcome in outcomes:
+            if outcome["status"] == "modulo":
+                print(outcome.get("traceback", ""))
+    if improvements:
+        _print_list("⚠️  OPORTUNIDADES DE MEJORA:", improvements)
+    if not (env_errors or module_errors or improvements):
+        print()
+        print("✅ Todas las ventas quedaron validadas, el stock físico cuadra, cada "
+              "ítem tiene sus fechas y no quedaron locks pegados.")
+
     print()
-
-    print(
-        f"BD             : {args.db}"
-    )
-    print(
-        f"Sesión         : {args.session}"
-    )
-    print(
-        f"Producto       : template {args.template_id}"
-    )
-    print(
-        f"Workers        : {args.workers}"
-    )
-    print()
-
-    # -------------------------------------------------------------
-    # PASO 1
-    # Crear pickings + queue.
-    # -------------------------------------------------------------
-
-    initial_qty, product_id, location_id, picking_ids = (
-        prepare_test_data(
-            args.config,
-            args.db,
-            args.session,
-            args.template_id,
-            args.workers,
-        )
-    )
-
-    # -------------------------------------------------------------
-    # PASO 2
-    # Lanzar workers concurrentes.
-    # -------------------------------------------------------------
-
-    print("=" * 70)
-    print(" INICIANDO PROCESAMIENTO CONCURRENTE")
-    print("=" * 70)
-    print()
-
-    barrier = multiprocessing.Barrier(
-        args.workers
-    )
-
-    processes = []
-
-    for worker_id in range(
-        1,
-        args.workers + 1,
-    ):
-
-        process = multiprocessing.Process(
-            target=worker,
-            args=(
-                args.config,
-                args.db,
-                worker_id,
-                barrier,
-            ),
-        )
-
-        process.start()
-
-        processes.append(process)
-
-    for process in processes:
-
-        process.join()
-
-    # -------------------------------------------------------------
-    # PASO 3
-    # Validar resultados.
-    # -------------------------------------------------------------
-
-    success = validate_results(
-        args.config,
-        args.db,
-        args.session,
-        args.template_id,
-        initial_qty,
-        args.workers,
-        picking_ids,
-    )
-
-    print("=" * 70)
-
-    if success:
-        print(" RESULTADO FINAL: PASS")
+    if module_errors:
+        verdict, code = "FAIL — error del módulo", 1
+    elif env_errors:
+        verdict, code = "ENTORNO — el módulo terminó bien, pero el entorno falló durante la prueba", 2
+    elif improvements:
+        verdict, code = "PASS con oportunidades de mejora", 0
     else:
-        print(" RESULTADO FINAL: FAIL")
-
+        verdict, code = "PASS", 0
+    print(f" RESULTADO FINAL: {verdict}")
     print("=" * 70)
-    print()
-
-    sys.exit(
-        0 if success else 1
-    )
+    sys.exit(code)
 
 
 if __name__ == "__main__":

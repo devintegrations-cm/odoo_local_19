@@ -1,4 +1,5 @@
 import logging
+from itertools import groupby
 
 from odoo import api, models
 from odoo.exceptions import UserError, ValidationError
@@ -22,7 +23,10 @@ class StockPicking(models.Model):
                 location_dest_id, lines, picking_type, partner,
             )
 
+        Queue = self.env['pos.inventory.queue']
+        defer = Queue._is_reservation_deferred()
         pickings = self.env['stock.picking']
+        lines_by_picking = {}
         stockable_lines = lines.filtered(
             lambda l: l.product_id.type == 'consu'
             and not float_is_zero(l.qty, precision_rounding=l.product_id.uom_id.rounding)
@@ -38,7 +42,8 @@ class StockPicking(models.Model):
             positive_picking = self.env['stock.picking'].create(
                 self._prepare_picking_vals(partner, picking_type, location_id, location_dest_id)
             )
-            positive_picking._create_move_from_pos_order_lines(positive_lines)
+            positive_picking._pos_queue_create_moves(positive_lines, defer)
+            lines_by_picking[positive_picking.id] = positive_lines
             pickings |= positive_picking
 
         if negative_lines:
@@ -83,7 +88,11 @@ class StockPicking(models.Model):
                             else:
                                 move.product_uom_qty = new_qty
                                 moves_to_reassign |= move
-                    moves_to_reassign._action_assign()
+                    # Con la reserva diferida los moves siguen en borrador:
+                    # basta con bajar la demanda, la cola reserva al validar.
+                    moves_to_reassign.filtered(
+                        lambda m: m.state != 'draft'
+                    )._action_assign()
                     self.env.flush_all()
                     return pickings
 
@@ -97,15 +106,45 @@ class StockPicking(models.Model):
             negative_picking = self.env['stock.picking'].create(
                 self._prepare_picking_vals(partner, return_picking_type, location_dest_id, return_location_id)
             )
-            negative_picking._create_move_from_pos_order_lines(negative_lines)
+            negative_picking._pos_queue_create_moves(negative_lines, defer)
+            lines_by_picking[negative_picking.id] = negative_lines
             pickings |= negative_picking
 
-        Queue = self.env['pos.inventory.queue']
         for picking in pickings:
-            Queue.create({'picking_id': picking.id, 'state': 'pending'})
+            Queue.create({
+                'picking_id': picking.id,
+                'state': 'pending',
+                'pos_line_ids': [(6, 0, lines_by_picking[picking.id].ids)],
+            })
         self._trigger_queue_processing()
 
         return pickings
+
+    def _pos_queue_create_moves(self, lines, defer):
+        """Crea los moves del picking de una venta encolada.
+
+        Con la reserva diferida solo se CREAN los moves (en borrador) con las
+        mismas agrupaciones y valores que el core
+        (_create_move_from_pos_order_lines de point_of_sale). Confirmar,
+        reservar y asignar lotes lo hace la cola al validar
+        (pos.inventory.queue._complete_deferred_picking), así la venta no
+        toca stock_quant ni compite con otras cajas por el mismo quant.
+
+        Sin reserva diferida delega en el core, como antes.
+        """
+        self.ensure_one()
+        if not defer:
+            return self._create_move_from_pos_order_lines(lines)
+
+        def get_grouping_key(line):
+            return (line.product_id.id, tuple(sorted(line.attribute_value_ids.ids)))
+
+        move_vals = []
+        grouped = groupby(sorted(lines, key=get_grouping_key), key=get_grouping_key)
+        for _key, order_lines in grouped:
+            order_lines = self.env['pos.order.line'].concat(*order_lines)
+            move_vals.append(self._prepare_stock_move_vals(order_lines[0], order_lines))
+        return self.env['stock.move'].create(move_vals)
 
     @api.model
     def _trigger_queue_processing(self):

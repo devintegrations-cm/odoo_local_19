@@ -1,6 +1,6 @@
 {
     'name': 'Pos Inventory Queue',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.2.0',
     'category': 'Point of Sale',
     'summary': 'Serializes POS real-time inventory operations to prevent concurrency',
     'description': """
@@ -15,7 +15,8 @@
     "author": "Miguel Bolivar, Libertario Coffee",
     "website": "https://www.libertariocoffee.com",
     "license": "LGPL-3",
-    'depends': ['point_of_sale'],
+    'depends': ['point_of_sale', 'mail'],
+    'post_init_hook': 'post_init_hook',
     'data': [
         'data/ir_sequence.xml',
         'data/ir_cron.xml',
