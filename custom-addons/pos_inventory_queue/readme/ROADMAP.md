@@ -29,9 +29,15 @@
   venden el mismo producto se esperan entre sí aunque sus quants estén en ubicaciones distintas. El
   comentario del código lo justifica con `stock_valuation_layer`, tabla que ya no existe en Odoo 19;
   falta verificar qué comparten de verdad las tiendas en la valoración de 19 antes de cambiarlo.
-- **Rutas equivocadas en los mensajes.** El error de cierre de sesión y la nota de la alerta dicen
-  *Punto de Venta › Configuración › Cola de Inventario*; el menú real es *Órdenes › Cola de
-  Inventario*.
+  Con un solo drenador casi no pesa (el lock solo importa con varios drenadores a la vez).
+  **Decisión (2026-09-30): en cuenta, sin cambios**; medir en staging 19 antes de tocarlo, sin
+  quitar el lock actual.
+- **La prueba de carga no pasa por los workers HTTP de Odoo.** `tools/test_pos_sales_concurrency.py`
+  manda las ventas por `sync_from_ui` con un proceso y una conexión por cajero, así que no mide el
+  límite real de producción (los workers HTTP) y en local no pasa de ~75 cajeros
+  (`max_connections`). Una prueba de 50 → 100 → 150 → 200 cajeros con p95/p99, throughput y esperas
+  de lock debería ir por la URL del POS en staging 19. **Decisión (2026-09-30): en cuenta, sin
+  cambios por ahora.**
 - **Código sin efecto visible.** `pos.session.queue_pending_count` y `action_view_queue_items` no
   aparecen en ninguna vista. El override de `stock.move._get_related_invoices` no tiene llamador en
   el fuente de Odoo 19 Community (solo lo extienden `sale_stock` y `purchase_stock`), y su
@@ -49,6 +55,8 @@
   en cursor aparte, bloqueos, reintentos, disparo del cron, alerta, recálculo del costo de la
   orden al validar el picking, botones y limpieza. Constantes: `MAX_RETRIES = 5`,
   `CLAIM_MAX_RETRIES = 10`, `STALE_PROCESSING_MINUTES = 5`, `LOCK_TIMEOUT_SECONDS = 5`.
+- `models/inventory_queue_health.py`: el vigía (`_cron_check_queue_health`), el resumen en vivo
+  (`_get_queue_health`) y sus avisos (`_create_watch_activity`, `_close_resolved_watch_activities`).
 - `models/inventory_queue_config.py`: la ventana del interruptor (`pos.inventory.queue.config`,
   transitorio), que lee y escribe `pos_inventory_queue.enabled`.
 - `models/pos_order.py`: `_create_order_picking` llama al método del core con el contexto
@@ -74,7 +82,7 @@
 - `views/`: lista, formulario y búsqueda de la cola, y la ventana del interruptor con sus menús.
 - `migrations/17.0.2.1.0/pre-migrate.py`: columna `next_retry_date` (ver *Instalación*).
 - `migrations/19.0.1.2.0/post-migrate.py`: numeración de venta de los POS existentes a `standard`.
-- `tests/test_queue_model.py`: 53 pruebas `TransactionCase` sobre secuencia, duplicados, reclamo,
+- `tests/test_queue_model.py`: 58 pruebas `TransactionCase` sobre secuencia, duplicados, reclamo,
   `next_retry_date`, orden de proceso, reclamo de *Processing* vencido, cierre de sesión (items
   pendientes, fallidos, pickings validados a mano y la confirmación de foto previa a la lectura
   final), limpieza, botones, alerta de fallo permanente (creación, idempotencia y destinatarios) y
@@ -85,7 +93,9 @@
   (POS nuevo y conversión idempotente sin saltos), y PDF de la factura después de confirmar
   (sin PDF dentro de la venta, generación aislada, interruptor apagado, `generate_pdf=False`
   explícito y respaldo al cron), y el picking de la venta por el método del core (encolado normal,
-  devolución de *Enviar más tarde* y backorders vinculados).
+  devolución de *Enviar más tarde* y backorders vinculados), reclamo solo de ítems activos y vigía
+  (cola sana, cola atascada con un solo aviso y cierre al resolverse, factura sin PDF encolada y
+  avisada, resumen).
 - `tools/`: dos scripts de carga independientes, fuera de la suite de Odoo, que corren contra una
   base real. `test_pos_inventory_concurrency.py` encola `--pickings` ventas y las procesa con
   `--drainers` drenadores concurrentes (1 = cron normal; más = cron y cierres de caja

@@ -18,4 +18,13 @@
         <field name="interval_type">minutes</field>
         <field name="active">True</field>
     </record>
+    <record id="ir_cron_pos_inventory_queue_watch" model="ir.cron">
+        <field name="name">POS Inventory Queue: Vigía de la cola y facturas</field>
+        <field name="model_id" ref="model_pos_inventory_queue" />
+        <field name="state">code</field>
+        <field name="code">model._cron_check_queue_health()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
 </odoo>

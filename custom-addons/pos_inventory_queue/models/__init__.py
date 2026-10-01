@@ -5,3 +5,4 @@ from . import stock_move
 from . import pos_order
 from . import pos_session
 from . import pos_config
+from . import inventory_queue_health

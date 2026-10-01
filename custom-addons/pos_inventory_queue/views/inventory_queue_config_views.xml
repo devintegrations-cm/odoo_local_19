@@ -38,7 +38,7 @@
                             <div class="border rounded p-3 h-100">
 
                                 <h4 class="mb-3">
-                                    Queue Configuration
+                                    Informacion de configuracion
                                 </h4>
 
                                 <p class="text-muted mb-0">
@@ -60,7 +60,7 @@
                             <div class="border rounded p-3 h-100">
 
                                 <h4 class="mb-3">
-                                    Behavior When Disabled
+                                    Comportamiento al desactivar la cola
                                 </h4>
 
                                 <ul class="text-muted mb-0 ps-3">
@@ -82,6 +82,36 @@
                             </div>
                         </div>
 
+                    </div>
+
+
+                    <!-- =================================================
+                         Estado de la cola (vigía)
+                         ================================================= -->
+                    <div class="border rounded p-3 mt-4">
+                        <h4 class="mb-3">Estado de la cola</h4>
+                        <group>
+                            <group>
+                                <field name="health_pending"/>
+                                <field name="health_oldest_minutes"/>
+                                <field name="health_done_last_hour"/>
+                            </group>
+                            <group>
+                                <field name="health_failed"/>
+                                <field name="health_failed_permanent"/>
+                                <field name="health_invoices_without_pdf"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="health_cron"/>
+                        </group>
+                        <p class="text-muted mb-0">
+                            Cada 5 minutos la acción planificada "POS Inventory Queue:
+                            Vigía de la cola y facturas" revisa estos números: si la cola
+                            no avanza o hay facturas del POS sin PDF, intenta destrabarlas
+                            y avisa con una actividad a los gestores de inventario o de
+                            contabilidad.
+                        </p>
                     </div>
 
                 </sheet>

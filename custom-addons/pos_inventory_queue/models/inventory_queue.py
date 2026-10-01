@@ -255,6 +255,18 @@ class PosInventoryQueue(models.Model):
         Dado que el lock del claim se libera al commitear, los items que
         quedaron 'processing' por un crash del procesador (más de
         STALE_PROCESSING_MINUTES minutos) se vuelven a reclamar.
+
+        El filtro active = True hace que PostgreSQL use el índice parcial
+        pos_inventory_queue_claim_idx (su predicado incluye active = True;
+        sin el filtro usaba el índice de state con tres búsquedas) y deja la
+        cola coherente con el resto de Odoo: un ítem archivado no se procesa.
+
+        El orden es "mejor esfuerzo": pending primero y luego (sequence, id).
+        Con un solo drenador (el cron) es estricto; con varios a la vez (cron
+        y cierres de caja) SKIP LOCKED deja que uno tome el siguiente ítem
+        libre mientras otro procesa el anterior. Es a propósito: el orden
+        entre ventas no cambia el stock final y un ítem trabado no frena a
+        los demás.
         """
         self.env.cr.flush()
 
@@ -274,7 +286,8 @@ class PosInventoryQueue(models.Model):
                     """
                         SELECT id
                           FROM pos_inventory_queue
-                         WHERE (
+                         WHERE active = True
+                           AND (
                                  state = 'pending'
                                  OR (
                                      state = 'failed'
@@ -562,8 +575,8 @@ class PosInventoryQueue(models.Model):
                         'El picking %(picking)s de la cola de inventario '
                         'del POS quedo en FAILED PERMANENT tras %(count)s '
                         'ciclos (item de cola %(item)s).\n'
-                        'Requiere revision manual en Punto de Venta > '
-                        'Configuracion > Cola de Inventario.\n'
+                        'Requiere revision manual en Punto de Venta › '
+                        'Órdenes › Cola de Inventario.\n'
                         'Ultimo error: %(err)s',
                         picking=label,
                         count=item.retry_count,

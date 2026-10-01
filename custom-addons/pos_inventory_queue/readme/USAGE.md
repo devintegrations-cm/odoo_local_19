@@ -26,6 +26,12 @@ estado.
 
 ![Ítem procesado: estado Done, picking y orden del POS de origen](../static/description/06_item_procesado.png)
 
+El orden es **"mejor esfuerzo"**: primero los *Pending* y luego por antigüedad. En la operación
+normal la cola la procesa un solo drenador (el cron) y el orden se respeta. Cuando coinciden el cron
+y uno o más cierres de caja, cada uno toma el siguiente ítem libre, así que dos ventas pueden
+procesarse en otro orden. Es a propósito: el orden entre ventas no cambia el stock final, y un ítem
+trabado no frena al resto.
+
 ## Estados
 
 - **Pending** (azul): esperando turno.
@@ -107,6 +113,28 @@ cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar
   fiscal: la factura electrónica numera con su propio diario.
 
   ![Ajustes › Técnico › Secuencias › Orden de PdV de la configuración #1: Implementación Estándar](../static/description/08_secuencia_standard.png)
+
+## Vigía
+
+La acción planificada *POS Inventory Queue: Vigía de la cola y facturas* corre cada 5 minutos y
+cubre lo que antes nadie veía (umbral: `pos_inventory_queue.stall_alert_minutes`, 15 min):
+
+- **La cola no avanza.** Si el ítem *Pending* o *Processing* más viejo supera el umbral (por
+  ejemplo, porque la acción planificada de la cola está desactivada o un error se repite), el
+  vigía despierta el cron de la cola y crea una actividad **To Do** para cada gestor de inventario
+  sobre el picking más viejo: cuántos ítems esperan, hace cuánto y si la acción planificada está
+  activa.
+- **Facturas del POS sin PDF.** Si una factura del POS de las últimas 24 h supera el umbral sin
+  PDF, la deja a la acción planificada de Odoo *Send invoices automatically*, que la completa. Si
+  al doble del umbral sigue sin PDF, crea una actividad para cada gestor de contabilidad sobre la
+  factura.
+- **No repite y se limpia solo.** No crea un segundo aviso igual mientras el primero esté abierto,
+  y cierra sus avisos cuando el problema se resolvió (el picking ya no tiene ítems esperando, la
+  factura ya tiene PDF).
+
+Los *Failed Permanent* tienen su propia alerta (ver *Fallo permanente*). Si todas las acciones
+planificadas de Odoo están detenidas, el vigía tampoco corre: en ese caso avisan el cierre de caja
+(no deja cerrar con pendientes) y el monitoreo del servidor.
 
 ## Solución de problemas
 

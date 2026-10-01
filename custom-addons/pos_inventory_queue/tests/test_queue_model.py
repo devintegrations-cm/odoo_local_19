@@ -1349,3 +1349,138 @@ class TestPosInventoryQueue(TransactionCase):
         self.assertEqual(backorder.pos_order_id, order)
         self.assertEqual(backorder.pos_session_id, session)
         self.assertEqual(backorder.origin, order.name)
+
+    # ------------------------------------------------------------------
+    # RECLAMO: SOLO ÍTEMS ACTIVOS (ÍNDICE PARCIAL)
+    # ------------------------------------------------------------------
+
+    def test_claim_skips_archived_items(self):
+        """Un ítem archivado no se reclama (el claim filtra active = True,
+        como el índice parcial pos_inventory_queue_claim_idx); el mismo
+        ítem activo sí."""
+        picking = self._create_picking('ARCH-1')
+        item = self.Queue.create({'picking_id': picking.id})
+        self._only_claimable(item)
+        item.active = False
+        self.env.flush_all()
+
+        self.assertIsNone(self.Queue._claim_next_item())
+
+        item.active = True
+        self.env.flush_all()
+        self.assertEqual(self.Queue._claim_next_item(), item.id)
+
+    # ------------------------------------------------------------------
+    # VIGÍA DE LA COLA Y DE LAS FACTURAS DEL POS
+    # ------------------------------------------------------------------
+
+    def _age(self, record, minutes):
+        """Envejece create_date (el ORM no deja escribirlo)."""
+        record.flush_recordset()
+        self.env.cr.execute(
+            'UPDATE %s SET create_date = (now() AT TIME ZONE \'UTC\') - %%s * interval \'1 minute\' '
+            'WHERE id = %%s' % record._table, (minutes, record.id))
+        record.invalidate_recordset()
+
+    def _watch_activities(self, record, summary_prefix):
+        return self.env['mail.activity'].search([
+            ('res_model', '=', record._name),
+            ('res_id', '=', record.id),
+            ('summary', '=like', summary_prefix + '%'),
+        ])
+
+    def test_watch_healthy_queue_no_alert(self):
+        """Cola al día: el vigía no avisa ni despierta el cron."""
+        picking = self._create_picking('WATCH-OK')
+        item = self.Queue.create({'picking_id': picking.id})
+        self._only_claimable(item)
+        self._age(item, 2)
+
+        with patch.object(type(self.Queue), '_trigger_processing') as trigger:
+            self.Queue._cron_check_queue_health()
+
+        trigger.assert_not_called()
+        from odoo.addons.pos_inventory_queue.models.inventory_queue_health import STALL_SUMMARY
+        self.assertFalse(self._watch_activities(picking, STALL_SUMMARY))
+
+    def test_watch_stalled_queue_alerts_once(self):
+        """Cola atascada: despierta el cron de la cola y crea UNA actividad
+        por gestor de inventario sobre el picking más viejo; la segunda
+        pasada no la repite."""
+        from odoo.addons.pos_inventory_queue.models.inventory_queue_health import STALL_SUMMARY
+        manager = new_test_user(
+            self.env, login='piq_watch_manager',
+            groups='base.group_user,stock.group_stock_manager')
+        picking = self._create_picking('WATCH-STALL')
+        item = self.Queue.create({'picking_id': picking.id})
+        self._only_claimable(item)
+        self._age(item, 30)
+
+        with patch.object(type(self.Queue), '_trigger_processing') as trigger:
+            self.Queue._cron_check_queue_health()
+            self.Queue._cron_check_queue_health()
+
+        self.assertEqual(trigger.call_count, 2)
+        alerts = self._watch_activities(picking, STALL_SUMMARY)
+        self.assertEqual(len(alerts.filtered(lambda a: a.user_id == manager)), 1)
+        self.assertTrue(alerts[0].automated)
+        self.assertIn(item.name, str(alerts[0].note))
+
+        # Cuando la cola procesa el ítem, el vigía cierra su aviso solo.
+        item.sudo().write({'state': 'done'})
+        self.Queue._cron_check_queue_health()
+        self.assertFalse(self._watch_activities(picking, STALL_SUMMARY))
+
+    def test_watch_invoice_without_pdf_enqueued_then_alerted(self):
+        """Factura del POS sin PDF: al pasar el umbral se encola en el cron
+        de envío de Odoo; si al doble del umbral sigue sin PDF, se avisa a
+        contabilidad sobre la factura."""
+        from odoo.addons.pos_inventory_queue.models.inventory_queue_health import INVOICE_SUMMARY
+        accountant = new_test_user(
+            self.env, login='piq_watch_accountant',
+            groups='base.group_user,account.group_account_manager')
+        order = self._invoiced_order()
+        invoice = order._generate_pos_order_invoice()
+        self.assertFalse(invoice.invoice_pdf_report_id)
+
+        self._age(invoice, 20)
+        self.Queue._cron_check_queue_health()
+        self.assertTrue(invoice.sending_data, 'debía quedar en el cron de envío')
+        self.assertFalse(self._watch_activities(invoice, INVOICE_SUMMARY))
+
+        self._age(invoice, 40)
+        self.Queue._cron_check_queue_health()
+        alerts = self._watch_activities(invoice, INVOICE_SUMMARY)
+        self.assertEqual(len(alerts.filtered(lambda a: a.user_id == accountant)), 1)
+
+        # Cuando la factura ya tiene su PDF, el vigía cierra su aviso solo.
+        self.env['ir.attachment'].create({
+            'name': 'factura.pdf',
+            'raw': b'%PDF-1.4',
+            'res_model': 'account.move',
+            'res_id': invoice.id,
+            'res_field': 'invoice_pdf_report_file',
+        })
+        self.Queue._cron_check_queue_health()
+        self.assertFalse(self._watch_activities(invoice, INVOICE_SUMMARY))
+
+    def test_queue_health_numbers(self):
+        """El resumen de la ventana cuenta pendientes, antigüedad del más
+        viejo, fallidos y el estado del cron de la cola."""
+        picking = self._create_picking('WATCH-NUM')
+        item = self.Queue.create({'picking_id': picking.id})
+        self._only_claimable(item)
+        self._age(item, 12)
+        failed = self._make_failed_permanent('WATCH-NUM-FP')
+
+        health = self.Queue._get_queue_health()
+
+        self.assertEqual(health['pending'], 1)
+        self.assertEqual(health['oldest_item'], item)
+        self.assertGreaterEqual(health['oldest_minutes'], 12)
+        self.assertGreaterEqual(health['failed_permanent'], 1)
+        self.assertTrue(health['cron_active'])
+        wizard = self.env['pos.inventory.queue.config'].create({})
+        self.assertEqual(wizard.health_pending, 1)
+        self.assertGreaterEqual(wizard.health_oldest_minutes, 12)
+        self.assertIn(failed.state, ('failed_permanent',))

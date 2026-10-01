@@ -39,10 +39,10 @@ propio (ahora el drenaje corre en el worker de cron) y la vista en <em>Ajustes</
 cargada en el manifiesto. Se agregaron la guarda de cierre de sesión, el reintento diferido
 (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">next_retry_date</code>) y la alerta de fallo permanente.</p>
 <h2>Configuración</h2>
-<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Inventario (Queue)</em>. Se abre una ventana con un único
-interruptor.</p>
+<p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Inventario (Queue)</em>. Se abre una ventana con el interruptor
+de la cola y, abajo, el <strong>estado de la cola</strong> en vivo.</p>
 <div class="lc-fig"><img alt="Punto de venta › Configuración: menú Inventario (Queue)" src="01_menu_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de venta › Configuración: menú Inventario (Queue)</p></div>
-<div class="lc-fig"><img alt="Ventana Inventory Queue: interruptor POS Inventory Queue y botón Guardar" src="02_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ventana Inventory Queue: interruptor POS Inventory Queue y botón Guardar</p></div>
+<div class="lc-fig"><img alt="Ventana Inventory Queue: interruptor POS Inventory Queue, sección Estado de la cola y Acción planificada de la cola" src="02_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ventana Inventory Queue: interruptor POS Inventory Queue, sección Estado de la cola y Acción planificada de la cola</p></div>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><strong>POS Inventory Queue</strong> (parámetro del sistema <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_inventory_queue.enabled</code>). Opcional;
   <strong>activado</strong> por defecto, y si el parámetro no existe el código también lo toma como activado.
@@ -50,6 +50,10 @@ interruptor.</p>
   el momento, como Odoo estándar, y no se crean ítems nuevos. Los ítems que ya estaban en la cola
   se siguen procesando igual: el procesador drena siempre, esté o no activado.</li>
 <li style="margin-bottom:7px;">El valor se guarda con <strong>Guardar</strong>. <em>Descartar</em> cierra la ventana sin cambios.</li>
+<li style="margin-bottom:7px;"><strong>Estado de la cola</strong> (solo lectura, se calcula al abrir la ventana): pendientes, minutos que lleva
+  esperando el pendiente más viejo, procesados en la última hora, fallidos, fallidos permanentes,
+  facturas del POS de las últimas 24 h sin PDF y si la acción planificada de la cola está activa y
+  cuándo corrió por última vez. Ver <em>Vigía</em> en <em>Uso</em>.</li>
 </ul>
 <p style="margin:0 0 12px;">A tener en cuenta:</p>
 <ul style="margin:0 0 14px;padding-left:22px;">
@@ -66,8 +70,12 @@ interruptor.</p>
 <li style="margin-bottom:7px;"><strong>Acciones planificadas</strong> (<em>Ajustes › Técnico › Acciones planificadas</em>, en modo desarrollador):
   <em>POS Inventory Queue: Process pending items</em> corre <strong>cada 1 minuto</strong> y es la red de seguridad del
   drenaje; <em>POS Inventory Queue: Cleanup done items</em> corre <strong>cada 7 días</strong> y borra los ítems <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">done</code>
-  con más de 30 días. No hay que tocarlas; si se desactiva la primera, la cola solo avanza cuando
-  una venta o un botón dispara el cron.</li>
+  con más de 30 días; <em>POS Inventory Queue: Vigía de la cola y facturas</em> corre <strong>cada 5 minutos</strong>
+  (ver <em>Vigía</em> en <em>Uso</em>). No hay que tocarlas; si se desactiva la primera, la cola no avanza y el
+  vigía avisa.</li>
+<li style="margin-bottom:7px;"><strong>Umbral del vigía</strong> (parámetro del sistema <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_inventory_queue.stall_alert_minutes</code>, opcional,
+  <strong>15</strong> minutos por defecto): cuántos minutos puede esperar un ítem o una factura antes de que el
+  vigía actúe.</li>
 </ul>
 <h2>Uso</h2>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Flujo</h2>
@@ -92,6 +100,11 @@ nada atrasado.</p>
 estado.</p>
 <div class="lc-fig"><img alt="Lista de la cola con el filtro Done" src="04_cola_procesados.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Lista de la cola con el filtro Done</p></div>
 <div class="lc-fig"><img alt="Ítem procesado: estado Done, picking y orden del POS de origen" src="06_item_procesado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ítem procesado: estado Done, picking y orden del POS de origen</p></div>
+<p style="margin:0 0 12px;">El orden es <strong>"mejor esfuerzo"</strong>: primero los <em>Pending</em> y luego por antigüedad. En la operación
+normal la cola la procesa un solo drenador (el cron) y el orden se respeta. Cuando coinciden el cron
+y uno o más cierres de caja, cada uno toma el siguiente ítem libre, así que dos ventas pueden
+procesarse en otro orden. Es a propósito: el orden entre ventas no cambia el stock final, y un ítem
+trabado no frena al resto.</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Estados</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><strong>Pending</strong> (azul): esperando turno.</li>
@@ -174,6 +187,26 @@ cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar
   fiscal: la factura electrónica numera con su propio diario.</li>
 </ul>
 <div class="lc-fig"><img alt="Ajustes › Técnico › Secuencias › Orden de PdV de la configuración #1: Implementación Estándar" src="08_secuencia_standard.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Ajustes › Técnico › Secuencias › Orden de PdV de la configuración #1: Implementación Estándar</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Vigía</h2>
+<p style="margin:0 0 12px;">La acción planificada <em>POS Inventory Queue: Vigía de la cola y facturas</em> corre cada 5 minutos y
+cubre lo que antes nadie veía (umbral: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_inventory_queue.stall_alert_minutes</code>, 15 min):</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>La cola no avanza.</strong> Si el ítem <em>Pending</em> o <em>Processing</em> más viejo supera el umbral (por
+  ejemplo, porque la acción planificada de la cola está desactivada o un error se repite), el
+  vigía despierta el cron de la cola y crea una actividad <strong>To Do</strong> para cada gestor de inventario
+  sobre el picking más viejo: cuántos ítems esperan, hace cuánto y si la acción planificada está
+  activa.</li>
+<li style="margin-bottom:7px;"><strong>Facturas del POS sin PDF.</strong> Si una factura del POS de las últimas 24 h supera el umbral sin
+  PDF, la deja a la acción planificada de Odoo <em>Send invoices automatically</em>, que la completa. Si
+  al doble del umbral sigue sin PDF, crea una actividad para cada gestor de contabilidad sobre la
+  factura.</li>
+<li style="margin-bottom:7px;"><strong>No repite y se limpia solo.</strong> No crea un segundo aviso igual mientras el primero esté abierto,
+  y cierra sus avisos cuando el problema se resolvió (el picking ya no tiene ítems esperando, la
+  factura ya tiene PDF).</li>
+</ul>
+<p style="margin:0 0 12px;">Los <em>Failed Permanent</em> tienen su propia alerta (ver <em>Fallo permanente</em>). Si todas las acciones
+planificadas de Odoo están detenidas, el vigía tampoco corre: en ese caso avisan el cierre de caja
+(no deja cerrar con pendientes) y el monitoreo del servidor.</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><strong>La sesión no cierra por movimientos sin procesar.</strong> Filtrar la cola por la orden o el picking
@@ -226,10 +259,16 @@ cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar
 <li style="margin-bottom:7px;"><strong>El lock de stock no distingue tiendas.</strong> La clave es (producto, compañía): dos tiendas que
   venden el mismo producto se esperan entre sí aunque sus quants estén en ubicaciones distintas. El
   comentario del código lo justifica con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock_valuation_layer</code>, tabla que ya no existe en Odoo 19;
-  falta verificar qué comparten de verdad las tiendas en la valoración de 19 antes de cambiarlo.</li>
-<li style="margin-bottom:7px;"><strong>Rutas equivocadas en los mensajes.</strong> El error de cierre de sesión y la nota de la alerta dicen
-  <em>Punto de Venta › Configuración › Cola de Inventario</em>; el menú real es <em>Órdenes › Cola de
-  Inventario</em>.</li>
+  falta verificar qué comparten de verdad las tiendas en la valoración de 19 antes de cambiarlo.
+  Con un solo drenador casi no pesa (el lock solo importa con varios drenadores a la vez).
+  <strong>Decisión (2026-09-30): en cuenta, sin cambios</strong>; medir en staging 19 antes de tocarlo, sin
+  quitar el lock actual.</li>
+<li style="margin-bottom:7px;"><strong>La prueba de carga no pasa por los workers HTTP de Odoo.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tools/test_pos_sales_concurrency.py</code>
+  manda las ventas por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sync_from_ui</code> con un proceso y una conexión por cajero, así que no mide el
+  límite real de producción (los workers HTTP) y en local no pasa de ~75 cajeros
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">max_connections</code>). Una prueba de 50 → 100 → 150 → 200 cajeros con p95/p99, throughput y esperas
+  de lock debería ir por la URL del POS en staging 19. <strong>Decisión (2026-09-30): en cuenta, sin
+  cambios por ahora.</strong></li>
 <li style="margin-bottom:7px;"><strong>Código sin efecto visible.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.session.queue_pending_count</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">action_view_queue_items</code> no
   aparecen en ninguna vista. El override de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">stock.move._get_related_invoices</code> no tiene llamador en
   el fuente de Odoo 19 Community (solo lo extienden <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sale_stock</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase_stock</code>), y su
@@ -247,6 +286,8 @@ cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar
   en cursor aparte, bloqueos, reintentos, disparo del cron, alerta, recálculo del costo de la
   orden al validar el picking, botones y limpieza. Constantes: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">MAX_RETRIES = 5</code>,
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">CLAIM_MAX_RETRIES = 10</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">STALE_PROCESSING_MINUTES = 5</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">LOCK_TIMEOUT_SECONDS = 5</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/inventory_queue_health.py</code>: el vigía (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_cron_check_queue_health</code>), el resumen en vivo
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_get_queue_health</code>) y sus avisos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_create_watch_activity</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_close_resolved_watch_activities</code>).</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/inventory_queue_config.py</code>: la ventana del interruptor (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.inventory.queue.config</code>,
   transitorio), que lee y escribe <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_inventory_queue.enabled</code>.</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_order.py</code>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_create_order_picking</code> llama al método del core con el contexto
@@ -272,7 +313,7 @@ cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/</code>: lista, formulario y búsqueda de la cola, y la ventana del interruptor con sus menús.</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">migrations/17.0.2.1.0/pre-migrate.py</code>: columna <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">next_retry_date</code> (ver <em>Instalación</em>).</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">migrations/19.0.1.2.0/post-migrate.py</code>: numeración de venta de los POS existentes a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">standard</code>.</li>
-<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_queue_model.py</code>: 53 pruebas <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">TransactionCase</code> sobre secuencia, duplicados, reclamo,
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_queue_model.py</code>: 58 pruebas <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">TransactionCase</code> sobre secuencia, duplicados, reclamo,
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">next_retry_date</code>, orden de proceso, reclamo de <em>Processing</em> vencido, cierre de sesión (items
   pendientes, fallidos, pickings validados a mano y la confirmación de foto previa a la lectura
   final), limpieza, botones, alerta de fallo permanente (creación, idempotencia y destinatarios) y
@@ -283,7 +324,9 @@ cuántos ciclos lleva. Corregir la causa en el picking o en el producto y pulsar
   (POS nuevo y conversión idempotente sin saltos), y PDF de la factura después de confirmar
   (sin PDF dentro de la venta, generación aislada, interruptor apagado, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">generate_pdf=False</code>
   explícito y respaldo al cron), y el picking de la venta por el método del core (encolado normal,
-  devolución de <em>Enviar más tarde</em> y backorders vinculados).</li>
+  devolución de <em>Enviar más tarde</em> y backorders vinculados), reclamo solo de ítems activos y vigía
+  (cola sana, cola atascada con un solo aviso y cierre al resolverse, factura sin PDF encolada y
+  avisada, resumen).</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tools/</code>: dos scripts de carga independientes, fuera de la suite de Odoo, que corren contra una
   base real. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">test_pos_inventory_concurrency.py</code> encola <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">--pickings</code> ventas y las procesa con
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">--drainers</code> drenadores concurrentes (1 = cron normal; más = cron y cierres de caja

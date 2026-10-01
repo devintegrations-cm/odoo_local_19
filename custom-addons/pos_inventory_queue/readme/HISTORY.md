@@ -27,7 +27,20 @@
   respaldo de 17 para un tipo de operación sin ubicación destino, como en el core 19. En STG 17
   ningún POS usa *Enviar más tarde*: corrección preventiva.
 
-53 pruebas automatizadas.
+- **La cola usa su índice**: la búsqueda del siguiente ítem (`_claim_next_item`) no filtraba
+  `active = True` y PostgreSQL no podía usar el índice parcial `pos_inventory_queue_claim_idx`
+  (usaba el de `state`). Ahora lo usa y un ítem archivado no se procesa, como en el resto de Odoo.
+  Se documenta que el orden de la cola es "mejor esfuerzo".
+
+- **Vigía de la cola y las facturas** (acción planificada cada 5 minutos): avisa con una actividad
+  a los gestores de inventario si la cola no avanza (antes nadie se enteraba hasta que una caja no
+  podía cerrar) y a contabilidad si una factura del POS queda sin PDF. Intenta destrabar primero,
+  no repite avisos y los cierra cuando el problema se resuelve. Resumen en vivo en la ventana
+  *Inventario (Queue)*. Umbral `pos_inventory_queue.stall_alert_minutes` (15 min).
+- Los mensajes de cierre de caja y de la alerta de fallo permanente apuntan al menú correcto
+  (*Punto de Venta › Órdenes › Cola de Inventario*).
+
+58 pruebas automatizadas.
 
 ## 19.0.1.1.0 (2026-09-29)
 

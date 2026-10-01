@@ -66,7 +66,7 @@ class PosSession(models.Model):
                     "No se puede cerrar la sesión '%(session)s': quedan "
                     "%(count)s movimiento(s) de inventario sin procesar en "
                     "la cola (ref: %(refs)s). Reintenta desde "
-                    "Punto de Venta > Configuración > Cola de Inventario "
+                    "Punto de Venta › Órdenes › Cola de Inventario "
                     "antes de cerrar.",
                     session=self.name,
                     count=len(remaining),

@@ -96,7 +96,9 @@ class PosOrder(models.Model):
         """Genera el PDF de UNA factura en su propia transacción.
 
         Mismo llamado que el core (_generate_and_send con
-        skip_invoice_sync) y mismo usuario y contexto de la venta. Con el
+        skip_invoice_sync) y mismo usuario y contexto de la venta. Corre
+        después de _post, así que el PDF ya encuentra confirmados los datos
+        que Jorels guardó al validar con la DIAN (CUFE, QR, firma, ZIP). Con el
         reintento del servidor ante choques. Si falla, la venta ya está
         confirmada: se marca la factura para el cron nativo de Odoo
         ('Send invoices automatically') y no se propaga el error.
@@ -105,7 +107,10 @@ class PosOrder(models.Model):
             with registry.cursor() as cr:
                 env = api.Environment(cr, uid, context)
                 invoice = env['account.move'].browse(invoice_id).exists()
-                if invoice and not invoice.invoice_pdf_report_id:
+                # Siempre, como el core: si la factura ya tuviera PDF (p. ej.
+                # por el correo propio de Jorels en _post), account.move.send
+                # lo reutiliza y hace igual el envío.
+                if invoice:
                     retrying(partial(
                         invoice.with_context(skip_invoice_sync=True)._generate_and_send,
                     ), env)
