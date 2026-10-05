@@ -1,0 +1,341 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Los proveedores <strong>radican en el portal de Odoo</strong> sus facturas electrónicas DIAN, notas crédito,
+notas débito y, si no están obligados a facturar, sus cuentas de cobro. Cada documento queda
+asociado a una o varias órdenes de compra. Odoo lee el XML de la DIAN, revisa la factura contra la
+orden y deja una <strong>solicitud de pago</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">supplier.payment.request</code>, numeración <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SPR/AAAA/NNNNN</code>)
+con un veredicto: <em>Aprobada</em>, <em>Con observaciones</em> o <em>Rechazada</em>.</p>
+<p style="margin:0 0 12px;">Contabilidad revisa la solicitud en <em>Compras › Solicitudes de pago de proveedor</em> y, con el botón
+<strong>Crear factura</strong>, genera la factura de proveedor en <strong>borrador</strong>. Esa factura queda ligada a la
+orden, con la referencia, el CUFE, la fecha y el PDF y el XML adjuntos. El módulo nunca
+contabiliza solo: la factura se confirma y se paga por el flujo normal de contabilidad.</p>
+<p style="margin:0 0 12px;">Para quién es:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Proveedor</strong> (usuario del portal): carga sus documentos de empresa, radica y sigue el estado.
+  Recibe un correo con cada cambio.</li>
+<li style="margin-bottom:7px;"><strong>Validador</strong> (contabilidad o compras): revisa, empareja líneas, toma la revisión y crea la
+  factura.</li>
+<li style="margin-bottom:7px;"><strong>Responsable</strong> (<em>Compras: Administrador</em> lo es sin asignarlo): además configura, rechaza con
+  motivo, acepta notas débito y habilita proveedores.</li>
+</ul>
+<p style="margin:0 0 12px;">Lo que el módulo cubre:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Solo radican los proveedores marcados como <strong>Puede radicar facturas en el portal</strong>. Antes de
+  radicar, cada uno tiene que cargar en <em>Mi cuenta</em> su cámara de comercio, su RUT y su
+  certificación bancaria, y completar sus datos de facturación electrónica.</li>
+<li style="margin-bottom:7px;">Reglas automáticas: NIT del emisor y del adquiriente, CUFE repetido, estado de la orden, totales,
+  impuestos, cantidades y precios contra lo pendiente de la orden, y tipo de documento.</li>
+<li style="margin-bottom:7px;">Fletes y envíos que la orden no trae: se marcan como <strong>cargo adicional</strong> y la factura los lleva
+  con el producto de flete.</li>
+<li style="margin-bottom:7px;">Notas crédito (generan un reembolso) y notas débito (requieren aceptación) sobre una factura ya
+  registrada.</li>
+<li style="margin-bottom:7px;">Cuenta de cobro de quien no está obligado a facturar: se registra en el diario de <strong>documento
+  soporte</strong>.</li>
+<li style="margin-bottom:7px;">Una actividad de revisión por validador y el botón <strong>Tomar revisión</strong>.</li>
+<li style="margin-bottom:7px;">Cierre de la radicación el último día hábil del mes, desde la hora de corte.</li>
+</ul>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Instalación</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Obligatorias</strong> (Odoo 19 Community): <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">portal</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">mail</code>. Python: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">lxml</code>,
+  que ya viene en la imagen de Odoo.</li>
+<li style="margin-bottom:7px;"><strong>Jorels</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">l10n_co_edi_jorels</code>), opcional y fuera de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">depends</code>. Si está instalado, <em>Mi cuenta</em>
+  pide al proveedor <strong>tipo de régimen</strong>, <strong>tipo de responsabilidad</strong>, <strong>municipio</strong> y <strong>email de
+  facturación</strong>, todos obligatorios, y los guarda en la empresa. Además, la cuenta de cobro se
+  emite como documento soporte electrónico al confirmar la factura. Sin Jorels esos campos no
+  aparecen y nada falla.</li>
+<li style="margin-bottom:7px;"><strong>pypdf</strong>, opcional. Sirve para contar páginas y para detectar PDF con contraseña. Sin pypdf la
+  contraseña se detecta por la marca <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/Encrypt</code> del archivo: lo probamos en local, que no lo
+  tiene, y un PDF cifrado fue rechazado. Odoo.sh trae pypdf. Está en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">requirements.txt</code> del
+  módulo; Odoo.sh solo lee el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">requirements.txt</code> de la raíz del repositorio, así que la línea hay
+  que copiarla allí. No está en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">external_dependencies</code> a propósito: si faltara, bloquearía la
+  instalación.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Instalar</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Instalar <strong>Portal de facturas de proveedor</strong> desde <em>Aplicaciones</em> o con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-i supplier_invoice_portal</code>.</li>
+<li style="margin-bottom:7px;">El módulo crea los grupos <strong>Validador</strong> y <strong>Responsable</strong>, la secuencia de solicitudes, las
+  plantillas de correo y el menú <em>Compras › Solicitudes de pago de proveedor</em>. También agrega la
+  pestaña <strong>Portal de proveedor</strong> en la ficha del contacto y el bloque de Ajustes.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Actualizar desde Odoo 17</h2>
+<p style="margin:0 0 12px;">Los scripts de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">migrations/</code> se ejecutan solos al actualizar y se pueden correr más de una vez.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>17.0.1.1.0</strong>: una solicitud pasa de una orden (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase_id</code>) a varias (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">purchase_ids</code>); se
+  copia la orden a la tabla nueva y se recrea la plantilla de correo de recibido.</li>
+<li style="margin-bottom:7px;"><strong>17.0.1.2.0</strong>: los documentos del proveedor dejan de ser campos binarios y pasan a ser adjuntos
+  del contacto. Se reusa el adjunto existente y se le pone su nombre de archivo.</li>
+<li style="margin-bottom:7px;"><strong>19.0.1.2.0</strong>: el pre-migrate pasa a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">list</code> las vistas del módulo que sigan como <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tree</code> y
+  renombra el xmlid de la lista si el nuevo no existe. El post-migrate reactiva las vistas del
+  módulo que el upgrade haya dejado inactivas; la que no valide queda inactiva y se avisa en el
+  log.</li>
+</ul>
+<h2>Configuración</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Ajustes del módulo</h2>
+<p style="margin:0 0 12px;"><em>Compras › Configuración › Ajustes</em>, bloque <strong>Portal de facturas de proveedor</strong>. Ese menú es de
+<em>Administración / Ajustes</em>: un <em>Compras: Administrador</em> sin ese permiso no lo ve.</p>
+<div class="lc-fig"><img alt="Compras › Configuración › Ajustes › Portal de facturas de proveedor: diarios, producto de flete, NIT, verificación de emisor y receptor, cierre de fin de mes y grupo validador" src="36_ajustes_modulo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Compras › Configuración › Ajustes › Portal de facturas de proveedor: diarios, producto de flete, NIT, verificación de emisor y receptor, cierre de fin de mes y grupo validador</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Diario por defecto</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">spr.default_journal_id</code>): diario de compras donde se crean las
+  facturas borrador.</li>
+<li style="margin-bottom:7px;"><strong>Diario de documento soporte</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">spr.support_journal_id</code>): diario con la resolución DIAN de
+  documento soporte. Ahí se registran las cuentas de cobro. Sin este diario, <em>Crear factura</em> no
+  funciona para una cuenta de cobro.</li>
+<li style="margin-bottom:7px;"><strong>Producto de flete</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">spr.freight_product_id</code>): producto de servicio para los fletes que la
+  factura cobra y la orden no tiene. Sin él, <em>Crear factura</em> no funciona para una factura con
+  flete.</li>
+<li style="margin-bottom:7px;"><strong>Tolerancia de montos</strong>: diferencia admitida entre la factura y lo pendiente de la orden. Pasa
+  si está dentro del porcentaje <strong>o</strong> del monto absoluto. Por defecto 0,5 % o 1.000. La misma
+  tolerancia porcentual vale para el <strong>precio unitario</strong> de cada línea: es la regla de negocio
+  vigente. Un precio de 12.050 contra 12.000 de la orden (0,42 %) pasa sin observación.</li>
+<li style="margin-bottom:7px;"><strong>NIT de la compañía</strong>: dejarlo vacío si el NIT está bien puesto en la ficha de la compañía.</li>
+<li style="margin-bottom:7px;"><strong>Verificar emisor y receptor</strong>: activo por defecto. Compara el NIT del emisor con el proveedor
+  y el del adquiriente con la compañía.</li>
+<li style="margin-bottom:7px;"><strong>Cierre de radicación de fin de mes</strong>: activo por defecto, con <strong>hora de corte</strong> a las 12:00.
+  El último día hábil del mes, desde esa hora, el portal no recibe documentos hasta el día 1. Tiene
+  en cuenta los festivos de Colombia.</li>
+<li style="margin-bottom:7px;"><strong>Grupo validador</strong>: el grupo cuyos usuarios reciben la actividad de revisión.</li>
+<li style="margin-bottom:7px;"><strong>IVA como producto</strong>: apagado por defecto. Activo, las líneas van con el impuesto exento y el
+  IVA entra como una línea del producto de mayor valor IVA.</li>
+<li style="margin-bottom:7px;"><strong>Verificar el CUFE en el catálogo DIAN</strong>: apagado por defecto, porque la DIAN pide captcha.</li>
+<li style="margin-bottom:7px;"><strong>OCR del PDF</strong>, <strong>Emparejamiento por IA</strong> y <strong>Conexión de prueba por CLI</strong>: servicios externos
+  opcionales. Ver <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">README.md</code> del módulo.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Habilitar un proveedor</h2>
+<p style="margin:0 0 12px;">Se hace en la ficha de la <strong>empresa</strong>, o de la persona natural que no pertenece a ninguna empresa.
+La ficha debe tener el NIT. En un contacto hijo la pestaña no aparece: ese contacto radica a
+nombre de su empresa. La pestaña la ven solo los usuarios del grupo <strong>Responsable</strong>.</p>
+<div class="lc-fig"><img alt="Contactos › proveedor › Portal de proveedor: casillas, documentos y botón del instructivo" src="01_proveedor_habilitado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Contactos › proveedor › Portal de proveedor: casillas, documentos y botón del instructivo</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Puede radicar facturas en el portal</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">portal_invoice_enabled</code>). Sin esta casilla, el
+  proveedor entra al portal pero no ve <em>Radicar facturas</em>.</li>
+<li style="margin-bottom:7px;"><strong>No obligado a facturar (documento soporte)</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">spr_support_document</code>). Marcarla solo para
+  quien radica cuentas de cobro: le agrega el tipo <em>Cuenta de cobro</em> y no le pide XML.</li>
+<li style="margin-bottom:7px;"><strong>Documentos del proveedor</strong>: cámara de comercio, RUT y certificación bancaria. Normalmente los
+  carga el proveedor desde <em>Mi cuenta</em>. Desde el backend se adjunta el PDF en el chatter y se
+  elige en el campo. Debajo se ve la vista previa de cada uno.</li>
+<li style="margin-bottom:7px;">La pestaña <strong>Facturación electrónica</strong> (Jorels) muestra los datos que el proveedor completa en
+  <em>Mi cuenta</em>.</li>
+</ul>
+<div class="lc-fig"><img alt="Contacto › Facturación electrónica: régimen, responsabilidad, municipio y email que completa el proveedor" src="04_datos_jorels.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Contacto › Facturación electrónica: régimen, responsabilidad, municipio y email que completa el proveedor</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dar acceso al portal</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">En la empresa, pestaña <em>Contactos</em>, crear un contacto hijo con correo para cada persona que va a
+  radicar. Luego, en ese contacto, ir a <em>Acción › Otorgar acceso al portal</em>. Es el asistente
+  estándar de Odoo y requiere permisos de administración: un <em>Compras: Administrador</em> recibe
+  "No tiene suficientes permisos".</li>
+</ul>
+<div class="lc-fig"><img alt="Contacto › Acción › Otorgar acceso al portal: asistente estándar de Odoo para dar acceso al contacto que va a radicar" src="37_otorgar_acceso_portal.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Contacto › Acción › Otorgar acceso al portal: asistente estándar de Odoo para dar acceso al contacto que va a radicar</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Odoo envía la invitación y el usuario define su clave. Si hay varias bases sin <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">dbfilter</code>, el
+  enlace hay que abrirlo después de entrar a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/web/login?db=&lt;base&gt;</code>.</li>
+</ul>
+<div class="lc-fig"><img alt="Invitación al portal que recibe el contacto" src="03_invitacion_portal.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Invitación al portal que recibe el contacto</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Pulsar <strong>Enviar instructivo del portal</strong> en la ficha de la empresa. Se abre el correo con el
+  paso a paso y la guía en PDF ya adjunta: solo hay que revisar los destinatarios y enviar.</li>
+</ul>
+<div class="lc-fig"><img alt="Correo del instructivo del portal antes de enviarlo" src="02_instructivo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Correo del instructivo del portal antes de enviarlo</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Permisos</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Validador</strong>: ve las solicitudes, valida, empareja líneas a mano, toma la revisión y crea la
+  factura borrador.</li>
+<li style="margin-bottom:7px;"><strong>Responsable</strong>: lo anterior, más rechazar, aceptar notas débito, devolver a borrador, cancelar
+  y habilitar proveedores. <em>Compras: Administrador</em> es Responsable sin asignarlo.</li>
+<li style="margin-bottom:7px;">Los grupos se asignan en la ficha del usuario, sección <em>Portal de facturas de proveedor</em>.</li>
+<li style="margin-bottom:7px;"><strong>Requisito con Jorels: los validadores deben tener <em>Facturación electrónica / Usuario</em>.</strong> El
+  personal de contabilidad y compras que revisa solicitudes tiene ese acceso. Sin él, <em>Crear
+  factura</em> sí crea el borrador, pero al abrirlo Odoo muestra "Error de acceso … Eventos del
+  Radian", y tampoco se puede confirmar.</li>
+<li style="margin-bottom:7px;">El proveedor (usuario del portal) solo ve las solicitudes de su empresa.</li>
+</ul>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">El proveedor, antes de radicar</h2>
+<p style="margin:0 0 12px;">Todo proveedor habilitado tiene que cargar <strong>cámara de comercio, RUT y certificación bancaria</strong>.
+Mientras falte alguno, la entrada del portal (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/my</code>) muestra el aviso. <strong>Radicar factura</strong>, la
+lista de solicitudes y el botón de la orden de compra muestran el mismo aviso y no dejan radicar.</p>
+<div class="lc-fig"><img alt="Portal › Mi cuenta: aviso de documentos faltantes y tarjeta Radicar facturas" src="05_portal_inicio_aviso.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Portal › Mi cuenta: aviso de documentos faltantes y tarjeta Radicar facturas</p></div>
+<div class="lc-fig"><img alt="Radicar sin los documentos: el formulario no se muestra" src="06_portal_bloqueo_documentos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Radicar sin los documentos: el formulario no se muestra</p></div>
+<p style="margin:0 0 12px;">En <em>Mi cuenta › Editar información</em> el proveedor completa su dirección con <strong>código postal</strong>
+(Odoo lo exige para Colombia) y, si Jorels está instalado, sus <strong>datos de facturación
+electrónica</strong>: tipo de régimen, tipo de responsabilidad, municipio y email de facturación.
+También sube los tres documentos: PDF sin contraseña y de hasta 2 MB, arrastrando el archivo o
+con clic. Los cuatro datos de facturación llevan asterisco de obligatorio, y los documentos que
+todavía faltan también. Un documento ya cargado no hay que volver a subirlo para guardar.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Si falta un campo obligatorio, el navegador no envía el formulario y marca el primero que está
+  vacío.</li>
+<li style="margin-bottom:7px;">Un error del servidor sale arriba del formulario, y la zona del documento con error se pinta de
+  rojo (por ejemplo, un RUT que no es PDF). Al elegir otro archivo se quita el rojo.</li>
+<li style="margin-bottom:7px;">Al guardar, los datos y los documentos quedan en la <strong>empresa</strong>, aunque los cargue un contacto
+  hijo. En el chatter queda una nota "actualizó desde el portal".</li>
+</ul>
+<div class="lc-fig"><img alt="Mi cuenta con un error: el RUT no es PDF" src="08_mi_cuenta_error.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Mi cuenta con un error: el RUT no es PDF</p></div>
+<div class="lc-fig"><img alt="Mi cuenta completa: facturación electrónica y documentos cargados" src="09_mi_cuenta_completa.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Mi cuenta completa: facturación electrónica y documentos cargados</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">El proveedor radica</h2>
+<p style="margin:0 0 12px;">Desde <em>Radicar facturas › Radicar factura</em>, o desde la orden de compra del portal con <strong>Radicar
+factura de esta orden</strong>:</p>
+<div class="lc-fig"><img alt="Portal › orden de compra: Radicar factura de esta orden" src="07_portal_orden_compra.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Portal › orden de compra: Radicar factura de esta orden</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Factura electrónica</strong>: marcar una o varias órdenes (se ofrecen las confirmadas que no tienen
+  factura ni una radicación en curso) y adjuntar el PDF y el <strong>XML de la DIAN</strong>. El XML es
+  obligatorio para quien está obligado a facturar.</li>
+<li style="margin-bottom:7px;"><strong>Nota crédito</strong> o <strong>Nota débito</strong>: elegir la factura que corrige (o dejar que se tome del XML) y
+  adjuntar PDF y XML. La lista solo trae facturas ya publicadas. Si el XML apunta a una factura
+  todavía en borrador, la solicitud queda <em>Con observaciones</em>.</li>
+<li style="margin-bottom:7px;"><strong>Cuenta de cobro (documento soporte)</strong>: solo para quien está marcado como no obligado a
+  facturar. Se marcan las órdenes, se adjunta el PDF y se digitan número, fecha y valor total. No
+  pide XML.</li>
+<li style="margin-bottom:7px;">En todos los casos el proveedor puede dejar una nota para contabilidad.</li>
+</ul>
+<div class="lc-fig"><img alt="Radicar una factura electrónica sobre una orden de compra" src="10_portal_radicar_factura.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Radicar una factura electrónica sobre una orden de compra</p></div>
+<div class="lc-fig"><img alt="Radicar una nota crédito: factura que afecta, PDF y XML" src="14_portal_nota_credito.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Radicar una nota crédito: factura que afecta, PDF y XML</p></div>
+<div class="lc-fig"><img alt="Cuenta de cobro de un proveedor no obligado a facturar" src="15_portal_cuenta_de_cobro.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cuenta de cobro de un proveedor no obligado a facturar</p></div>
+<p style="margin:0 0 12px;">Al enviar, el proveedor ve el resultado de inmediato:</p>
+<div class="lc-fig"><img alt="Aprobada: pasó las validaciones y queda en cola de contabilidad" src="11_portal_resultado_aprobada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aprobada: pasó las validaciones y queda en cola de contabilidad</p></div>
+<div class="lc-fig"><img alt="Rechazada: total y cantidad mayores a lo pendiente de la orden" src="12_portal_resultado_rechazada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Rechazada: total y cantidad mayores a lo pendiente de la orden</p></div>
+<div class="lc-fig"><img alt="Con observaciones: flete que no está en la orden de compra" src="13_portal_resultado_observaciones.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Con observaciones: flete que no está en la orden de compra</p></div>
+<p style="margin:0 0 12px;">En <em>Facturas radicadas</em> sigue el estado de cada documento. Si contabilidad rechaza una solicitud,
+el motivo aparece en el detalle y le llega por correo:</p>
+<div class="lc-fig"><img alt="Portal › Facturas radicadas" src="16_portal_lista_solicitudes.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Portal › Facturas radicadas</p></div>
+<div class="lc-fig"><img alt="Detalle de una solicitud rechazada, con el motivo" src="17_portal_detalle_rechazo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Detalle de una solicitud rechazada, con el motivo</p></div>
+<p style="margin:0 0 12px;">Un proveedor sin la casilla <strong>Puede radicar</strong> no ve la tarjeta. Si entra a la dirección
+directamente, ve este aviso:</p>
+<div class="lc-fig"><img alt="Proveedor no habilitado" src="18_portal_no_habilitado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Proveedor no habilitado</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Contabilidad revisa</h2>
+<p style="margin:0 0 12px;">Menú <em>Compras › Solicitudes de pago de proveedor</em>. Por defecto la lista sale agrupada por estado.
+El filtro <strong>Por revisar</strong> trae las <em>Aprobadas</em> y <em>Con observaciones</em>. Con <strong>Mis revisiones</strong> y
+<strong>Agrupar por revisor</strong> se reparte el trabajo.</p>
+<div class="lc-fig"><img alt="Lista de solicitudes con su factura, revisor y estado" src="19_backend_lista.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Lista de solicitudes con su factura, revisor y estado</p></div>
+<div class="lc-fig"><img alt="Filtros Por revisar y Mis revisiones; agrupar por revisor" src="20_backend_filtros.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Filtros Por revisar y Mis revisiones; agrupar por revisor</p></div>
+<p style="margin:0 0 12px;">Estados:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Borrador</strong>: creada a mano en el backend, sin validar.</li>
+<li style="margin-bottom:7px;"><strong>Validando</strong>: se está procesando. Si se queda ahí, pulsar <em>Revalidar</em>.</li>
+<li style="margin-bottom:7px;"><strong>Aprobada</strong>: pasaron todas las reglas. Se puede crear la factura.</li>
+<li style="margin-bottom:7px;"><strong>Con observaciones</strong>: pasó, pero hay algo que revisar (flete, precio fuera de la tolerancia, línea sin
+  emparejar, nota débito por aceptar).</li>
+<li style="margin-bottom:7px;"><strong>Rechazada</strong>: falló una regla dura o la rechazó el Responsable. El proveedor ya fue avisado.</li>
+<li style="margin-bottom:7px;"><strong>Facturada</strong>: ya tiene factura de proveedor.</li>
+<li style="margin-bottom:7px;"><strong>Cancelada</strong>: descartada por el Responsable.</li>
+</ul>
+<p style="margin:0 0 12px;">Cuando llega una solicitud, <strong>cada validador</strong> recibe la actividad "Revisar solicitud de pago".
+Quien la va a trabajar pulsa <strong>Tomar revisión</strong>: queda como <em>Revisor asignado</em>, las tareas de los
+demás desaparecen y en el chatter queda una sola nota. Los otros usuarios ven el aviso <strong>"En
+revisión por …"</strong>, que no los bloquea. Crear la factura, rechazar, aceptar una nota débito,
+emparejar a mano o revalidar también asignan al usuario, si la solicitud no tenía revisor.</p>
+<div class="lc-fig"><img alt="Actividades del validador" src="21_backend_actividades.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Actividades del validador</p></div>
+<div class="lc-fig"><img alt="Tomar revisión" src="22_backend_tomar_revision.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Tomar revisión</p></div>
+<div class="lc-fig"><img alt="Aviso En revisión por, visto por otro usuario" src="23_backend_en_revision_por.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aviso En revisión por, visto por otro usuario</p></div>
+<p style="margin:0 0 12px;">Pestañas de la solicitud:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Validación</strong>: cada regla con su resultado en español. Los errores rechazan; las observaciones
+  solo avisan.</li>
+<li style="margin-bottom:7px;"><strong>Líneas y emparejamiento</strong>: a qué línea de la orden corresponde cada línea de la factura y por
+  qué método (por código, por IA o manual). Si se cambia a mano la línea de la orden, hay que
+  pulsar <strong>Revalidar</strong>; lo emparejado a mano se conserva. Los fletes quedan como <strong>cargo
+  adicional</strong>.</li>
+<li style="margin-bottom:7px;"><strong>Datos extraídos</strong>: emisor, adquiriente, número, fecha y totales leídos del XML.</li>
+<li style="margin-bottom:7px;"><strong>Adjuntos</strong>: el PDF y el XML tal como los subió el proveedor.</li>
+</ul>
+<div class="lc-fig"><img alt="Pestaña Validación" src="24_backend_validacion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pestaña Validación</p></div>
+<div class="lc-fig"><img alt="Líneas: emparejamiento manual y cargo adicional" src="25_backend_lineas.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Líneas: emparejamiento manual y cargo adicional</p></div>
+<div class="lc-fig"><img alt="Datos extraídos del XML" src="26_backend_datos_extraidos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Datos extraídos del XML</p></div>
+<div class="lc-fig"><img alt="Adjuntos de la solicitud" src="27_backend_adjuntos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Adjuntos de la solicitud</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Crear la factura</h2>
+<p style="margin:0 0 12px;">Con la solicitud <em>Aprobada</em> o <em>Con observaciones</em>, <strong>Crear factura</strong> genera la factura de
+proveedor en <strong>borrador</strong>:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">trae las líneas ligadas a la orden, y la orden queda <em>Facturada</em> en el momento;</li>
+<li style="margin-bottom:7px;">la referencia es el número del proveedor;</li>
+<li style="margin-bottom:7px;">muestra el <strong>CUFE / CUDE del proveedor</strong>, con un botón para copiarlo y el enlace <strong>Consultar en
+  la DIAN</strong> (en facturas y notas crédito de proveedor);</li>
+<li style="margin-bottom:7px;">adjunta el PDF y el XML;</li>
+<li style="margin-bottom:7px;">un flete va con el <strong>producto de flete</strong> y se liga a una línea de flete de la orden; si la orden
+  no la tiene, se la agrega.</li>
+</ul>
+<p style="margin:0 0 12px;">Las actividades de revisión se cierran y el proveedor recibe el correo "factura registrada". La
+factura se confirma por el flujo normal. Si se borra la factura borrador, la solicitud vuelve a
+<em>Aprobada</em>.</p>
+<div class="lc-fig"><img alt="Factura borrador creada desde la solicitud: referencia, orden, PDF adjunto y CUFE con Consultar en la DIAN" src="28_factura_borrador.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Factura borrador creada desde la solicitud: referencia, orden, PDF adjunto y CUFE con Consultar en la DIAN</p></div>
+<div class="lc-fig"><img alt="Factura con la línea de flete" src="29_factura_con_flete.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Factura con la línea de flete</p></div>
+<p style="margin:0 0 12px;"><strong>Notas crédito y débito.</strong> La nota se asocia a la factura que corrige y no cambia las cantidades
+facturadas de la orden.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">La <strong>nota crédito</strong> genera un reembolso de proveedor en borrador que revierte esa factura. Si la
+  línea de la orden tiene analítica, el reembolso la copia.</li>
+<li style="margin-bottom:7px;">La <strong>nota débito</strong> queda <em>Con observaciones</em> hasta que el Responsable pulse <strong>Aceptar nota
+  débito</strong>. Recién entonces aparece <em>Crear factura</em>, que la liga a la factura original.</li>
+</ul>
+<div class="lc-fig"><img alt="Reembolso de proveedor generado por la nota crédito" src="30_reembolso_nota_credito.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Reembolso de proveedor generado por la nota crédito</p></div>
+<div class="lc-fig"><img alt="Aceptar nota débito antes de crear la factura" src="31_backend_aceptar_nota_debito.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aceptar nota débito antes de crear la factura</p></div>
+<p style="margin:0 0 12px;"><strong>Cuenta de cobro.</strong> Número, fecha y total los declara el proveedor; las líneas salen de lo
+pendiente de sus órdenes. La factura se crea en el <strong>diario de documento soporte</strong>. Al
+confirmarla, Jorels emite el documento soporte ante la DIAN; en la base local no lo hace, porque
+no tiene resolución ni token.</p>
+<div class="lc-fig"><img alt="Cuenta de cobro registrada en el diario de documento soporte" src="32_documento_soporte.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cuenta de cobro registrada en el diario de documento soporte</p></div>
+<p style="margin:0 0 12px;"><strong>Rechazar.</strong> El Responsable rechaza una solicitud <em>Aprobada</em> o <em>Con observaciones</em> con
+<strong>Rechazar</strong>. El motivo es obligatorio, le llega al proveedor y queda en el chatter.</p>
+<div class="lc-fig"><img alt="Asistente de rechazo con motivo" src="33_backend_asistente_rechazo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Asistente de rechazo con motivo</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Correos al proveedor</h2>
+<p style="margin:0 0 12px;">El proveedor recibe un correo cuando su documento queda en revisión, cuando no pasa las
+validaciones, cuando contabilidad lo rechaza y cuando la factura queda registrada. Cada correo le
+llega a la empresa y a la persona que radicó, también cuando es una persona natural sin empresa.</p>
+<div class="lc-fig"><img alt="Correo: la factura no pasó las validaciones" src="34_correo_requiere_correccion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Correo: la factura no pasó las validaciones</p></div>
+<div class="lc-fig"><img alt="Correo: factura registrada" src="35_correo_factura_registrada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Correo: factura registrada</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Cierre de fin de mes</h2>
+<p style="margin:0 0 12px;">El último día hábil del mes, desde la hora de corte (12:00 por defecto), el portal muestra que la
+radicación está cerrada y desde qué día se reabre. Solo cierra el portal: contabilidad puede seguir
+creando solicitudes en el backend. Esta pantalla no se capturó, porque la prueba no se hizo en un
+día de cierre.</p>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Hallazgos abiertos de la prueba en navegador (Odoo 19, 2026-10-02)</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Mi cuenta: el navegador avisa un campo a la vez.</strong> Odoo 19 valida primero en el navegador
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reportValidity</code>): marca el primer campo obligatorio vacío y no muestra la lista de errores en
+  rojo. La lista del servidor aparece solo en los errores que el navegador no detecta, como un
+  archivo que no es PDF.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Verificar en staging</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Documento soporte electrónico</strong>: confirmar una cuenta de cobro en el diario de documento
+  soporte y comprobar que Jorels lo emite ante la DIAN. En local la factura queda <em>Registrada</em>
+  con la advertencia "NO ha sido validado con la DIAN".</li>
+<li style="margin-bottom:7px;"><strong>Municipios de Jorels</strong>: el selector de <em>Mi cuenta</em> tiene unas 1.100 opciones; revisar que sea
+  usable con los datos reales.</li>
+<li style="margin-bottom:7px;"><strong>pypdf</strong>: comprobar que esté instalado (Odoo.sh lo trae) y que la línea de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">requirements.txt</code> esté en la raíz del repositorio. En local no está, y un PDF con contraseña se
+  rechazó igual, por la marca <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/Encrypt</code>.</li>
+<li style="margin-bottom:7px;"><strong>Analítica en notas</strong>: la orden de la prueba no tenía analítica. Falta ver un reembolso cuya
+  orden sí la tenga.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pendiente de documentar</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Pantalla de cierre de fin de mes</strong> en el portal: solo se ve el último día hábil del mes,
+  después de la hora de corte.</li>
+<li style="margin-bottom:7px;"><strong>Icono</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> de 100×100: falta y necesita arte.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Límites conocidos</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>La tolerancia porcentual (0,5 % por defecto) vale también para el precio unitario.</strong> Es la
+  regla de negocio vigente: un precio de 12.050 contra 12.000 (0,42 %) no deja la observación
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PRICE_UNIT_MISMATCH</code>.</li>
+<li style="margin-bottom:7px;">
+<p style="margin:0 0 12px;"><strong>Con Jorels, los validadores necesitan <em>Facturación electrónica / Usuario</em></strong> para abrir y
+  confirmar las facturas que crea el módulo. Ver <em>Permisos</em> en la configuración.</p>
+</li>
+<li style="margin-bottom:7px;">
+<p style="margin:0 0 12px;">La numeración <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SPR/…</code> es interna. La factura usa la secuencia del diario y, en el documento
+  soporte, la resolución DIAN.</p>
+</li>
+<li style="margin-bottom:7px;">Una orden con una radicación en curso (no rechazada ni cancelada), o que ya tiene factura, no
+  acepta otra factura. Lo que falte o sobre se radica como nota.</li>
+<li style="margin-bottom:7px;">OCR del PDF y emparejamiento por IA dependen de servicios externos; sin ellos, una factura sin
+  XML se captura a mano.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee Roasters</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Miguel Bolivar (migración 17→19, endurecimiento, tests, documentación)</li>
+<li style="margin-bottom:7px;">Equipo Libertario Coffee Roasters (requisitos, comité funcional, validación funcional)</li>
+</ul></div>
+</div>

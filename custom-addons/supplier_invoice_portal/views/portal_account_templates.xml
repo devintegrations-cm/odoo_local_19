@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- "Edit information" (/my/account) del proveedor habilitado: datos de
+         facturacion electronica (solo si Jorels esta instalado) y documentos.
+         Los valores los pone controllers/portal_account.py (DECISIONS.md #44). -->
+    <template id="portal_my_details_spr" inherit_id="portal.portal_my_details"
+              name="Portal: facturacion y documentos del proveedor">
+        <!-- Sin enctype: en 19 el formulario lo envia address.js con
+             new FormData(form), que siempre va como multipart y lleva los
+             archivos. Los errores los marca el mismo JS (is-invalid en el input
+             y mensajes en #errors), no esta plantilla. -->
+        <xpath expr="//t[@t-call='portal.address_form_fields']" position="after">
+            <t t-if="spr_account_partner">
+                <div class="col-12 mt-4" t-if="spr_jorels_fields">
+                    <h5 class="mb-0">Facturacion electronica</h5>
+                    <small class="text-muted">
+                        Datos de <span t-out="spr_account_partner.name"/> para la factura electronica.
+                    </small>
+                </div>
+                <t t-foreach="spr_jorels_fields" t-as="jf">
+                    <div class="mb-3 col-xl-6">
+                        <!-- Obligatorio para el proveedor habilitado (DECISIONS.md #53).
+                             data-spr-required: address.js le quita el required (y el
+                             asterisco) a lo que no esta en sus required_fields; el
+                             parche de spr_dropzone.js se lo devuelve (#58). -->
+                        <label class="col-form-label" t-att-for="'spr_' + jf['name']"
+                               t-out="jf['label']"/>
+                        <t t-if="jf['type'] == 'char'">
+                            <input type="email" t-att-name="jf['name']" t-att-id="'spr_' + jf['name']"
+                                   class="form-control" required="required" data-spr-required="1"
+                                   t-att-value="jf['value']"/>
+                        </t>
+                        <t t-else="">
+                            <!-- Con esto el campo llega aunque no se marque nada: asi
+                                 se puede dejar un many2many vacio. -->
+                            <input t-if="jf['type'] == 'many2many'" type="hidden"
+                                   t-att-name="jf['name']" value=""/>
+                            <select t-att-name="jf['name']" t-att-id="'spr_' + jf['name']"
+                                    t-att-multiple="'multiple' if jf['type'] == 'many2many' else None"
+                                    class="form-select" required="required" data-spr-required="1">
+                                <option t-if="jf['type'] == 'many2one'" value="">Seleccione...</option>
+                                <t t-foreach="jf['options']" t-as="opt">
+                                    <option t-att-value="opt[0]"
+                                            t-att-selected="'selected' if opt[0] in jf['selected'] else None"
+                                            t-out="opt[1]"/>
+                                </t>
+                            </select>
+                        </t>
+                    </div>
+                </t>
+
+                <!-- Los tres documentos son requisito para radicar (DECISIONS.md #50). -->
+                <div class="col-12 mt-4">
+                    <h5 class="mb-0">Documentos</h5>
+                    <small class="text-muted">
+                        Los tres son obligatorios para radicar facturas. Solo PDF sin contrasena,
+                        maximo <t t-out="spr_doc_max_mb"/> MB por archivo. Si ya esta cargado, no
+                        tiene que subirlo de nuevo.
+                    </small>
+                </div>
+                <t t-foreach="spr_documents" t-as="doc">
+                    <div class="mb-3 col-xl-6">
+                        <!-- Asterisco de obligatorio (sin label-optional) solo si falta: uno
+                             ya cargado no se vuelve a pedir. Sin required en el input:
+                             guardar el resto de los datos no depende de los documentos;
+                             radicar si (DECISIONS.md #50 y #58). -->
+                        <label t-attf-class="col-form-label #{'label-optional' if doc['filename'] else ''}"
+                               t-att-for="'spr_' + doc['name']" t-out="doc['label']"/>
+                        <div class="o_spr_dropzone">
+                            <i class="fa fa-cloud-upload fa-2x text-muted d-block mb-1"/>
+                            <span>Arrastre el archivo aqui o <span class="text-primary">haga clic para elegirlo</span></span>
+                            <div class="o_spr_dropzone_name small fw-bold mt-1"/>
+                            <input type="file" t-att-name="doc['name']" t-att-id="'spr_' + doc['name']"
+                                   t-att-accept="spr_doc_accept"/>
+                        </div>
+                        <small class="form-text text-muted d-block">
+                            <t t-if="doc['filename']">
+                                <i class="fa fa-check text-success"/> Cargado: <span t-out="doc['filename']"/>
+                                <!-- Vista previa (DECISIONS.md #47). El iframe es lazy: no
+                                     se descarga hasta que se despliega. -->
+                                <a class="ms-2" data-bs-toggle="collapse" role="button"
+                                   t-attf-href="#spr_preview_#{doc['name']}">
+                                    <i class="fa fa-eye"/> Ver
+                                </a>
+                                <a class="ms-2" target="_blank"
+                                   t-attf-href="/my/account/document/#{doc['name']}">
+                                    <i class="fa fa-external-link"/> Abrir
+                                </a>
+                            </t>
+                            <t t-else=""><span class="text-danger">Sin documento cargado: es necesario para radicar.</span></t>
+                        </small>
+                        <div t-if="doc['filename']" class="collapse mt-2" t-attf-id="spr_preview_#{doc['name']}">
+                            <iframe t-attf-src="/my/account/document/#{doc['name']}" loading="lazy"
+                                    class="w-100 border rounded" style="height: 28rem;"
+                                    t-att-title="doc['label']"/>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+</odoo>

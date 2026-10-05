@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- CUFE/CUDE del documento del proveedor en la factura y la nota credito de
+         proveedor (DECISIONS.md #55). Al final del grupo izquierdo del
+         encabezado y no junto a "ref": Jorels inserta sus campos despues del
+         primer field[@name='ref'] y alli quedaria en medio de ellos. -->
+    <record id="view_move_form_spr_cufe" model="ir.ui.view">
+        <field name="name">account.move.form.spr.cufe</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@id='header_left_group']" position="inside">
+                <label for="cufe" string="CUFE / CUDE del proveedor"
+                       invisible="not cufe or move_type not in ('in_invoice', 'in_refund')"/>
+                <div name="spr_cufe_div" class="d-flex flex-column"
+                     invisible="not cufe or move_type not in ('in_invoice', 'in_refund')">
+                    <field name="cufe" widget="CopyClipboardChar" readonly="1" nolabel="1"
+                           class="font-monospace text-break"/>
+                    <field name="spr_cufe_dian_url" widget="url" text="Consultar en la DIAN"
+                           readonly="1" nolabel="1"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Buscar facturas de proveedor por CUFE. -->
+    <record id="view_account_invoice_filter_spr_cufe" model="ir.ui.view">
+        <field name="name">account.invoice.select.spr.cufe</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='ref']" position="after">
+                <field name="cufe" string="CUFE"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,2 @@
+- Miguel Bolivar (migración 17→19, endurecimiento, tests, documentación)
+- Equipo Libertario Coffee Roasters (requisitos, comité funcional, validación funcional)
