@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="account_payment_dispersion_inherit_view_partner_property_form" model="ir.ui.view">
+            <field name="name">res.partner.bank.list.inherit.account.payment.dispersion</field>
+            <field name="model">res.partner.bank</field>
+            <field name="inherit_id" ref="base.view_partner_bank_tree"/>
+            <field name="arch" type="xml">
+                <field name="acc_number" position="after">
+                    <field name="type_of_account" optional="show"/>
+                </field>
+            </field>
+        </record>
+	</data>
+</odoo>

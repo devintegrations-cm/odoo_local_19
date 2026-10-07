@@ -1,0 +1,99 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Base de la dispersión de pagos a proveedores para Colombia. Deja en Odoo los datos que necesita un
+archivo de dispersión bancaria y guarda el historial de las dispersiones hechas.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Bancos colombianos.</strong> Carga 68 bancos de Colombia con su <strong>Código</strong> de banco, un campo nuevo
+  distinto del BIC que es el que piden los archivos de dispersión.</li>
+<li style="margin-bottom:7px;"><strong>Tipo de cuenta.</strong> Agrega el campo <strong>Tipo de cuenta</strong> (<em>Sin cuenta</em>, <em>Cuenta corriente</em>, <em>Cuenta
+  de ahorro</em>, <em>Cuenta nómina</em>) a las cuentas bancarias de los contactos.</li>
+<li style="margin-bottom:7px;"><strong>Pagos a proveedor.</strong> El pago saliente muestra el tipo de cuenta de la cuenta bancaria del
+  proveedor, sin tener que abrirla.</li>
+<li style="margin-bottom:7px;"><strong>Historial de dispersiones.</strong> Un registro por dispersión con el archivo generado, el diario y los
+  pagos incluidos, en solo lectura.</li>
+</ul>
+<p style="margin:0 0 12px;">Este módulo no genera archivos por sí solo: los generan los módulos de cada banco
+(<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">bancolombia_payment_dispersal</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">banco_de_occidente_payment_dispersal</code>), que se apoyan en él.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">No hay ajustes que activar. Lo que hay que dejar bien cargado son los datos de bancos y cuentas.</p>
+<p style="margin:0 0 12px;"><strong>1. Código del banco.</strong> Los 68 bancos colombianos se instalan con el código ya puesto. Para
+revisarlo o cargarlo en un banco nuevo: <em>Contactos › Configuración › Cuentas bancarias › Bancos</em>,
+campo <strong>Código</strong>.</p>
+<div class="lc-fig"><img alt="Contactos › Configuración › Cuentas bancarias › Bancos: campo Código" src="01_banco_codigo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Contactos › Configuración › Cuentas bancarias › Bancos: campo Código</p></div>
+<p style="margin:0 0 12px;"><strong>2. Tipo de cuenta del proveedor.</strong> En cada cuenta bancaria de proveedor que se vaya a pagar por
+dispersión: <em>Contactos › Configuración › Cuentas bancarias › Cuentas bancarias</em>, abrir la cuenta y
+elegir el <strong>Tipo de cuenta</strong>. El banco de la cuenta tiene que ser uno con <strong>Código</strong>.</p>
+<div class="lc-fig"><img alt="Contactos › Configuración › Cuentas bancarias › Cuentas bancarias: campo Tipo de cuenta" src="02_cuenta_bancaria_tipo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Contactos › Configuración › Cuentas bancarias › Cuentas bancarias: campo Tipo de cuenta</p></div>
+<p style="margin:0 0 12px;">La lista de cuentas bancarias trae la columna <strong>Tipo de cuenta</strong> (opcional, visible por defecto),
+para revisar de un vistazo qué cuentas faltan.</p>
+<div class="lc-fig"><img alt="Lista de cuentas bancarias con la columna Tipo de cuenta" src="03_lista_cuentas_bancarias.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Lista de cuentas bancarias con la columna Tipo de cuenta</p></div>
+<p style="margin:0 0 12px;">A tener en cuenta:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>En Odoo 19 el tipo de cuenta no se ve en la ficha del contacto.</strong> La pestaña <em>Facturación</em> del
+  contacto muestra las cuentas bancarias como etiquetas, sin columnas. El tipo de cuenta se carga
+  desde <em>Cuentas bancarias</em> (o abriendo la etiqueta).</li>
+<li style="margin-bottom:7px;"><strong>Permisos.</strong> Ver el historial necesita <em>Contabilidad / Facturación</em> (lee, crea y modifica, no
+  borra) o <em>Contabilidad / Administrador</em> (todo). El menú de <em>Configuración</em> lo ve solo
+  <em>Contabilidad / Administrador</em>.</li>
+</ul>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;"><strong>En el pago a proveedor.</strong> En <em>Facturación › Proveedores › Pagos</em>, un pago saliente con diario de
+banco y un método que pida cuenta (por ejemplo <em>Manual Payment</em>) muestra la <strong>Cuenta bancaria de
+proveedor</strong> y, debajo, su <strong>Tipo de cuenta</strong>. No se edita en el pago: viene de la cuenta bancaria.
+Si sale vacío, hay que completarlo en la cuenta (ver <em>Configuración</em>).</p>
+<div class="lc-fig"><img alt="Pago a proveedor: Tipo de cuenta debajo de la cuenta bancaria del proveedor" src="04_pago_proveedor_tipo_cuenta.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pago a proveedor: Tipo de cuenta debajo de la cuenta bancaria del proveedor</p></div>
+<p style="margin:0 0 12px;">El pago a proveedor trae además una zona de pestañas vacía (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">dispersion_banks</code>) donde los módulos
+de cada banco agregan sus datos. Con solo este módulo instalado no se ve nada ahí.</p>
+<p style="margin:0 0 12px;"><strong>Historial de dispersiones.</strong> <em>Facturación › Proveedores › Dispersiones bancarias</em> lista las
+dispersiones hechas, con quién y cuándo las creó.</p>
+<div class="lc-fig"><img alt="Facturación › Proveedores › Dispersiones bancarias" src="05_menu_dispersiones.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Facturación › Proveedores › Dispersiones bancarias</p></div>
+<p style="margin:0 0 12px;">El mismo historial está en <em>Facturación › Configuración › Pagos dispersos › Dispersiones bancarias</em>,
+solo para <em>Contabilidad / Administrador</em>.</p>
+<div class="lc-fig"><img alt="Facturación › Configuración › Pagos dispersos › Dispersiones bancarias" src="06_menu_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Facturación › Configuración › Pagos dispersos › Dispersiones bancarias</p></div>
+<p style="margin:0 0 12px;">Cada dispersión guarda el archivo que se mandó al banco, el diario y los pagos que incluyó. Es de
+solo lectura: no se crea ni se edita a mano, la crean los módulos de cada banco al generar el
+archivo. Las dispersiones archivadas se ven con el filtro <em>Archivado</em> y una cinta roja.</p>
+<div class="lc-fig"><img alt="Dispersión: archivo generado y pagos dispersos" src="07_formulario_dispersion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Dispersión: archivo generado y pagos dispersos</p></div>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Los módulos que generan los archivos no están migrados a Odoo 19.</strong>
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">bancolombia_payment_dispersal</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">banco_de_occidente_payment_dispersal</code> son los que llenan la
+  pestaña <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">dispersion_banks</code> del pago y de la cuenta bancaria y crean las dispersiones. Hasta
+  migrarlos, este módulo solo guarda datos (código de banco, tipo de cuenta) y muestra el historial.</li>
+<li style="margin-bottom:7px;"><strong>Tipo de cuenta fuera de la ficha del contacto.</strong> En 17 el tipo de cuenta salía como columna en
+  la lista de cuentas de la ficha del contacto. En 19 esa lista son etiquetas (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">many2many_tags_banks</code>)
+  y ya no hay columna. Por eso la vista heredada pasó a la lista de cuentas bancarias.</li>
+<li style="margin-bottom:7px;"><strong>Vista con xmlid reutilizado.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account_payment_dispersion_inherit_view_partner_property_form</code>
+  era en 17 una vista de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.partner</code> y en 19 es de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.partner.bank</code> (hereda de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">base.view_partner_bank_tree</code>). Antes del <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-u</code> en STG/producción, comprobar que ninguna vista
+  herede de ella:
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT id, name, model FROM ir_ui_view WHERE inherit_id = (SELECT res_id FROM ir_model_data WHERE module = 'account_payment_dispersion' AND name = 'account_payment_dispersion_inherit_view_partner_property_form');</code>
+  En local da 0 filas.</li>
+<li style="margin-bottom:7px;"><strong>Traducción de los valores de Tipo de cuenta.</strong> En los <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.po</code> heredados de 16, las opciones
+  (<em>Sin Cuenta</em>, <em>Cuenta corriente</em>, <em>Cuenta de ahorro</em>, <em>Cuenta nómina</em>) estaban marcadas como
+  texto de código (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">#: code:</code>), y Odoo no las aplicaba a la selección. En 19 se marcaron como
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">model:ir.model.fields.selection</code> con el mismo texto. El <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-u</code> no pisa un nombre que ya esté en
+  la base: solo completa los idiomas que faltan (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">TranslationImporter.save</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">overwrite=False</code>).
+  Las capturas 02 a 04 se tomaron antes del arreglo y muestran <em>Savings Account</em>. Para revisar en
+  STG antes y después del <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-u</code>:
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT d.name, s.name FROM ir_model_fields_selection s JOIN ir_model_data d ON d.model = 'ir.model.fields.selection' AND d.res_id = s.id WHERE d.module = 'account_payment_dispersion';</code></li>
+<li style="margin-bottom:7px;"><strong>ACL de solo lectura.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">security/ir.model.access.csv</code> da lectura a
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account.group_account_readonly</code> sobre las dispersiones y sus campos. En 17 no existía. Se
+  mantiene: es el mismo patrón que usa el core para <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account.payment</code> y permite que un usuario de
+  solo lectura (auditor) vea el historial sin poder modificarlo.</li>
+<li style="margin-bottom:7px;"><strong><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/res.bank.csv</code> no se carga.</strong> No está en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data</code> del manifiesto. Los bancos salen de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/res_bank_data.xml</code> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">noupdate</code>, así que un <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-u</code> no corrige cambios hechos a mano).</li>
+<li style="margin-bottom:7px;"><strong>Columna "Activo" vacía en la lista de dispersiones.</strong> La lista declara <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">active</code> con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">invisible="1"</code>, que en listas oculta la celda pero no la columna (igual en 17). Se arregla con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">column_invisible="1"</code>.</li>
+<li style="margin-bottom:7px;"><strong>Textos del modelo en inglés.</strong> El chatter de la dispersión dice "It shows the dispersions that
+  have taken place over time. creado": usa la <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_description</code> del modelo, que es una frase larga.</li>
+<li style="margin-bottom:7px;"><strong>Cuentas no fiables.</strong> En 19 una cuenta bancaria nueva sale como <em>No fiable</em> (etiqueta roja, sin
+  <em>Enviar dinero</em>). Odoo solo bloquea el pago si el método exige cuenta; ningún método de Community
+  lo exige, pero los módulos de banco podrían hacerlo.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> mide 300x300 px; los módulos del core usan 100x100 px.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Firefly Software Consulting S.A.S</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Firefly Software Consulting S.A.S (juan.zuluaga@firefly-e.com)</li>
+</ul></div>
+</div>

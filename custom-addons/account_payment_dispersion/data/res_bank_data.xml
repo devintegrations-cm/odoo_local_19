@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="res_bank_1001" model="res.bank">
+            <field name="name">BANCO DE BOGOTA</field>
+            <field name="code">1001</field>
+            <field name="bic">BBOGCOBBBO1</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1002" model="res.bank">
+            <field name="name">BANCO POPULAR</field>
+            <field name="code">1002</field>
+            <field name="bic">BPOPCOBBBAQ</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1006" model="res.bank">
+            <field name="name">ITAU antes Corpbanca</field>
+            <field name="code">1006</field>
+            <field name="bic">BCTOCOBBMD1</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1007" model="res.bank">
+            <field name="name">BANCOLOMBIA</field>
+            <field name="code">1007</field>
+            <field name="bic">COLOCOBMMD1</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1009" model="res.bank">
+            <field name="name">CITIBANK</field>
+            <field name="code">1009</field>
+            <field name="bic">CITICOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1010" model="res.bank">
+            <field name="name">HSBC</field>
+            <field name="code">1010</field>
+            <field name="bic">BCMRMXMMPYM</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1012" model="res.bank">
+            <field name="name">BANCO GNB SUDAMERIS</field>
+            <field name="code">1012</field>
+            <field name="bic">BSUDCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1013" model="res.bank">
+            <field name="name">BBVA COLOMBIA</field>
+            <field name="code">1013</field>
+            <field name="bic">GEROCOBB</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1014" model="res.bank">
+            <field name="name">ITAU</field>
+            <field name="code">1014</field>
+            <field name="bic">BCTOCOBBMD1</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1019" model="res.bank">
+            <field name="name">SCOTIABANK COLPATRIA S.A</field>
+            <field name="code">1019</field>
+            <field name="bic">COLPCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1023" model="res.bank">
+            <field name="name">BANCO DE OCCIDENTE</field>
+            <field name="code">1023</field>
+            <field name="bic">OCCICOBCBO2</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1031" model="res.bank">
+            <field name="name">BANCOLDEX S.A.</field>
+            <field name="code">1031</field>
+            <field name="bic"></field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1032" model="res.bank">
+            <field name="name">BANCO CAJA SOCIAL BCSC SA</field>
+            <field name="code">1032</field>
+            <field name="bic">CASOCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1040" model="res.bank">
+            <field name="name">BANCO AGRARIO</field>
+            <field name="code">1040</field>
+            <field name="bic">CCAICOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1041" model="res.bank">
+            <field name="name">JPMORGAN CORP FINANCIERA</field>
+            <field name="code">1041</field>
+            <field name="bic">CHASCOBBMAC</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1042" model="res.bank">
+            <field name="name">BNP PARIBAS COLOMBIA CORPORACIÓN FINANCIERA S.A</field>
+            <field name="code">1042</field>
+            <field name="bic">BNPACOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1047" model="res.bank">
+            <field name="name">BANCO MUNDO MUJER</field>
+            <field name="code">1047</field>
+            <field name="bic">MDMJCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1051" model="res.bank">
+            <field name="name">BANCO DAVIVIENDA SA</field>
+            <field name="code">1051</field>
+            <field name="bic">CAFECOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1052" model="res.bank">
+            <field name="name">BANCO AV VILLAS</field>
+            <field name="code">1052</field>
+            <field name="bic">BAVICOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1053" model="res.bank">
+            <field name="name">BANCO W</field>
+            <field name="code">1053</field>
+            <field name="bic">BANWCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1058" model="res.bank">
+            <field name="name">BANCO PROCREDIT</field>
+            <field name="code">1058</field>
+            <field name="bic">PRCBCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1059" model="res.bank">
+            <field name="name">BANCO DE LAS MICROFINANZAS - BANCAMIA S.A.</field>
+            <field name="code">1059</field>
+            <field name="bic">BMIACOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1060" model="res.bank">
+            <field name="name">BANCO PICHINCHA</field>
+            <field name="code">1060</field>
+            <field name="bic">PICHCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1061" model="res.bank">
+            <field name="name">BANCOOMEVA</field>
+            <field name="code">1061</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1062" model="res.bank">
+            <field name="name">BANCO FALABELLA S.A.</field>
+            <field name="code">1062</field>
+            <field name="bic">FALACOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1063" model="res.bank">
+            <field name="name">BANCO FINANDINA S.A.</field>
+            <field name="code">1063</field>
+            <field name="bic">FNDNCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1064" model="res.bank">
+            <field name="name">BANCO MULTIBANK S.A.</field>
+            <field name="code">1064</field>
+            <field name="bic">MULTCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1065" model="res.bank">
+            <field name="name">BANCO SANTANDER DE NEGOCIOS COLOMBIA S.A</field>
+            <field name="code">1065</field>
+            <field name="bic">SANTCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1066" model="res.bank">
+            <field name="name">BANCO COOPERATIVO COOPCENTRAL</field>
+            <field name="code">1066</field>
+            <field name="bic">COCECOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1067" model="res.bank">
+            <field name="name">MIBANCO S.A.</field>
+            <field name="code">1067</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1069" model="res.bank">
+            <field name="name">BANCO SERFINANZA S.A</field>
+            <field name="code">1069</field>
+            <field name="bic">SERZCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1070" model="res.bank">
+            <field name="name">LULO BANK S.A.</field>
+            <field name="code">1070</field>
+            <field name="bic">LULOCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1071" model="res.bank">
+            <field name="name">BANCO J.P. MORGAN COLOMBIA S.A.</field>
+            <field name="code">1071</field>
+            <field name="bic">CHASCOBBLIM</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1083" model="res.bank">
+            <field name="name">COMPENSAR</field>
+            <field name="code">1083</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1084" model="res.bank">
+            <field name="name">GESTIÓN Y CONTACTO</field>
+            <field name="code">1084</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1086" model="res.bank">
+            <field name="name">ASOPAGOS S.A.S</field>
+            <field name="code">1086</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1087" model="res.bank">
+            <field name="name">FEDECAJAS</field>
+            <field name="code">1087</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1088" model="res.bank">
+            <field name="name">SIMPLE SA</field>
+            <field name="code">1088</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1089" model="res.bank">
+            <field name="name">ENLACE OPERATIVO</field>
+            <field name="code">1089</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1090" model="res.bank">
+            <field name="name">CORFICOLOMBIANA</field>
+            <field name="code">1090</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1097" model="res.bank">
+            <field name="name">DALE!</field>
+            <field name="code">1097</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1108" model="res.bank">
+            <field name="name">IRIS CENIT</field>
+            <field name="code">1108</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1121" model="res.bank">
+            <field name="name">FINANCIERA JURISCOOP S.A. COMPAÑIA DE FINANCIAMIENTO</field>
+            <field name="code">1121</field>
+            <field name="bic">FJRCCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1283" model="res.bank">
+            <field name="name">COOPERATIVA FINANCIERA DE ANTIOQUIA</field>
+            <field name="code">1283</field>
+            <field name="bic">FIACCOB1XXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1286" model="res.bank">
+            <field name="name">JFK COOPERATIVA FINANCIERA</field>
+            <field name="code">1286</field>
+            <field name="bic">CJFKCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1289" model="res.bank">
+            <field name="name">COOTRAFA COOPERATIVA FINANCIERA</field>
+            <field name="code">1289</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1291" model="res.bank">
+            <field name="name">COOFINEP COOPERATIVA FINANCIERA</field>
+            <field name="code">1291</field>
+            <field name="bic">CFNPCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1292" model="res.bank">
+            <field name="name">CONFIAR COOPERATIVA FINANCIERA</field>
+            <field name="code">1292</field>
+            <field name="bic">CONFCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1303" model="res.bank">
+            <field name="name">BANCO UNION S.A</field>
+            <field name="code">1303</field>
+            <field name="bic">GYDVCOBCXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1370" model="res.bank">
+            <field name="name">COLTEFINANCIERA S.A</field>
+            <field name="code">1370</field>
+            <field name="bic">CLTECOBMXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1502" model="res.bank">
+            <field name="name">FIDUCIARIA SKANDIA</field>
+            <field name="code">1502</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1507" model="res.bank">
+            <field name="name">NEQUI</field>
+            <field name="code">1507</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1550" model="res.bank">
+            <field name="name">DECEVAL SA</field>
+            <field name="code">1550</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1551" model="res.bank">
+            <field name="name">DAVIPLATA</field>
+            <field name="code">1551</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1558" model="res.bank">
+            <field name="name">BANCO CREDIFINANCIERA SA.</field>
+            <field name="code">1558</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1560" model="res.bank">
+            <field name="name">PIBANK</field>
+            <field name="code">1560</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1637" model="res.bank">
+            <field name="name">IRIS</field>
+            <field name="code">1637</field>
+            <field name="bic">IRISCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1683" model="res.bank">
+            <field name="name">DIREC TESORO NACIONAL</field>
+            <field name="code">1683</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1801" model="res.bank">
+            <field name="name">MOVII</field>
+            <field name="code">1801</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1802" model="res.bank">
+            <field name="name">DING TECNIPAGOS SA</field>
+            <field name="code">1802</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1803" model="res.bank">
+            <field name="name">POWWI</field>
+            <field name="code">1803</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1804" model="res.bank">
+            <field name="name">UALA</field>
+            <field name="code">1804</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1805" model="res.bank">
+            <field name="name">BANCO BTG PACTUAL</field>
+            <field name="code">1805</field>
+            <field name="bic">BPABCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1808" model="res.bank">
+            <field name="name">BOLD CF</field>
+            <field name="code">1808</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1811" model="res.bank">
+            <field name="name">RAPPIPAY</field>
+            <field name="code">1811</field>
+            <field name="bic">RAPPCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1812" model="res.bank">
+            <field name="name">COINK</field>
+            <field name="code">1812</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1813" model="res.bank">
+            <field name="name">SANTANDER CONSUMER</field>
+            <field name="code">1813</field>
+            <field name="bic">SCCFCOBBXXX</field>
+            <field name="country" ref="base.co"/>
+        </record>
+        <record id="res_bank_1814" model="res.bank">
+            <field name="name">GLOBAL66</field>
+            <field name="code">1814</field>
+            <field name="country" ref="base.co"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_payment_dispersal_view_search" model="ir.ui.view">
+        <field name="name">account.payment.dispersal.view.search</field>
+        <field name="model">account.payment_dispersal</field>
+        <field name="arch" type="xml">
+            <search string="Search Bank Dispersals">
+                <field name="name"/>
+                <field name="create_uid"/>
+                <field name="journal_id"/>
+                <filter string="Archived" name="inactive" domain="[('active','=', False)]"/>
+                <group>
+                    <filter string="Company" name="company_id" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                    <filter string="Create by" name="create_uid" context="{'group_by': 'create_uid'}"/>
+                    <filter string="Journal" name="groupby_journal_id" domain="[]" context="{'group_by': 'journal_id'}"/>
+                    <filter string="Date" name="groupby_create_date" domain="[]" context="{'group_by': 'create_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_payment_dispersal_view_form" model="ir.ui.view">
+        <field name="name">account.payment.dispersal.view.form</field>
+        <field name="model">account.payment_dispersal</field>
+        <field name="arch" type="xml">
+            <form string="Banking Dispersion" create="0" delete="0" edit="0">
+                <sheet>
+                    <div name="button_box" class="oe_button_box"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title" name="account_payment_dispersal_title">
+                        <label for="name" id="account_payment_dispersal_title"/>
+                        <h1>
+                            <field name="name" class="d-block" required='1'/>
+                            <field name="active" invisible='1'/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="info_left">
+                            <field name="binary_file" widget="binary" filename="binary_file_name"/>
+                            <field name="binary_file_name" invisible='1'/>
+                        </group>
+                        <group name="info_right">
+                            <field name="journal_id"/>
+                            <field name="create_uid"/>
+                            <field name="create_date"/>
+                        </group>
+                    </group>
+                    <group string = 'Dispersed payments' name="dispersed_payments">
+                        <field name="account_payment_ids" nolabel="1" readonly="1" colspan="2"/>
+                    </group>
+                </sheet>
+                <chatter/>
+                
+            </form>
+        </field>
+    </record>
+
+    <record id="account_payment_dispersal_view_tree" model="ir.ui.view">
+        <field name="name">account.payment.dispersal.view.tree</field>
+        <field name="model">account.payment_dispersal</field>
+        <field name="arch" type="xml">
+            <list string="Bank Dispersals" create="0" delete="0">
+                <field name="name"/>
+                <field name="create_uid"/>
+                <field name="create_date"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" invisible='1'/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_payment_dispersal_action" model="ir.actions.act_window">
+        <field name="name">Bank Dispersals</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">account.payment_dispersal</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Check the different dispersals that have been made to banks for payment.
+            </p>
+        </field>
+    </record>
+
+</odoo>

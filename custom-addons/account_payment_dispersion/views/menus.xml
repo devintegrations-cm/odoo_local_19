@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem parent="account.menu_finance_configuration" id="account_payment_dispersed_root_menu" name="Dispersed Payments" groups="account.group_account_manager" sequence="100"/>
+    <menuitem parent="account_payment_dispersion.account_payment_dispersed_root_menu" id="account_payment_dispersed_submenu" action="account_payment_dispersion.account_payment_dispersal_action" sequence="1"/>
+    <menuitem parent="account.menu_finance_payables" id="account_payment_dispersed_submenu_finance_payables" action="account_payment_dispersion.account_payment_dispersal_action" sequence="500"/>
+</odoo>
