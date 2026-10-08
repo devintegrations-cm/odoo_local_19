@@ -1,0 +1,172 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Genera desde la lista de pagos el archivo .xlsx que se copia en la macro PAB de Bancolombia para
+dispersar pagos a proveedores (tipo de pago <strong>220</strong>) o de nómina (tipo <strong>225</strong>).</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Dos acciones en los pagos.</strong> <em>Generar fichero de dispersión Bancolombia</em> (220) y <em>Generar
+  fichero de dispersión Bancolombia - Nómina</em> (225), en el menú <em>Acciones</em> de la lista de pagos.</li>
+<li style="margin-bottom:7px;"><strong>Tipo de transacción.</strong> Campo nuevo en la cuenta bancaria del proveedor (<em>Abono a cta de
+  Ahorros</em>, <em>Abono cta Corriente</em>, <em>Pago en Efectivo</em>, etc.). Al elegir la cuenta en el pago, el
+  tipo se copia solo; se puede cambiar a mano en el pago.</li>
+<li style="margin-bottom:7px;"><strong>Validaciones antes de generar.</strong> Un solo diario, diario con cuenta origen, tipo de transacción,
+  cuenta destino y banco con código. Si algo falta, avisa qué pago y no genera nada.</li>
+<li style="margin-bottom:7px;"><strong>Columnas configurables.</strong> Cada columna del cuerpo del archivo es una fórmula en Python que se
+  edita en <em>Configuración</em>, sin tocar código.</li>
+<li style="margin-bottom:7px;"><strong>Historial.</strong> Cada archivo generado queda guardado en <em>Dispersiones bancarias</em> con sus pagos.</li>
+</ul>
+<p style="margin:0 0 12px;">Depende de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account_payment_dispersion</code>, que aporta el código de banco, el tipo de cuenta y el
+historial de dispersiones.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">No hay ajustes que activar. Hay que dejar cargados cuatro datos.</p>
+<p style="margin:0 0 12px;"><strong>1. Código del banco.</strong> <em>Contactos › Configuración › Cuentas bancarias › Bancos</em>, campo <strong>Código</strong>
+(lo agrega <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account_payment_dispersion</code>; los bancos colombianos vienen con él cargado). Es el valor
+de la columna <em>Código Banco</em> del archivo, y sin él el pago no pasa la validación. El campo <strong>Código
+Bancolombia</strong> que agrega este módulo viene cargado en 14 bancos, pero el archivo no lo usa.</p>
+<div class="lc-fig"><img alt="Contactos › Configuración › Bancos: campo Código" src="01_banco_codigo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Contactos › Configuración › Bancos: campo Código</p></div>
+<p style="margin:0 0 12px;"><strong>2. Tipo de transacción de la cuenta del proveedor (la configuración clave).</strong> <em>Contactos ›
+Configuración › Cuentas bancarias › Cuentas bancarias</em>, abrir la cuenta del proveedor, pestaña
+<strong>Bancolombia</strong>, campo <strong>Tipo Transaccion</strong>. Normalmente <em>Abono a cta de Ahorros</em> (37) o <em>Abono cta
+Corriente</em> (27). El banco de la cuenta tiene que tener <strong>Código</strong> (paso 1).</p>
+<div class="lc-fig"><img alt="Cuenta bancaria del proveedor › pestaña Bancolombia: Tipo Transaccion" src="02_cuenta_tipo_transaccion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cuenta bancaria del proveedor › pestaña Bancolombia: Tipo Transaccion</p></div>
+<p style="margin:0 0 12px;"><strong>3. Cuenta origen en el diario.</strong> <em>Facturación › Configuración › Diarios</em>, abrir el diario de banco
+desde el que se paga, pestaña <em>Asientos contables</em>, campo <strong>Número de cuenta bancaria</strong>. Sale en la
+fila 2 del archivo (<em>NRO CUENTA A DEBITAR</em>) y su <strong>Tipo de cuenta</strong> da la letra de <em>TIPO DE CUENTA A
+DEBITAR</em> (D corriente, S ahorros).</p>
+<div class="lc-fig"><img alt="Diario de banco › Asientos contables: Número de cuenta bancaria" src="03_diario_cuenta_origen.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Diario de banco › Asientos contables: Número de cuenta bancaria</p></div>
+<p style="margin:0 0 12px;"><strong>4. Columnas del archivo (opcional).</strong> Vienen 12 columnas listas. Se revisan en <em>Facturación ›
+Configuración › Pagos dispersos › Configuraciones Bancolombia › Configuración de los campos de
+dispersión de pagos</em>. El orden de la lista (se arrastra con el asa) es el orden de las columnas:
+no lo cambies si no cambió el formato de la macro PAB.</p>
+<div class="lc-fig"><img alt="Facturación › Configuración › Pagos dispersos › Configuraciones Bancolombia" src="04_campos_excel_lista.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Facturación › Configuración › Pagos dispersos › Configuraciones Bancolombia</p></div>
+<p style="margin:0 0 12px;">Cada columna es código Python: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">object</code> es el pago, y lo que quede en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">result</code> va a la celda. Están
+disponibles <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">env</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">date</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">datetime</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">timedelta</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">time</code>.</p>
+<div class="lc-fig"><img alt="Columna Referencia: número del pago, o '/' si todavía no tiene" src="05_campo_excel_formula.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Columna Referencia: número del pago, o '/' si todavía no tiene</p></div>
+<p style="margin:0 0 12px;"><strong>Permisos.</strong></p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Las dos acciones solo aparecen a quien tenga el grupo <strong>Mostrar características de contabilidad
+  completas</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account.group_account_user</code>), igual que en 17. En Community ese grupo no lo trae ni
+  <em>Contabilidad / Administrador</em>: hay que darlo aparte (en modo desarrollador, desde la ficha del
+  usuario). Sin él, <em>Acciones</em> no muestra las dos opciones.</li>
+<li style="margin-bottom:7px;">Editar las columnas y ver el menú <em>Pagos dispersos</em> necesita <em>Contabilidad / Administrador</em>.</li>
+</ul>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;"><strong>1. Revisar el tipo de transacción en el pago.</strong> En <em>Facturación › Proveedores › Pagos</em>, al elegir
+la <strong>Cuenta bancaria de proveedor</strong>, la pestaña <strong>Campos Bancolombia</strong> se completa con el tipo de esa
+cuenta. Se puede cambiar a mano (por ejemplo a <em>Pago en Efectivo</em>, que no lleva cuenta destino) y el
+valor manual no se pisa al guardar ni al tocar otros campos; solo se recalcula si se cambia el
+proveedor o la cuenta.</p>
+<div class="lc-fig"><img alt="Pago a proveedor: Cuenta bancaria de proveedor y pestaña Campos Bancolombia" src="06_pago_tipo_transaccion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pago a proveedor: Cuenta bancaria de proveedor y pestaña Campos Bancolombia</p></div>
+<p style="margin:0 0 12px;"><strong>2. Generar el archivo.</strong> En la lista de pagos, marcar los pagos (todos del mismo diario) y en
+<em>Acciones</em> elegir <strong>Generar fichero de dispersión Bancolombia</strong> (proveedores, 220) o <strong>Generar
+fichero de dispersión Bancolombia - Nómina</strong> (225). El navegador descarga
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">bancolombia_dispersion_&lt;220|225&gt;_&lt;fecha hora&gt;.xlsx</code>. Sirven pagos publicados y también en
+borrador; un borrador sale con <em>Referencia</em> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/</code> porque todavía no tiene número.</p>
+<div class="lc-fig"><img alt="Lista de pagos › Acciones: las dos acciones de Bancolombia" src="07_lista_pagos_acciones.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Lista de pagos › Acciones: las dos acciones de Bancolombia</p></div>
+<p style="margin:0 0 12px;"><strong>3. Si falta un dato, no se genera nada.</strong> Odoo muestra un aviso fijo arriba a la derecha con el
+pago que falla. Los avisos posibles:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><em>Las dispersiones de pago deben ser para un solo diario y en este caso tiene los siguientes
+  diarios: …</em></li>
+<li style="margin-bottom:7px;"><em>El diario … no tiene configurada una cuenta de origen</em></li>
+<li style="margin-bottom:7px;"><em>No hay tipo de transacción configurado: …</em></li>
+<li style="margin-bottom:7px;"><em>Uno o más pagos no tienen cuenta de destino: …</em> (no aplica a los tipos 25, 36 y 40)</li>
+<li style="margin-bottom:7px;"><em>No hay banco o código de banco configurado: …</em> (no aplica a los tipos 25, 36 y 40)</li>
+</ul>
+<p style="margin:0 0 12px;">Un pago en borrador aparece como <em>Borrador de pago (proveedor)</em>.</p>
+<div class="lc-fig"><img alt="Aviso: el banco de la cuenta destino no tiene Código" src="08_aviso_validacion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aviso: el banco de la cuenta destino no tiene Código</p></div>
+<p style="margin:0 0 12px;"><strong>4. Qué trae el archivo.</strong> Ejemplo real generado en Odoo 19 con dos pagos de prueba:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Fila 1</strong> (encabezado de la empresa): NIT PAGADOR, TIPO DE PAGO, APLICACIÓN, SECUENCIA DE ENVIÓ,
+  NRO CUENTA A DEBITAR, TIPO DE CUENTA A DEBITAR, DESCRIPCIÓN DEL PAGO.</li>
+<li style="margin-bottom:7px;"><strong>Fila 2</strong>: NIT de la compañía sin los dos últimos caracteres (dígito de verificación), <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">220</code> o
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">225</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">I</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">A1</code>, número de la cuenta origen del diario, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">D</code> (corriente) o <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">S</code> (ahorros), y la
+  descripción vacía para completarla en la macro.</li>
+<li style="margin-bottom:7px;"><strong>Fila 3</strong>: vacía.</li>
+<li style="margin-bottom:7px;"><strong>Fila 4</strong>: los nombres de las 12 columnas, en el orden de la configuración: Tipo Documento
+  Beneficiario, Nit Beneficiario, Nombre Beneficiario, Tipo Transaccion, Código Banco, No Cuenta
+  Beneficiario, Email, Documento Autorizado, Referencia, Celular Beneficiario, ValorTransaccion,
+  Fecha de aplicación.</li>
+<li style="margin-bottom:7px;"><strong>Fila 5 en adelante</strong>, un pago por fila. Por ejemplo, con las fórmulas que trae el módulo:
+  3 · 800197268 · QA DISP PROVEEDOR NIT NANDÚ · 37 · 1007 · QA-11122233344 · qa.nit@example.com ·
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;"></code> · <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;"></code> · <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;"></code> · 150000 · 20261008.</li>
+</ul>
+<p style="margin:0 0 12px;">De dónde sale cada columna: tipo de documento del proveedor (1 cédula, 2 cédula de extranjería, 3
+NIT, 4 tarjeta de identidad, 5 pasaporte); su número de identificación <strong>sin el dígito de
+verificación</strong> (la parte antes del guion; si el número no tiene guion la celda sale en blanco);
+nombre en mayúsculas con Ñ cambiada por N (las tildes quedan; si pasa de 30 caracteres se corta,
+ver <em>Limitaciones</em>); tipo de transacción del pago; <strong>Código</strong> del banco de la cuenta destino;
+número de esa cuenta; correo del contacto; importe; fecha del pago en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">AAAAMMDD</code>.
+<em>Documento Autorizado</em>, <em>Referencia</em> y <em>Celular Beneficiario</em> salen siempre en blanco, igual que
+en producción: sus fórmulas calculan el valor (memo, número del pago, teléfono) y la última línea
+lo reemplaza por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">' '</code>. Para enviarlos, basta con borrar esa línea en la configuración de la
+columna.</p>
+<p style="margin:0 0 12px;"><strong>5. Historial.</strong> Cada archivo queda en <em>Facturación › Proveedores › Dispersiones bancarias</em>, con el
+diario, quién lo generó y los pagos incluidos. Desde ahí se vuelve a descargar.</p>
+<div class="lc-fig"><img alt="Dispersión generada: archivo y pagos dispersos" src="09_dispersion_generada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Dispersión generada: archivo y pagos dispersos</p></div>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Post-migrate 19.0.1.0.1: corrige las fórmulas de bases que vienen de 17.</strong> Las columnas se
+  instalan con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">noupdate</code>, así que el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-u</code> no las reescribe desde el XML. El script
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">migrations/19.0.1.0.1/post-migrate.py</code> recorre todas las filas (cualquier compañía, activas o
+  archivadas) y cambia solo tres fragmentos: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">object.ref</code> por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">object.memo</code> (en 19 el pago ya no
+  hereda del asiento), <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reference = object.name</code> por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reference = object.name or '/'</code> (un borrador
+  ya no tiene número), <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">object.name.split(</code> por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">(object.name or '/').split(</code> (mismo caso, en
+  fórmulas personalizadas como la <em>Referencia</em> de producción) y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">X.mobile or X.phone</code> por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">X.phone</code>
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.partner.mobile</code> no existe en 19).
+  El resto de la fórmula, editada a mano o no, queda igual. Es idempotente y solo corre al
+  actualizar, no en una instalación nueva. Antes de tocar una fila guarda el valor original en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">bk_bancolombia_dispersal_field_value_17</code> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">id</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">value</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">saved_at</code>; si se corre dos veces
+  conserva el primero). Si una fórmula sigue usando <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">object.ref</code> o <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.mobile</code> después del cambio,
+  deja un <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">WARNING</code> en el log para revisarla a mano. Para revertir:
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">UPDATE bancolombia_payment_dispersal_field f SET value = b.value FROM bk_bancolombia_dispersal_field_value_17 b WHERE b.id = f.id;</code></li>
+<li style="margin-bottom:7px;"><strong>Consultas para STG, antes y después del <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-u</code>.</strong> Volumen:
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT count(*), count(*) FILTER (WHERE active) FROM bancolombia_payment_dispersal_field;</code> y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT bancolombia_type_of_transaction, count(*) FROM account_payment GROUP BY 1;</code>.
+  Fórmulas que aún usen lo que no existe en 19 (antes: las que va a corregir; después: tiene que dar
+  0 filas):
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT id, value FROM bancolombia_payment_dispersal_field WHERE value ~ 'object\.ref\M|\.mobile\M';</code>.
+  Respaldo después del <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">-u</code>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT count(*) FROM bk_bancolombia_dispersal_field_value_17;</code>.
+  Pagos que en 17 llenaban <em>Documento Autorizado</em> con la referencia del asiento y en 19 la dejan en
+  blanco: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT count(*) FROM account_payment p JOIN account_move m ON m.id=p.move_id WHERE coalesce(m.ref,'')&lt;&gt;'' AND coalesce(p.memo,'')='';</code>.
+  Contactos que tenían celular y no teléfono (si la columna <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">mobile</code> sigue en la base):
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT count(*) FROM res_partner WHERE coalesce(mobile,'')&lt;&gt;'' AND coalesce(phone,'')='';</code>.</li>
+<li style="margin-bottom:7px;"><strong>Las acciones requieren <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account.group_account_user</code></strong> (<em>Mostrar características de contabilidad
+  completas</em>), igual que en 17. En Community ni <em>Contabilidad / Administrador</em> lo implica: en local
+  el administrador no ve las acciones. En STG/producción hay contabilidad Enterprise, que puede
+  darlo con sus roles: verificar en STG quién lo tiene:
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT u.login FROM res_users u JOIN res_groups_users_rel r ON r.uid=u.id WHERE r.gid=(SELECT res_id FROM ir_model_data WHERE module='account' AND name='group_account_user') AND u.active;</code></li>
+<li style="margin-bottom:7px;"><strong>Tipo de transacción calculado igual que en 17.</strong> Se recalcula al cambiar proveedor o cuenta, solo
+  en pagos salientes de diarios de banco y solo si la cuenta tiene tipo. Nunca vacía el campo: si la
+  cuenta nueva no tiene tipo, queda el anterior. Un valor cargado a mano se respeta.</li>
+<li style="margin-bottom:7px;"><strong>Pagos en borrador permitidos.</strong> En 19 un borrador no tiene número (en 17 era <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/</code>): la columna
+  <em>Referencia</em> sale <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/</code> y el aviso lo nombra <em>Borrador de pago (proveedor)</em>.</li>
+<li style="margin-bottom:7px;"><strong>Fórmulas del XML igualadas a producción.</strong> Solo afectan a instalaciones nuevas (en una base
+  que se actualiza son <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">noupdate</code> y quedan las que tenga). <em>Nit Beneficiario</em> toma el número de
+  identificación sin el dígito de verificación (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">vat.split('-')[0]</code>), y <em>Documento Autorizado</em>,
+  <em>Referencia</em> y <em>Celular Beneficiario</em> terminan en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">' '</code>, como en STG 17. La base local conserva
+  las originales del módulo, por eso la captura de la fórmula <em>Referencia</em> muestra la anterior.</li>
+<li style="margin-bottom:7px;"><strong>NIT sin guion sale en blanco (heredado de producción 17).</strong> Si el número de identificación no
+  tiene guion, <em>Nit Beneficiario</em> queda <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">' '</code>: la fila no se corre, pero el banco puede rechazar la
+  línea. En STG hay 26 proveedores así:
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">SELECT count(DISTINCT p.partner_id) FROM account_payment p JOIN res_partner rp ON rp.id = p.partner_id WHERE p.bancolombia_type_of_transaction IS NOT NULL AND coalesce(rp.vat,'') &lt;&gt; '' AND rp.vat NOT LIKE '%-%';</code></li>
+<li style="margin-bottom:7px;"><strong>Una celda vacía corre la fila (heredado de 17).</strong> El archivo solo agrega una celda si la fórmula
+  devuelve algo; si da vacío, las columnas siguientes se corren una a la izquierda. Todas las
+  fórmulas que trae el módulo arrancan en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">' '</code> para evitarlo; hay que cuidarlo al editar una.</li>
+<li style="margin-bottom:7px;"><strong>Código Bancolombia sin uso (heredado de 17).</strong> La columna <em>Código Banco</em> y la validación usan
+  el <strong>Código</strong> del banco (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.bank.code</code>, 4 dígitos). El campo <strong>Código Bancolombia</strong>
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">bancolombia_code</code>, 7 dígitos, cargado en 14 bancos) no lo usa nada.</li>
+<li style="margin-bottom:7px;"><strong>Menores heredados de 17, sin tocar.</strong> La columna <em>Activo</em> de la lista de campos sale vacía
+  porque declara <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">invisible</code> en vez de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">column_invisible</code>. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/account_payment.py</code> hace
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">import unidecode</code> sin usarlo, y el manifiesto lo exige como dependencia externa. El nombre del
+  beneficiario se corta a 29 caracteres cuando pasa de 30, sin pasar a mayúsculas el recorte (salvo
+  que tenga Ñ) y sin quitar tildes. <em>NIT PAGADOR</em> quita los dos últimos caracteres del NIT de la
+  compañía (asume el formato <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">900123456-7</code>); en local la compañía no tiene NIT y la celda sale vacía.</li>
+<li style="margin-bottom:7px;"><strong>Traducciones.</strong> <em>Manager's Check Payment</em> (36) no tiene traducción, <em>Abono  cta Corriente</em> (27)
+  tiene un doble espacio, y el chatter de las columnas dice "Configuration of the fields to be
+  displayed in the excel file for payments in bancolombia creado".</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> mide 300x300 px; los módulos del core usan 100x100 px.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Firefly Software Consulting S.A.S - (Miguel Bolivar)</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Firefly Software Consulting S.A.S (juan.zuluaga@firefly-e.com)</li>
+</ul></div>
+</div>

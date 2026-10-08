@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="bancolombia_payment_dispersal_field_name" model="bancolombia.payment_dispersal_field">
+            <field name="name">Type of Document Beneficiary</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">1</field>
+            <field name="value">
+type_document_code = ' '
+if object.partner_id and object.partner_id.l10n_latam_identification_type_id:
+    type_document = object.partner_id.l10n_latam_identification_type_id
+    if type_document.id == env.ref('l10n_co.national_citizen_id').id:
+        type_document_code = '1'
+    elif type_document.id == env.ref('l10n_co.foreign_resident_card').id:
+        type_document_code = '2'
+    elif type_document.id == env.ref('l10n_co.rut').id:
+        type_document_code = '3'
+    elif type_document.id == env.ref('l10n_co.id_card').id:
+        type_document_code = '4'
+    elif type_document.id == env.ref('l10n_latam_base.it_pass').id:
+        type_document_code = '5'
+result = type_document_code
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_beneficiary_nit" model="bancolombia.payment_dispersal_field">
+            <field name="name">Nit Beneficiary</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">2</field>
+            <field name="value">
+beneficiary_nit = ' '
+if object.partner_id and object.partner_id.vat and object.partner_id.l10n_latam_identification_type_id:
+    type_document = object.partner_id.l10n_latam_identification_type_id
+    if '-' in object.partner_id.vat:
+        beneficiary_nit=object.partner_id.vat.split('-')[0]
+result = beneficiary_nit
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_beneficiary_name" model="bancolombia.payment_dispersal_field">
+            <field name="name">Beneficiary Name</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">3</field>
+            <field name="value">
+beneficiary_name = ' '
+if object.partner_id and  object.partner_id.display_name:
+    beneficiary_name=object.partner_id.display_name.upper()
+    if len(beneficiary_name) &gt; 30:
+        beneficiary_name=object.partner_id.display_name[0:29]
+    
+    if 'Ñ' in beneficiary_name:
+        beneficiary_name = beneficiary_name.replace('Ñ', 'N').upper()
+result = beneficiary_name
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_type_transaction" model="bancolombia.payment_dispersal_field">
+            <field name="name">Transaction Type</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">4</field>
+            <field name="value">
+type_transaction = ' '
+if object.bancolombia_type_of_transaction:
+    type_transaction=object.bancolombia_type_of_transaction
+result = type_transaction
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_bank_code" model="bancolombia.payment_dispersal_field">
+            <field name="name">Bank Code</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">5</field>
+            <field name="value">
+bank_code = ' '
+if object.partner_bank_id and object.partner_bank_id.bank_id and object.partner_bank_id.bank_id.code:
+    bank_code = object.partner_bank_id.bank_id.code
+result = bank_code
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_no_beneficiary_account" model="bancolombia.payment_dispersal_field">
+            <field name="name">No Beneficiary Account</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">6</field>
+            <field name="value">
+acc_number = ' '
+if object.partner_bank_id and object.partner_bank_id.acc_number:
+    acc_number = object.partner_bank_id.acc_number
+result = acc_number
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_email" model="bancolombia.payment_dispersal_field">
+            <field name="name">Email</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">7</field>
+            <field name="value">
+email = ' '
+if object.partner_id and object.partner_id.email:
+    email = object.partner_id.email
+result = email
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_authorised_document" model="bancolombia.payment_dispersal_field">
+            <field name="name">Authorised Document</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">8</field>
+            <field name="value">
+authorised_document = ' '
+if object.memo:
+    authorised_document = object.memo
+authorised_document = ' '
+result = authorised_document
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_reference" model="bancolombia.payment_dispersal_field">
+            <field name="name">Reference</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">9</field>
+            <field name="value">
+reference = ''
+if object.memo:
+    reference = (object.name or '/').split('/')[-1]
+reference = ' '
+result = reference
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_beneficiary_mobile" model="bancolombia.payment_dispersal_field">
+            <field name="name">Mobile Beneficiary</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">10</field>
+            <field name="value">
+beneficiary_mobile = ' '
+if object.partner_id and object.partner_id.phone:
+    beneficiary_mobile = object.partner_id.phone
+beneficiary_mobile = ' '
+result = beneficiary_mobile
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_beneficiary_transaction_value" model="bancolombia.payment_dispersal_field">
+            <field name="name">Transaction Value</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">11</field>
+            <field name="value">
+amount = 0
+if object.amount:
+    amount = object.amount
+result = amount
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="bancolombia_payment_dispersal_field_beneficiary_date_of_application" model="bancolombia.payment_dispersal_field">
+            <field name="name">Date of implementation</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">12</field>
+            <field name="value">
+date_of_application = ' '
+if object.date:
+    date_of_application = datetime.strftime(object.date, '%Y%m%d')
+result = date_of_application
+            </field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+    </data>
+</odoo>

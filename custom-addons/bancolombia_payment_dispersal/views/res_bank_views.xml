@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="bancolombia_payment_dispersal_inherit_view_res_bank_form" model="ir.ui.view">
+            <field name="name">bancolombia.payment.dispersal.inherit.view.res.bank.form</field>
+            <field name="model">res.bank</field>
+            <field name="inherit_id" ref="base.view_res_bank_form"/>
+            <field name="arch" type="xml">
+                <field name="bic" position="after">
+                    <field name="bancolombia_code"/>
+                </field>
+            </field>
+        </record>
+	</data>
+</odoo>

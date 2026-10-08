@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_account_payment_generate_dispersion_bancolombia" model="ir.actions.server">
+            <field name="name">Generate Bancolombia dispersion file</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="group_ids" eval="[(4, ref('account.group_account_user'))]"/>
+            <field name="model_id" ref="account.model_account_payment"/>
+            <field name="binding_model_id" ref="account.model_account_payment"/>
+            <field name="binding_view_types">list</field>
+            <field name="code">
+action = records.action_generate_bancolombia_dispersion_file()
+            </field>
+        </record>
+
+        <record id="action_account_payment_generate_dispersion_bancolombia_payroll" model="ir.actions.server">
+            <field name="name">Generate Bancolombia dispersion file payroll</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="group_ids" eval="[(4, ref('account.group_account_user'))]"/>
+            <field name="model_id" ref="account.model_account_payment"/>
+            <field name="binding_model_id" ref="account.model_account_payment"/>
+            <field name="binding_view_types">list</field>
+            <field name="code">
+action = records.action_generate_bancolombia_dispersion_file(type_of_payment='225')
+            </field>
+        </record>
+
+    </data>
+</odoo>

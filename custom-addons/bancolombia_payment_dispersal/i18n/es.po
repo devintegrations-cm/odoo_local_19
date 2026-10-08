@@ -1,0 +1,501 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* bancolombia_payment_dispersal
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-03 18:33+0000\n"
+"PO-Revision-Date: 2024-01-03 18:33+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_needaction
+msgid "Action Needed"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__active
+msgid "Active"
+msgstr "Activo"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_ids
+msgid "Activities"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_state
+msgid "Activity State"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_type_icon
+msgid "Activity Type Icon"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_view_form
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_view_search
+msgid "Archived"
+msgstr "Archivado"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_attachment_count
+msgid "Attachment Count"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_authorised_document
+msgid "Authorised Document"
+msgstr "Documento Autorizado"
+
+#. module: bancolombia_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_inherit_view_account_payment_dispersion_form
+msgid "Bancolombia Fields"
+msgstr "Campos Bancolombia"
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_bank_code
+msgid "Bank Code"
+msgstr "Código Banco"
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_beneficiary_name
+msgid "Beneficiary Name"
+msgstr "Nombre Beneficiario "
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__company_id
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_view_search
+msgid "Company"
+msgstr "Compañía"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model,name:bancolombia_payment_dispersal.model_bancolombia_payment_dispersal_field
+msgid ""
+"Configuration of the fields to be displayed in the excel file for payments "
+"in bancolombia"
+msgstr ""
+"Configuración de los campos a mostrar en el archivo excel para pagos "
+"en bancolombia"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.actions.act_window,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_action
+#: model:ir.ui.menu,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_config_excel_field
+msgid "Configuration payment dispersal fields"
+msgstr "Configuración de los campos de dispersión de pagos"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.ui.menu,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_root_config
+msgid "Configurations Bancolombia"
+msgstr "Configuraciones Bancolombia"
+
+#. module: bancolombia_payment_dispersal
+#: model_terms:ir.actions.act_window,help:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_action
+msgid "Create your excel field to payment dispersal Bancolombia"
+msgstr "Crea tu campo excel para dispersión de pagos Bancolombia"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__create_date
+msgid "Created on"
+msgstr "Creado en"
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_beneficiary_date_of_application
+msgid "Date of implementation"
+msgstr "Fecha de aplicación"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_email
+msgid "Email"
+msgstr "Email"
+
+#. module: bancolombia_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_view_form
+msgid "Excel field"
+msgstr "Campo Excel"
+
+#. module: bancolombia_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_view_tree
+msgid "Excel fields"
+msgstr "Campos Excel"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__name
+msgid "Field name excel"
+msgstr "Nombre del campo excel"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__value
+msgid "Field value"
+msgstr "Valor del campo"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_follower_ids
+msgid "Followers"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_partner_ids
+msgid "Followers (Partners)"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.actions.server,name:bancolombia_payment_dispersal.action_account_payment_generate_dispersion_bancolombia
+msgid "Generate Bancolombia dispersion file"
+msgstr "Generar fichero de dispersión Bancolombia"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.actions.server,name:bancolombia_payment_dispersal.action_account_payment_generate_dispersion_bancolombia_payroll
+msgid "Generate Bancolombia dispersion file payroll"
+msgstr "Generar fichero de dispersión Bancolombia - Nómina"
+
+#. module: bancolombia_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_view_search
+msgid "Group By"
+msgstr "Agrupar Por"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__has_message
+msgid "Has Message"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__id
+msgid "ID"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_exception_icon
+msgid "Icon"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_has_error
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_is_follower
+msgid "Is Follower"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field____last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_main_attachment_id
+msgid "Main Attachment"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_ids
+msgid "Messages"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_beneficiary_mobile
+msgid "Mobile Beneficiary"
+msgstr "Celular Beneficiario"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_summary
+msgid "Next Activity Summary"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_type_id
+msgid "Next Activity Type"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_beneficiary_nit
+msgid "Nit Beneficiary"
+msgstr "Nit Beneficiario"
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_no_beneficiary_account
+msgid "No Beneficiary Account"
+msgstr "No Cuenta Beneficiario"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model,name:bancolombia_payment_dispersal.model_account_payment
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_reference
+msgid "Reference"
+msgstr "Referencia"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_user_id
+msgid "Responsible User"
+msgstr "Usuario Responsable"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_view_search
+msgid "Search excel fields"
+msgstr "Buscar campos excel"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__sequence
+msgid "Sequence"
+msgstr "Secuencia"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_type_transaction
+msgid "Transaction Type"
+msgstr "Tipo Transaccion "
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_beneficiary_transaction_value
+msgid "Transaction Value"
+msgstr "ValorTransaccion "
+
+#. module: bancolombia_payment_dispersal
+#: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_name
+msgid "Type of Document Beneficiary"
+msgstr "Tipo Documento Beneficiario"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_account_payment__bancolombia_type_of_transaction
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_res_partner_bank__bancolombia_type_of_transaction
+msgid "Type of transaction"
+msgstr "Tipo Transaccion "
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__website_message_ids
+msgid "Website Messages"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,help:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__website_message_ids
+msgid "Website communication history"
+msgstr ""
+
+#. module: bancolombia_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_view_form
+msgid "e.g. Type of Document Beneficiary"
+msgstr "p. ej. Tipo de documento Beneficiario"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Pre-notification Checking Account"
+msgstr "Pre-notifica ct Corriente"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Cash Payment"
+msgstr "Pago en Efectivo"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Deposit to Checking Account"
+msgstr "Abono  cta Corriente"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Pre-notify savings account"
+msgstr "Pre-notifica cuenta de ahorros"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Manager\'s Check Payment"
+msgstr "Pago Cheque Gerencia"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Deposit to Savings Account"
+msgstr "Abono a cta de Ahorros"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Secure Cash (Visa Payments)"
+msgstr "Efectivo Seguro (visa pagos)"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Electronic deposit payment"
+msgstr "Abono Depos Electroni"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
+#, python-format
+msgid "Pre-notification of Electronic Deposit"
+msgstr "Notificación previa de depósito electrónico"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid "The payment dispersions must be for a single journal and in this case it has the following journals: %s"
+msgstr "Las dispersiones de pago deben ser para un solo diario y en este caso tiene los siguientes diarios: %s"
+
+#. module: bancolombia_payment_dispersal
+#: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_res_bank__bancolombia_code
+msgid "Bancolombia Code"
+msgstr "Código Bancolombia"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid "The journal %s does not have a source account set up"
+msgstr "El diario %s no tiene configurada una cuenta de origen"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid "No transaction type configured: %s"
+msgstr "No hay tipo de transacción configurado: %s"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid "One or more of the payments has no target account: %s"
+msgstr "Uno o más pagos no tienen cuenta de destino: %s"
+
+#. module: bancolombia_payment_dispersal
+#. odoo-python
+#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid "No bank or bank code configured: %s"
+msgstr "No hay banco o código de banco configurado: %s"

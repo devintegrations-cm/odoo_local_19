@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- View res.partner.bank form -->
+    <record id="bancolombia_payment_dispersal_inherit_view_partner_bank_form" model="ir.ui.view">
+        <field name="name">bancolombia.payment.dispersal.inherit.view.partner.bank.form</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="account_payment_dispersion.account_payment_dispersion_inherit_view_partner_bank_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook[@name='dispersion_banks']" position="inside">
+                <page name="page_dispersion_bank_bancolombia" string="Bancolombia">
+                    <group>
+                        <field name="bancolombia_type_of_transaction"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

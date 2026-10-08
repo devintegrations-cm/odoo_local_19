@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem parent="account_payment_dispersion.account_payment_dispersed_root_menu" id="bancolombia_payment_dispersal_root_config" name="Configurations Bancolombia" groups="account.group_account_manager" sequence="100"/>
+    <menuitem parent="bancolombia_payment_dispersal.bancolombia_payment_dispersal_root_config" id="bancolombia_payment_dispersal_config_excel_field" action="bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_action" sequence="1"/>
+</odoo>
