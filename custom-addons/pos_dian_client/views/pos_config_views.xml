@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="pos_config_view_form_dian_client" model="ir.ui.view">
+        <field name="name">pos.config.form.dian.client</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='configuration']//div[hasclass('o_settings_container')]" position="inside">
+                <setting string="Factura electrónica: validación DIAN del cliente"
+                         help="Muestra en la pantalla de la orden el botón 'Factura electrónica' para validar el documento del cliente contra la DIAN antes de asignarlo.">
+                    <field name="show_dian_client_button"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

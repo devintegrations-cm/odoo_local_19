@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_dian_client.DianClientPopup">
+        <Dialog title="'Factura electrónica — validación DIAN'" size="'md'">
+
+            <!-- Fase 1: captura -->
+            <t t-if="state.phase === 'form'">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tipo de documento</label>
+                    <select class="form-select" t-on-change="(ev) => this.set('docCode', ev.target.value)">
+                        <option t-foreach="props.docTypes" t-as="docType" t-key="docType.code"
+                                t-att-value="docType.code"
+                                t-att-selected="docType.code === state.docCode ? true : undefined">
+                            <t t-out="docType.name"/>
+                        </option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        Número de documento <span class="text-danger">*</span>
+                    </label>
+                    <input class="form-control" type="text" autocomplete="off"
+                           t-att-value="state.number"
+                           t-on-input="(ev) => this.set('number', ev.target.value)"/>
+                </div>
+                <div class="mb-3" t-if="this.isNit">
+                    <label class="form-label fw-bold">Dígito de verificación (DV)</label>
+                    <input class="form-control" type="text" maxlength="1" inputmode="numeric" autocomplete="off"
+                           placeholder="Opcional: se calcula solo si la DIAN lo confirma"
+                           t-att-value="state.dv"
+                           t-on-input="(ev) => this.set('dv', ev.target.value)"/>
+                </div>
+            </t>
+
+            <!-- Fase 2: previsualización y acción -->
+            <t t-else="">
+                <div t-if="this.res.dian" class="alert alert-light border py-2 mb-3">
+                    <div class="fw-bold" t-out="this.res.dian.name"/>
+                    <div t-if="this.res.vat_expected" class="fs-4 fw-bold text-center my-1">
+                        <t t-out="this.res.vat_expected"/>
+                    </div>
+                    <div t-if="this.res.dian.email">
+                        <i class="fa fa-envelope-o me-1"/><t t-out="this.res.dian.email"/>
+                    </div>
+                </div>
+                <div t-if="this.res.partner" class="alert alert-light border py-2 mb-3">
+                    <div class="text-muted small">Cliente en Odoo</div>
+                    <div class="fw-bold" t-out="this.res.partner.name"/>
+                    <div>
+                        <t t-out="this.res.partner.vat"/>
+                        <t t-if="this.res.partner.email"> · <t t-out="this.res.partner.email"/></t>
+                        <t t-if="this.res.partner.email_edi and !this.res.partner.email"> · <t t-out="this.res.partner.email_edi"/></t>
+                    </div>
+                </div>
+                <div t-if="this.status === 'found' and this.res.missing and this.res.missing.length"
+                     class="text-danger small mb-2">
+                    <t t-foreach="this.res.missing" t-as="m" t-key="m_index">• <t t-out="m"/></t>
+                </div>
+                <div t-if="this.status === 'ambiguous'" class="mb-2">
+                    <ul class="mb-0">
+                        <li t-foreach="this.res.candidates" t-as="cand" t-key="cand.id">
+                            <t t-out="cand.name"/> — <t t-out="cand.vat"/>
+                            <span t-if="!cand.active" class="badge bg-secondary ms-1">Archivado</span>
+                        </li>
+                    </ul>
+                </div>
+                <div t-if="this.status === 'found' and this.hasFillable" class="small text-muted mb-2">
+                    Se completarán datos vacíos del cliente (correo de facturación, formato del documento).
+                </div>
+                <div t-if="this.status === 'found' and this.hasDiff" class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="dianReplace"
+                           t-on-change="(ev) => this.set('replace', ev.target.checked)"/>
+                    <label class="form-check-label" for="dianReplace">
+                        Reemplazar nombre y correo con los datos de la DIAN
+                    </label>
+                </div>
+                <div t-if="this.status === 'create_ok' or this.status === 'needs_email'" class="small text-muted mb-2">
+                    Se creará con régimen "No responsable de IVA", responsabilidad "No aplica – Otros" y
+                    el municipio de la compañía; la corrección posterior se hace en Contactos.
+                </div>
+                <div t-if="this.isCompany and (this.status === 'create_ok' or this.status === 'needs_email' or (this.status === 'found' and this.hasFillable))"
+                     class="alert alert-info py-2 mb-3">
+                    <i class="fa fa-info-circle me-1"/>
+                    Cliente empresa: los datos fiscales se completaron con valores por defecto;
+                    confírmelos con el cliente antes de pedir la factura (corrección en Contactos).
+                </div>
+                <div class="mb-3" t-if="this.status === 'needs_email'">
+                    <label class="form-label fw-bold">
+                        Correo del cliente <span class="text-danger">*</span>
+                    </label>
+                    <input class="form-control" type="email" autocomplete="off"
+                           placeholder="correo@ejemplo.com"
+                           t-att-value="state.email"
+                           t-on-input="(ev) => this.set('email', ev.target.value)"/>
+                </div>
+                <div t-if="this.mainMessage() and this.status !== 'found'"
+                     t-att-class="'alert py-2 mb-3 ' + this.bannerClass" role="alert">
+                    <t t-out="this.mainMessage()"/>
+                </div>
+                <div t-if="state.confirmError" class="alert alert-danger py-2 mb-3" role="alert">
+                    <t t-out="state.confirmError"/>
+                </div>
+            </t>
+
+            <t t-set-slot="footer">
+                <div class="d-flex w-100 gap-2 justify-content-end">
+                    <button t-if="state.phase === 'result' and ['found','create_ok','needs_email'].includes(this.status)"
+                            type="button" class="button cancel btn btn-lg btn-secondary"
+                            t-on-click="() => this.backToForm()">
+                        Modificar datos
+                    </button>
+                    <button t-else="" type="button" class="button cancel btn btn-lg btn-secondary"
+                            t-on-click="() => this.cancel()">
+                        Cancelar
+                    </button>
+                    <button t-if="this.primaryButton()" type="button"
+                            t-att-class="'button confirm btn btn-lg ' + this.primaryButton().cls"
+                            t-att-disabled="state.busy" t-on-click="() => this.primaryButton().action()">
+                        <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-2"/>
+                        <t t-out="this.primaryButton().label"/>
+                    </button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

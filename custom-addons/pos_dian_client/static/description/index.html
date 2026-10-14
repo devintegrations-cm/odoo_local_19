@@ -1,0 +1,172 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Agrega al POS un botón <strong>Factura electrónica</strong> para que el cajero valide ante la DIAN al cliente
+que pide factura electrónica <strong>antes</strong> de asignarlo a la orden. Consulta el registro de adquirentes
+de la DIAN a través del servicio <strong>Edipo de Jorels</strong>, con el mismo token (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">api_key</code>) con el que la
+compañía factura.</p>
+<p style="margin:0 0 12px;">Con el resultado, el cajero ve el nombre que registró la DIAN, el documento tal como se guardará
+(p.ej. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">890903938-8</code>) y el correo, y decide:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Asignar</strong> al cliente que ya existe en Odoo. Si le faltan datos de facturación, se completan solo
+  los campos <strong>vacíos</strong>. Nunca se pisan valores existentes, salvo que el cajero marque
+  <em>Reemplazar nombre y correo con los datos de la DIAN</em>.</li>
+<li style="margin-bottom:7px;"><strong>Crear y asignar</strong> al cliente que la DIAN confirma y no existe en Odoo. Se crea con el nombre tal
+  como lo devuelve la DIAN, régimen <em>No responsable de IVA</em>, responsabilidad <em>No aplica – Otros</em>,
+  el municipio de la compañía y país Colombia. Si la DIAN no tiene correo, el popup se lo pide al
+  cajero.</li>
+<li style="margin-bottom:7px;"><strong>No asignar a nadie</strong> si la DIAN no confirma el documento, si el número existe en Odoo con otro
+  tipo de documento o si hay un error de configuración o de conexión. Cada caso muestra un mensaje
+  distinto para que no se confunda un "no registrado" con una falla del servicio.</li>
+</ul>
+<p style="margin:0 0 12px;">Una vez asignado el cliente, la orden queda marcada para <strong>Factura</strong>.</p>
+<p style="margin:0 0 12px;"><strong>Importante:</strong> los datos que devuelve la DIAN los registraron los emisores que ya le facturaron a
+ese cliente, y pueden estar desactualizados o ser de otra persona. El cajero tiene que confirmar el
+nombre y el correo con el cliente antes de asignar.</p>
+<p style="margin:0 0 12px;"><strong>Efecto colateral:</strong> el módulo <strong>oculta siempre</strong> el botón nativo <em>Guardar orden</em> (ícono de
+subida, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">fa-upload</code>) en la pantalla de producto y en la barra de acciones de pantallas chicas, esté
+activo o no el botón <em>Factura electrónica</em> en esa caja.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Requisitos</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Módulo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">l10n_co_edi_jorels</code> instalado, con la <strong>facturación electrónica habilitada</strong> en la
+  compañía. Si no lo está, el popup responde "La facturación electrónica no está habilitada en esta
+  compañía".</li>
+<li style="margin-bottom:7px;"><strong>Token Edipo</strong> en la compañía: <em>Ajustes › Facturación electrónica colombiana</em>, campo
+  <strong>Edipo api key</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">api_key</code>). Es el mismo que usa la instancia para facturar. Sin él, el popup
+  responde "No está configurado el token de Edipo"; si el token no es válido, avisa que no está
+  autorizado.</li>
+<li style="margin-bottom:7px;"><strong>Municipio de la compañía</strong> (campo <em>Municipality</em> de facturación electrónica). Los clientes nuevos
+  y los existentes que no tienen municipio toman el de la compañía. Si la compañía tampoco lo tiene,
+  el cliente existente se informa como incompleto y no se asigna, y el cliente nuevo <strong>se crea sin
+  municipio</strong> (ver <em>Known issues / Roadmap</em>).</li>
+<li style="margin-bottom:7px;"><strong>Permisos del cajero:</strong> usuario del Punto de Venta. Para <em>Crear y asignar</em> o <em>Asignar y
+  actualizar</em> necesita además permiso de creación y edición de contactos; sin él, el popup lo
+  informa y no escribe nada.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Activar el botón en cada caja</h2>
+<p style="margin:0 0 12px;">En <em>Punto de Venta › Configuración › Puntos de venta</em>, abrir la caja y, en la pestaña
+<strong>Configuración</strong>, marcar <strong>Factura electrónica: validación DIAN del cliente</strong>. El ajuste viene
+marcado de forma predeterminada; desmarcarlo oculta los botones <em>Factura electrónica</em> en esa caja.
+El botón <em>Guardar orden</em> queda oculto igual, con el ajuste marcado o no.</p>
+<div class="lc-fig"><img alt="Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: marcar «Factura electrónica: validación DIAN del cliente»" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: marcar «Factura electrónica: validación DIAN del cliente»</p></div>
+<p style="margin:0 0 12px;">La caja puede tener una sesión abierta mientras se cambia el ajuste. El POS lo toma la próxima vez
+que se carga.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Opcional</h2>
+<p style="margin:0 0 12px;">La URL del servicio se cambia con el parámetro de sistema <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">jorels.edipo.api_url</code> (por defecto
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">https://edipo.jorels.com</code>).</p>
+<h2>Uso</h2>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">1. Abrir el popup</h2>
+<p style="margin:0 0 12px;">En la pantalla de producto, con la orden en curso, pulsar <strong>Factura electrónica</strong>, a la derecha de
+<em>Cliente</em>. En pantallas chicas el botón aparece en la barra de acciones como <strong>FE</strong>. También está
+en la pantalla de pago, debajo de <em>Cliente</em> y <em>Recibo/Factura</em>.</p>
+<div class="lc-fig"><img alt="Pantalla de producto: botón «Factura electrónica» junto a Cliente" src="02_boton_producto.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de producto: botón «Factura electrónica» junto a Cliente</p></div>
+<p style="margin:0 0 12px;">Las órdenes con devoluciones no permiten cambiar el cliente: el botón muestra un aviso y no abre el
+popup.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">2. Digitar el documento</h2>
+<p style="margin:0 0 12px;">Elegir el <strong>tipo de documento</strong>, escribir el <strong>número</strong> y pulsar <strong>Validar en DIAN</strong>. Para NIT, el
+dígito de verificación es opcional. Se aceptan también <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">NIT-DV</code> (p.ej. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">890903938-8</code>) y el NIT de
+10 dígitos con el DV pegado, si empieza por 8 o 9. Un DV que no corresponde se rechaza e indica el
+correcto. El documento genérico de consumidor final (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">222222222222</code>) se rechaza: para ese caso se
+usa el botón <em>Cliente</em>.</p>
+<div class="lc-fig"><img alt="Popup: tipo de documento, número y Validar en DIAN" src="03_popup_datos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Popup: tipo de documento, número y Validar en DIAN</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">3. Revisar la previsualización y confirmar</h2>
+<p style="margin:0 0 12px;">Arriba aparecen el nombre que registró la DIAN, el documento en grande tal como se guardará y el
+correo. <strong>Confirmar con el cliente</strong> que el nombre y el correo son los suyos. Si algo no coincide,
+<strong>Modificar datos</strong> vuelve al paso anterior.</p>
+<p style="margin:0 0 12px;">Cliente nuevo en Odoo: <strong>Crear y asignar</strong>. Se crea con los datos de la DIAN y los valores fiscales
+por defecto. En empresas (NIT), un aviso azul pide confirmar los datos fiscales con el cliente.</p>
+<div class="lc-fig"><img alt="Cliente confirmado por la DIAN que no existe en Odoo: Crear y asignar" src="04_previsualizacion_crear.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cliente confirmado por la DIAN que no existe en Odoo: Crear y asignar</p></div>
+<p style="margin:0 0 12px;">Cliente que ya existe en Odoo: se muestra debajo de los datos de la DIAN. <strong>Asignar y actualizar</strong>
+solo completa los campos vacíos (correo de facturación, municipio, régimen, responsabilidad, formato
+del NIT). Si el nombre o el correo difieren de los de la DIAN, la casilla <strong>Reemplazar nombre y
+correo con los datos de la DIAN</strong> los sobrescribe; sin marcarla, no se tocan. Si no hay nada que
+completar, el botón dice <strong>Asignar cliente</strong>.</p>
+<div class="lc-fig"><img alt="Cliente existente: casilla para reemplazar nombre y correo, y Asignar y actualizar" src="05_previsualizacion_existente.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cliente existente: casilla para reemplazar nombre y correo, y Asignar y actualizar</p></div>
+<p style="margin:0 0 12px;">Al confirmar, el popup se cierra, el cliente queda en la orden y aparece la notificación
+"Cliente … asignado para factura electrónica".</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">4. Casos en que no se asigna</h2>
+<p style="margin:0 0 12px;">Si la DIAN no tiene registrado el documento, el cliente tiene que habilitarse como adquirente ante
+la DIAN. Se cierra con <strong>Entendido</strong>.</p>
+<div class="lc-fig"><img alt="No registrado ante la DIAN" src="06_no_registrado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">No registrado ante la DIAN</p></div>
+<p style="margin:0 0 12px;">Si el número ya existe en Odoo con <strong>otro tipo de documento</strong> (p.ej. guardado como NIT y consultado
+como cédula), el popup no escribe nada y avisa en amarillo con qué tipo existe. Hay que consultarlo
+con ese tipo o corregir el contacto en <em>Contactos</em>.</p>
+<div class="lc-fig"><img alt="El número existe en Odoo con otro tipo de documento" src="07_tipo_distinto.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">El número existe en Odoo con otro tipo de documento</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">5. Cobrar</h2>
+<p style="margin:0 0 12px;">En la pantalla de pago, el cliente aparece asignado y <strong>Recibo/Factura</strong> marcado. Al validar el
+pago, la factura sale a nombre de ese cliente y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">l10n_co_edi_jorels</code> la envía a la DIAN.</p>
+<div class="lc-fig"><img alt="Pantalla de pago: cliente asignado y Recibo/Factura marcado" src="08_pago_factura.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de pago: cliente asignado y Recibo/Factura marcado</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Estados y mensajes del popup</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Cliente nuevo</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">create_ok</code>): "El cliente existe ante la DIAN y no en Odoo. Se creará con sus
+  datos." Botón <em>Crear y asignar</em>.</li>
+<li style="margin-bottom:7px;"><strong>Falta correo</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">needs_email</code>): "La DIAN confirmó a … pero no tiene correo registrado". Pide el
+  correo al cajero (obligatorio y con formato válido) y luego <em>Crear y asignar</em>. Los correos de
+  relleno de la DIAN (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sininformacion@…</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sincorreo@…</code>) cuentan como "sin correo".</li>
+<li style="margin-bottom:7px;"><strong>Cliente existente</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">found</code>): muestra el cliente de Odoo. Botón <em>Asignar cliente</em> o <em>Asignar y
+  actualizar</em>.</li>
+<li style="margin-bottom:7px;"><strong>No registrado</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">not_registered</code>): "El cliente … no está habilitado como adquirente ante la
+  DIAN". Botón <em>Entendido</em>.</li>
+<li style="margin-bottom:7px;"><strong>Otro tipo de documento</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">type_mismatch</code>): "Existe en Odoo como …; consúltelo con ese tipo o
+  corríjalo en Contactos". Aviso amarillo, no escribe nada.</li>
+<li style="margin-bottom:7px;"><strong>Duplicado</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ambiguous</code>): "Hay más de un contacto con este documento". Lista los contactos y
+  hay que resolverlo en <em>Contactos</em>.</li>
+<li style="margin-bottom:7px;"><strong>Archivado</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">archived</code>): "El cliente existe en Odoo pero está ARCHIVADO". Hay que reactivarlo
+  en <em>Contactos</em>.</li>
+<li style="margin-bottom:7px;"><strong>Incompleto</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">incomplete</code>): "El cliente existe en Odoo pero le falta: …" (correo de facturación
+  sin correo de la DIAN para completarlo, o municipio sin municipio en la compañía).</li>
+<li style="margin-bottom:7px;"><strong>Dato inválido</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">invalid</code>): número vacío, NIT de menos de 7 dígitos, DV que no concuerda,
+  documento de consumidor final, correo con formato inválido. Botón <em>Modificar datos</em>.</li>
+<li style="margin-bottom:7px;"><strong>Configuración</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">config_error</code>): facturación electrónica deshabilitada, token ausente o no
+  autorizado. Botón <em>Cerrar</em>.</li>
+<li style="margin-bottom:7px;"><strong>Conexión</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">connection_error</code>): "La DIAN no respondió (…). Reintente en unos segundos." Botón
+  <em>Reintentar</em>.</li>
+<li style="margin-bottom:7px;"><strong>Respuesta inesperada</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">unexpected_response</code>): el servicio rechazó la consulta o respondió
+  algo que no se reconoce. Botón <em>Reintentar</em>.</li>
+<li style="margin-bottom:7px;"><strong>Permisos</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">permission_error</code>): el usuario no puede leer, crear o editar contactos. Botón
+  <em>Cerrar</em>.</li>
+</ul>
+<p style="margin:0 0 12px;">En todos los casos que no son de asignación, la orden queda como estaba.</p>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Límites conocidos</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Los datos de la DIAN no son del cliente que está en la caja.</strong> El servicio de adquirentes
+  devuelve lo que registraron otros emisores. El cajero tiene que confirmar nombre y correo con el
+  cliente; el popup no lo puede verificar.</li>
+<li style="margin-bottom:7px;"><strong>Guardar orden oculto en todas las cajas.</strong> El botón nativo <em>Guardar orden</em> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">fa-upload</code>) se
+  quita de la pantalla de producto y de la barra de acciones aunque la caja tenga desmarcado
+  <em>Factura electrónica: validación DIAN del cliente</em>.</li>
+<li style="margin-bottom:7px;"><strong>Otro tipo de documento muestra los datos de la DIAN.</strong> En el aviso <em>Existe en Odoo como …</em>, el
+  popup igual muestra nombre y correo que la DIAN devolvió para el número con el tipo consultado,
+  que puede ser una persona distinta del contacto de Odoo. Evaluar ocultar ese bloque en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">type_mismatch</code>.</li>
+<li style="margin-bottom:7px;"><strong>Pantallas chicas:</strong> con un cliente asignado, el botón <strong>FE</strong> de la barra de acciones queda
+  reducido al ícono y "…".</li>
+<li style="margin-bottom:7px;">Cada validación de un cliente existente vuelve a consultar a la DIAN (por diseño del
+  requerimiento). Si el volumen de cajas lo pide, evaluar una caché corta por documento.</li>
+<li style="margin-bottom:7px;">El buscador de existentes compara las variantes canónica <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">NIT-DV</code>, sin DV y sin guion, pero no NIT
+  guardados con puntos (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">900.123.456-8</code>). Si aparecen en producción, agregar esa variante.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Mejoras pendientes (no bloquean)</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Timeout de Edipo:</strong> hoy es de 20 s. Pasarlo a 5 s de conexión y 10 s de lectura
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">timeout=(5, 10)</code>) para que la caja no quede esperando.</li>
+<li style="margin-bottom:7px;"><strong>Crear sin municipio:</strong> bloquear <em>Crear y asignar</em> si la compañía no tiene municipio. Hoy el
+  cliente nuevo se crea con el municipio vacío.</li>
+<li style="margin-bottom:7px;"><strong>Teclado:</strong> que Enter dispare <em>Validar en DIAN</em> y que el foco inicial quede en el número.</li>
+<li style="margin-bottom:7px;"><strong>Modificar datos:</strong> limpiar el correo digitado al volver al formulario, para que no quede
+  arrastrado a otro documento.</li>
+<li style="margin-bottom:7px;"><strong>Índice sobre <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">edi_sanitize_vat</code>:</strong> decidir según el volumen de contactos en producción. La
+  búsqueda de existentes filtra por ese campo en cada consulta.</li>
+<li style="margin-bottom:7px;"><strong>Concurrencia:</strong> dos cajas que crean el mismo cliente al mismo tiempo pueden dejar un duplicado,
+  que la próxima consulta informará como <em>Hay más de un contacto con este documento</em>.</li>
+<li style="margin-bottom:7px;"><strong>Rotación del token Edipo:</strong> el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">api_key</code> quedó expuesto en sesiones de trabajo previas.
+  Rotarlo antes de producción (decisión del equipo).</li>
+<li style="margin-bottom:7px;"><strong>Mapeo de más campos de Edipo:</strong> si <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/acquirer</code> devuelve municipio, régimen o responsabilidad
+  del adquirente, usarlos en lugar de los valores por defecto.</li>
+<li style="margin-bottom:7px;">Ícono del módulo (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>): falta y requiere arte.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee Colombia</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Desarrollo Libertario \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#101;&#103;&#105;&#111;&#110;&#97;&#108;&#105;&#116;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#114;&#101;&#103;&#105;&#111;&#110;&#97;&#108;&#105;&#116;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>
