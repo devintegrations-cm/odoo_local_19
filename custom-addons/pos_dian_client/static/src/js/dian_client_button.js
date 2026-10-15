@@ -63,7 +63,19 @@ export async function openDianClientPopup() {
     }
 }
 
+/**
+ * "Ocultar botón de cliente" solo aplica si el botón "Factura electrónica"
+ * está activo: con los dos ajustes apagados la caja quedaría sin forma de
+ * asignar cliente.
+ */
+export function dianHidesPartner(config) {
+    return Boolean(config.show_dian_client_button && config.hide_partner_button);
+}
+
 patch(ControlButtons.prototype, {
+    get dianHidesPartner() {
+        return dianHidesPartner(this.pos.config);
+    },
     setup() {
         super.setup(...arguments);
         this.orm = useService("orm");
@@ -72,6 +84,9 @@ patch(ControlButtons.prototype, {
 });
 
 patch(ActionpadWidget.prototype, {
+    get dianHidesPartner() {
+        return dianHidesPartner(this.pos.config);
+    },
     setup() {
         super.setup(...arguments);
         this.dialog = useService("dialog");
@@ -85,6 +100,9 @@ patch(ActionpadWidget.prototype, {
 // Cliente / Recibo-Factura (la plantilla PaymentScreenButtons se renderiza
 // con t-call, así que el contexto es este componente).
 patch(PaymentScreen.prototype, {
+    get dianHidesPartner() {
+        return dianHidesPartner(this.pos.config);
+    },
     setup() {
         super.setup(...arguments);
         this.orm = useService("orm");

@@ -6,6 +6,9 @@
 - **Guardar orden oculto en todas las cajas.** El botón nativo *Guardar orden* (`fa-upload`) se
   quita de la pantalla de producto y de la barra de acciones aunque la caja tenga desmarcado
   *Factura electrónica: validación DIAN del cliente*.
+- **Sin desasignar cliente con «Ocultar botón de cliente».** Con ese ajuste y la validación DIAN
+  marcados, el POS no ofrece forma de quitar el cliente de la orden: solo se puede reemplazar por
+  otro validado o descartar la orden.
 - **Otro tipo de documento muestra los datos de la DIAN.** En el aviso *Existe en Odoo como …*, el
   popup igual muestra nombre y correo que la DIAN devolvió para el número con el tipo consultado,
   que puede ser una persona distinta del contacto de Odoo. Evaluar ocultar ese bloque en

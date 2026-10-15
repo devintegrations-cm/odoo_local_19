@@ -47,6 +47,8 @@ Jorels (el mismo token de la compañía):
         "static/description/06_no_registrado.png",
         "static/description/07_tipo_distinto.png",
         "static/description/08_pago_factura.png",
+        "static/description/09_ocultar_cliente_pago.png",
+        "static/description/10_ocultar_cliente_producto.png",
     ],
     "installable": True,
     "application": False,

@@ -61,6 +61,33 @@ pago, la factura sale a nombre de ese cliente y `l10n_co_edi_jorels` la envía a
 
 ![Pantalla de pago: cliente asignado y Recibo/Factura marcado](../static/description/08_pago_factura.png)
 
+El botón de factura nativo de Odoo se llama *Invoice*; con el idioma Español (Latinoamérica) se lee
+**Recibo/Factura** y con Español (España) **Factura**. Es el mismo botón.
+
+## 6. Cajas con «Ocultar botón de cliente»
+
+Si la caja tiene marcados **los dos** ajustes (*Factura electrónica: validación DIAN del cliente* y
+*Ocultar botón de cliente*), el botón nativo *Cliente* no aparece y todo se hace con **Factura
+electrónica**:
+
+**Pantalla de producto** (escritorio y barra de acciones móvil): queda *Factura electrónica* (o
+*FE* en pantallas chicas) en lugar de *Cliente*. Una vez asignado, el nombre del cliente aparece
+debajo del botón (en móvil, al lado de *FE*).
+
+![Pantalla de producto con «Ocultar botón de cliente»: el cliente asignado se ve bajo «Factura electrónica»](../static/description/10_ocultar_cliente_producto.png)
+
+**Pantalla de pago:** *Factura electrónica* ocupa el lugar del botón *Cliente*, en la misma fila
+que *Recibo/Factura* y con el nombre del cliente asignado debajo; *Recibo/Factura* queda al ancho
+de su contenido. En pantallas chicas los dos botones se apilan, igual que en el POS estándar. Si la orden exige cliente (por ejemplo, porque se marcó
+*Recibo/Factura*) y todavía no lo tiene, *Factura electrónica* se **resalta** con el color
+principal del POS, igual que se resaltaba el botón *Cliente* nativo.
+
+![Pantalla de pago con «Ocultar botón de cliente»: «Factura electrónica» con el cliente asignado en el lugar de Cliente, y Recibo/Factura al ancho de su contenido](../static/description/09_ocultar_cliente_pago.png)
+
+Con este modo **no hay forma de desasignar un cliente desde la interfaz**: si se asignó el cliente
+equivocado, se valida y asigna el correcto con *Factura electrónica* (reemplaza al anterior) o se
+descarta la orden.
+
 ## Estados y mensajes del popup
 
 - **Cliente nuevo** (`create_ok`): "El cliente existe ante la DIAN y no en Odoo. Se creará con sus

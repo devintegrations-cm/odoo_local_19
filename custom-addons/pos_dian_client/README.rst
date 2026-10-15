@@ -46,11 +46,15 @@ nombre y el correo con el cliente antes de asignar.
 subida, ``fa-upload``) en la pantalla de producto y en la barra de acciones de pantallas chicas, esté
 activo o no el botón *Factura electrónica* en esa caja.
 
-**Ocultar botón de cliente (por caja, opcional):** el segundo ajuste de configuración retira el
-botón nativo *Cliente* de la vista de orden (escritorio y móvil) y de la vista de pago (donde
-*Factura/Recibo* pasa a ocupar todo el ancho). El cliente se gestiona entonces solo con *Factura
-electrónica*, que muestra debajo el nombre del cliente ya asignado. Con esta opción activa no hay
-forma de desasignar un cliente desde la interfaz.
+**Ocultar botón de cliente (por caja, opcional):** un segundo ajuste retira el botón nativo
+*Cliente* de la pantalla de producto (escritorio y barra de acciones móvil) y de la pantalla de
+pago. **Solo tiene efecto si la caja también tiene marcado** *Factura electrónica: validación DIAN
+del cliente*; con ese ajuste desmarcado, el botón *Cliente* sigue visible para que la caja no se
+quede sin forma de asignar cliente. Con los dos marcados, el cliente se gestiona solo con
+*Factura electrónica*, que muestra debajo el nombre del cliente asignado; en la pantalla de pago
+*Factura electrónica* pasa a la misma fila que *Recibo/Factura*, en el lugar de *Cliente*, y se resalta con el color principal del POS cuando la orden exige
+cliente y todavía no lo tiene. **No hay forma de desasignar un cliente desde la interfaz** con esta
+opción activa.
 
 **Table of contents**
 
@@ -86,16 +90,22 @@ En *Punto de Venta › Configuración › Puntos de venta*, abrir la caja y, en 
 marcado de forma predeterminada; desmarcarlo oculta los botones *Factura electrónica* en esa caja.
 El botón *Guardar orden* queda oculto igual, con el ajuste marcado o no.
 
-Justo debajo está **Ocultar botón de cliente** (viene desmarcado): al marcarlo, el botón nativo de
-*Cliente* desaparece de la vista de orden (escritorio y móvil) y de la vista de pago, y
-*Factura/Recibo* ocupa todo el ancho. El cliente se gestiona entonces solo con *Factura
-electrónica*, que muestra debajo el nombre del cliente ya asignado. Con esta opción no hay forma de
-desasignar un cliente desde la interfaz.
+A continuación está **Ocultar botón de cliente** (viene desmarcado). Al marcarlo, el botón
+nativo *Cliente* desaparece de la pantalla de producto (escritorio y móvil) y de la pantalla de
+pago, donde *Factura electrónica* toma su lugar junto a *Recibo/Factura*. El cliente se gestiona entonces solo con
+*Factura electrónica*, que muestra debajo el nombre del cliente ya asignado.
+
+**Solo tiene efecto si «Factura electrónica: validación DIAN del cliente» también está marcado.**
+Si se desmarca la validación DIAN, el botón *Cliente* vuelve a aparecer aunque *Ocultar botón de
+cliente* siga marcado.
+
+**Atención:** con esta opción activa no hay forma de desasignar un cliente desde la interfaz del
+POS.
 
 .. figure:: ../static/description/01_configuracion.png
-   :alt: Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: marcar «Factura electrónica: validación DIAN del cliente»
+   :alt: Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: 1. «Factura electrónica: validación DIAN del cliente»; 2. «Ocultar botón de cliente», que solo aplica con el 1 marcado
 
-   Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: marcar «Factura electrónica: validación DIAN del cliente»
+   Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: 1. «Factura electrónica: validación DIAN del cliente»; 2. «Ocultar botón de cliente», que solo aplica con el 1 marcado
 
 La caja puede tener una sesión abierta mientras se cambia el ajuste. El POS lo toma la próxima vez
 que se carga.
@@ -198,6 +208,40 @@ pago, la factura sale a nombre de ese cliente y ``l10n_co_edi_jorels`` la envía
 
    Pantalla de pago: cliente asignado y Recibo/Factura marcado
 
+El botón de factura nativo de Odoo se llama *Invoice*; con el idioma Español (Latinoamérica) se lee
+**Recibo/Factura** y con Español (España) **Factura**. Es el mismo botón.
+
+6. Cajas con «Ocultar botón de cliente»
+---------------------------------------
+
+Si la caja tiene marcados **los dos** ajustes (*Factura electrónica: validación DIAN del cliente* y
+*Ocultar botón de cliente*), el botón nativo *Cliente* no aparece y todo se hace con **Factura
+electrónica**:
+
+**Pantalla de producto** (escritorio y barra de acciones móvil): queda *Factura electrónica* (o
+*FE* en pantallas chicas) en lugar de *Cliente*. Una vez asignado, el nombre del cliente aparece
+debajo del botón (en móvil, al lado de *FE*).
+
+.. figure:: ../static/description/10_ocultar_cliente_producto.png
+   :alt: Pantalla de producto con «Ocultar botón de cliente»: el cliente asignado se ve bajo «Factura electrónica»
+
+   Pantalla de producto con «Ocultar botón de cliente»: el cliente asignado se ve bajo «Factura electrónica»
+
+**Pantalla de pago:** *Factura electrónica* ocupa el lugar del botón *Cliente*, en la misma fila
+que *Recibo/Factura* y con el nombre del cliente asignado debajo; *Recibo/Factura* queda al ancho
+de su contenido. En pantallas chicas los dos botones se apilan, igual que en el POS estándar. Si la orden exige cliente (por ejemplo, porque se marcó
+*Recibo/Factura*) y todavía no lo tiene, *Factura electrónica* se **resalta** con el color
+principal del POS, igual que se resaltaba el botón *Cliente* nativo.
+
+.. figure:: ../static/description/09_ocultar_cliente_pago.png
+   :alt: Pantalla de pago con «Ocultar botón de cliente»: «Factura electrónica» con el cliente asignado en el lugar de Cliente, y Recibo/Factura al ancho de su contenido
+
+   Pantalla de pago con «Ocultar botón de cliente»: «Factura electrónica» con el cliente asignado en el lugar de Cliente, y Recibo/Factura al ancho de su contenido
+
+Con este modo **no hay forma de desasignar un cliente desde la interfaz**: si se asignó el cliente
+equivocado, se valida y asigna el correcto con *Factura electrónica* (reemplaza al anterior) o se
+descarta la orden.
+
 Estados y mensajes del popup
 ----------------------------
 
@@ -243,6 +287,9 @@ Límites conocidos
 - **Guardar orden oculto en todas las cajas.** El botón nativo *Guardar orden* (``fa-upload``) se
   quita de la pantalla de producto y de la barra de acciones aunque la caja tenga desmarcado
   *Factura electrónica: validación DIAN del cliente*.
+- **Sin desasignar cliente con «Ocultar botón de cliente».** Con ese ajuste y la validación DIAN
+  marcados, el POS no ofrece forma de quitar el cliente de la orden: solo se puede reemplazar por
+  otro validado o descartar la orden.
 - **Otro tipo de documento muestra los datos de la DIAN.** En el aviso *Existe en Odoo como …*, el
   popup igual muestra nombre y correo que la DIAN devolvió para el número con el tipo consultado,
   que puede ser una persona distinta del contacto de Odoo. Evaluar ocultar ese bloque en

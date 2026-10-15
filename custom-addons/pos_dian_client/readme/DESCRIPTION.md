@@ -27,8 +27,12 @@ nombre y el correo con el cliente antes de asignar.
 subida, `fa-upload`) en la pantalla de producto y en la barra de acciones de pantallas chicas, esté
 activo o no el botón *Factura electrónica* en esa caja.
 
-**Ocultar botón de cliente (por caja, opcional):** el segundo ajuste de configuración retira el
-botón nativo *Cliente* de la vista de orden (escritorio y móvil) y de la vista de pago (donde
-*Factura/Recibo* pasa a ocupar todo el ancho). El cliente se gestiona entonces solo con *Factura
-electrónica*, que muestra debajo el nombre del cliente ya asignado. Con esta opción activa no hay
-forma de desasignar un cliente desde la interfaz.
+**Ocultar botón de cliente (por caja, opcional):** un segundo ajuste retira el botón nativo
+*Cliente* de la pantalla de producto (escritorio y barra de acciones móvil) y de la pantalla de
+pago. **Solo tiene efecto si la caja también tiene marcado** *Factura electrónica: validación DIAN
+del cliente*; con ese ajuste desmarcado, el botón *Cliente* sigue visible para que la caja no se
+quede sin forma de asignar cliente. Con los dos marcados, el cliente se gestiona solo con
+*Factura electrónica*, que muestra debajo el nombre del cliente asignado; en la pantalla de pago
+*Factura electrónica* pasa a la misma fila que *Recibo/Factura*, en el lugar de *Cliente*, y se resalta con el color principal del POS cuando la orden exige
+cliente y todavía no lo tiene. **No hay forma de desasignar un cliente desde la interfaz** con esta
+opción activa.
