@@ -11,6 +11,10 @@
                          help="Muestra en la pantalla de la orden el botón 'Factura electrónica' para validar el documento del cliente contra la DIAN antes de asignarlo.">
                     <field name="show_dian_client_button"/>
                 </setting>
+                <setting string="Ocultar botón de cliente"
+                         help="Oculta el botón nativo de Cliente en la vista de orden y de pago: el cliente se gestiona solo con 'Factura electrónica' (el botón muestra el nombre del cliente asignado).">
+                    <field name="hide_partner_button"/>
+                </setting>
             </xpath>
         </field>
     </record>

@@ -484,6 +484,21 @@ class TestPosDianClient(TransactionCase):
             )
         self.assertEqual(out["status"], "permission_error")
 
+    # ── Configuración del botón (flags de pos.config) ────────────────────────
+
+    def test_dian_button_flags(self):
+        defaults = self.env["pos.config"].default_get(
+            ["show_dian_client_button", "hide_partner_button"]
+        )
+        self.assertTrue(defaults["show_dian_client_button"])
+        self.assertFalse(defaults["hide_partner_button"],
+                         "ocultar el cliente nativo debe ser opt-in")
+        config = self.env["pos.config"].search([], limit=1)
+        if config:
+            config.hide_partner_button = True
+            self.assertTrue(config.hide_partner_button)
+            config.hide_partner_button = False
+
     # ── Errores de validación de Edipo, largo y correos (QA 2026-10-14) ──────
 
     def test_edipo_validation_errors_are_unexpected(self):

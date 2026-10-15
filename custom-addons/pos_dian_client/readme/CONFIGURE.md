@@ -22,6 +22,12 @@ En *Punto de Venta › Configuración › Puntos de venta*, abrir la caja y, en 
 marcado de forma predeterminada; desmarcarlo oculta los botones *Factura electrónica* en esa caja.
 El botón *Guardar orden* queda oculto igual, con el ajuste marcado o no.
 
+Justo debajo está **Ocultar botón de cliente** (viene desmarcado): al marcarlo, el botón nativo de
+*Cliente* desaparece de la vista de orden (escritorio y móvil) y de la vista de pago, y
+*Factura/Recibo* ocupa todo el ancho. El cliente se gestiona entonces solo con *Factura
+electrónica*, que muestra debajo el nombre del cliente ya asignado. Con esta opción no hay forma de
+desasignar un cliente desde la interfaz.
+
 ![Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: marcar «Factura electrónica: validación DIAN del cliente»](../static/description/01_configuracion.png)
 
 La caja puede tener una sesión abierta mientras se cambia el ajuste. El POS lo toma la próxima vez

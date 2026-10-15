@@ -46,6 +46,12 @@ nombre y el correo con el cliente antes de asignar.
 subida, ``fa-upload``) en la pantalla de producto y en la barra de acciones de pantallas chicas, esté
 activo o no el botón *Factura electrónica* en esa caja.
 
+**Ocultar botón de cliente (por caja, opcional):** el segundo ajuste de configuración retira el
+botón nativo *Cliente* de la vista de orden (escritorio y móvil) y de la vista de pago (donde
+*Factura/Recibo* pasa a ocupar todo el ancho). El cliente se gestiona entonces solo con *Factura
+electrónica*, que muestra debajo el nombre del cliente ya asignado. Con esta opción activa no hay
+forma de desasignar un cliente desde la interfaz.
+
 **Table of contents**
 
 .. contents::
@@ -79,6 +85,12 @@ En *Punto de Venta › Configuración › Puntos de venta*, abrir la caja y, en 
 **Configuración**, marcar **Factura electrónica: validación DIAN del cliente**. El ajuste viene
 marcado de forma predeterminada; desmarcarlo oculta los botones *Factura electrónica* en esa caja.
 El botón *Guardar orden* queda oculto igual, con el ajuste marcado o no.
+
+Justo debajo está **Ocultar botón de cliente** (viene desmarcado): al marcarlo, el botón nativo de
+*Cliente* desaparece de la vista de orden (escritorio y móvil) y de la vista de pago, y
+*Factura/Recibo* ocupa todo el ancho. El cliente se gestiona entonces solo con *Factura
+electrónica*, que muestra debajo el nombre del cliente ya asignado. Con esta opción no hay forma de
+desasignar un cliente desde la interfaz.
 
 .. figure:: ../static/description/01_configuracion.png
    :alt: Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: marcar «Factura electrónica: validación DIAN del cliente»

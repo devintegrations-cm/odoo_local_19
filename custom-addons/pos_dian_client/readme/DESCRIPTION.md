@@ -26,3 +26,9 @@ nombre y el correo con el cliente antes de asignar.
 **Efecto colateral:** el módulo **oculta siempre** el botón nativo *Guardar orden* (ícono de
 subida, `fa-upload`) en la pantalla de producto y en la barra de acciones de pantallas chicas, esté
 activo o no el botón *Factura electrónica* en esa caja.
+
+**Ocultar botón de cliente (por caja, opcional):** el segundo ajuste de configuración retira el
+botón nativo *Cliente* de la vista de orden (escritorio y móvil) y de la vista de pago (donde
+*Factura/Recibo* pasa a ocupar todo el ancho). El cliente se gestiona entonces solo con *Factura
+electrónica*, que muestra debajo el nombre del cliente ya asignado. Con esta opción activa no hay
+forma de desasignar un cliente desde la interfaz.

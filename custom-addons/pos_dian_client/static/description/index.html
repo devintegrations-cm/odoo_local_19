@@ -24,6 +24,11 @@ nombre y el correo con el cliente antes de asignar.</p>
 <p style="margin:0 0 12px;"><strong>Efecto colateral:</strong> el módulo <strong>oculta siempre</strong> el botón nativo <em>Guardar orden</em> (ícono de
 subida, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">fa-upload</code>) en la pantalla de producto y en la barra de acciones de pantallas chicas, esté
 activo o no el botón <em>Factura electrónica</em> en esa caja.</p>
+<p style="margin:0 0 12px;"><strong>Ocultar botón de cliente (por caja, opcional):</strong> el segundo ajuste de configuración retira el
+botón nativo <em>Cliente</em> de la vista de orden (escritorio y móvil) y de la vista de pago (donde
+<em>Factura/Recibo</em> pasa a ocupar todo el ancho). El cliente se gestiona entonces solo con <em>Factura
+electrónica</em>, que muestra debajo el nombre del cliente ya asignado. Con esta opción activa no hay
+forma de desasignar un cliente desde la interfaz.</p>
 <div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
 <h2>Configuración</h2>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Requisitos</h2>
@@ -48,6 +53,11 @@ activo o no el botón <em>Factura electrónica</em> en esa caja.</p>
 <strong>Configuración</strong>, marcar <strong>Factura electrónica: validación DIAN del cliente</strong>. El ajuste viene
 marcado de forma predeterminada; desmarcarlo oculta los botones <em>Factura electrónica</em> en esa caja.
 El botón <em>Guardar orden</em> queda oculto igual, con el ajuste marcado o no.</p>
+<p style="margin:0 0 12px;">Justo debajo está <strong>Ocultar botón de cliente</strong> (viene desmarcado): al marcarlo, el botón nativo de
+<em>Cliente</em> desaparece de la vista de orden (escritorio y móvil) y de la vista de pago, y
+<em>Factura/Recibo</em> ocupa todo el ancho. El cliente se gestiona entonces solo con <em>Factura
+electrónica</em>, que muestra debajo el nombre del cliente ya asignado. Con esta opción no hay forma de
+desasignar un cliente desde la interfaz.</p>
 <div class="lc-fig"><img alt="Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: marcar «Factura electrónica: validación DIAN del cliente»" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: marcar «Factura electrónica: validación DIAN del cliente»</p></div>
 <p style="margin:0 0 12px;">La caja puede tener una sesión abierta mientras se cambia el ajuste. El POS lo toma la próxima vez
 que se carga.</p>
