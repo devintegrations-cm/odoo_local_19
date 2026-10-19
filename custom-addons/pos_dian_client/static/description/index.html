@@ -7,8 +7,9 @@ compañía factura.</p>
 (p.ej. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">890903938-8</code>) y el correo, y decide:</p>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><strong>Asignar</strong> al cliente que ya existe en Odoo. Si le faltan datos de facturación, se completan solo
-  los campos <strong>vacíos</strong>. Nunca se pisan valores existentes, salvo que el cajero marque
-  <em>Reemplazar nombre y correo con los datos de la DIAN</em>.</li>
+  los campos <strong>vacíos</strong>. El <strong>nombre nunca se reemplaza</strong> y el correo del contacto tampoco: solo se
+  completa si está vacío. El correo de <strong>facturación electrónica</strong> sí se actualiza con el de la DIAN,
+  que es el que usa Jorels al emitir.</li>
 <li style="margin-bottom:7px;"><strong>Crear y asignar</strong> al cliente que la DIAN confirma y no existe en Odoo. Se crea con el nombre tal
   como lo devuelve la DIAN, régimen <em>No responsable de IVA</em>, responsabilidad <em>No aplica – Otros</em>,
   el municipio de la compañía y país Colombia. Si la DIAN no tiene correo, el popup se lo pide al
@@ -95,11 +96,15 @@ correo. <strong>Confirmar con el cliente</strong> que el nombre y el correo son 
 por defecto. En empresas (NIT), un aviso azul pide confirmar los datos fiscales con el cliente.</p>
 <div class="lc-fig"><img alt="Cliente confirmado por la DIAN que no existe en Odoo: Crear y asignar" src="04_previsualizacion_crear.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cliente confirmado por la DIAN que no existe en Odoo: Crear y asignar</p></div>
 <p style="margin:0 0 12px;">Cliente que ya existe en Odoo: se muestra debajo de los datos de la DIAN. <strong>Asignar y actualizar</strong>
-solo completa los campos vacíos (correo de facturación, municipio, régimen, responsabilidad, formato
-del NIT). Si el nombre o el correo difieren de los de la DIAN, la casilla <strong>Reemplazar nombre y
-correo con los datos de la DIAN</strong> los sobrescribe; sin marcarla, no se tocan. Si no hay nada que
-completar, el botón dice <strong>Asignar cliente</strong>.</p>
-<div class="lc-fig"><img alt="Cliente existente: casilla para reemplazar nombre y correo, y Asignar y actualizar" src="05_previsualizacion_existente.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cliente existente: casilla para reemplazar nombre y correo, y Asignar y actualizar</p></div>
+completa los campos vacíos (correo de facturación, municipio, régimen, responsabilidad, formato del
+NIT) y actualiza el <strong>correo de facturación electrónica</strong> con el de la DIAN. El <strong>nombre</strong> y el
+<strong>correo del contacto</strong> no se pisan: si el nombre difiere, el popup pide confirmar con el cliente
+que es el mismo (las diferencias de comas, tildes u orden de palabras no cuentan); el correo del
+contacto solo se completa si estaba vacío. Si no hay nada que actualizar, el botón dice <strong>Asignar
+cliente</strong>.</p>
+<p style="margin:0 0 12px;">El popup recuerda que la factura se enviará al correo de facturación electrónica con copia al correo
+de contacto (el envío lo gestiona la configuración de facturación electrónica de la compañía).</p>
+<div class="lc-fig"><img alt="Cliente existente: Asignar y actualizar sin pisar nombre ni correo del contacto" src="05_previsualizacion_existente.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cliente existente: Asignar y actualizar sin pisar nombre ni correo del contacto</p></div>
 <p style="margin:0 0 12px;">Al confirmar, el popup se cierra, el cliente queda en la orden y aparece la notificación
 "Cliente … asignado para factura electrónica".</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">4. Casos en que no se asigna</h2>

@@ -2,6 +2,7 @@
 import json
 import logging
 import re
+import unicodedata
 
 import requests
 
@@ -216,6 +217,23 @@ class ResPartner(models.Model):
     # ── Lectura de estado del existente para la FE ────────────────────────────
 
     @api.model
+    def _pos_dian_names_match(self, one, other):
+        """Dos nombres son "el mismo" aunque cambien el orden de las palabras,
+        las comas/puntos o las tildes (caso típico DIAN vs Odoo: la DIAN
+        devuelve ``RAZON SOCIAL SAS`` y Odoo tiene ``SOCIAL SAS, RAZON``).
+
+        Se usa solo para decidir si vale la pena pedirle al cajero que confirme
+        el nombre; nunca para escribir.
+        """
+        def tokens(text):
+            text = unicodedata.normalize("NFKD", text or "")
+            text = "".join(ch for ch in text if not unicodedata.combining(ch))
+            return sorted(re.sub(r"[^0-9a-z]+", " ", text.casefold()).split())
+
+        tokens_one = tokens(one)
+        return bool(tokens_one) and tokens_one == tokens(other)
+
+    @api.model
     def _pos_dian_readiness(self, partner, resolved, dian_name=False, dian_email=False):
         """Clasifica un partner existente contra lo que Jorels exige al emitir.
 
@@ -257,8 +275,12 @@ class ResPartner(models.Model):
         if not partner.type_liability_id:
             fillable["type_liability_id"] = 29
         diff = {
-            "name": bool(dian_name and partner.name and partner.name.strip().casefold() != dian_name.strip().casefold()),
+            "name": bool(dian_name and partner.name
+                         and not self._pos_dian_names_match(partner.name, dian_name)),
             "email": bool(dian_email and partner.email and partner.email.strip().casefold() != dian_email.strip().casefold()),
+            # El correo de facturación electrónica sí se actualiza con el de la
+            # DIAN: es el que usa Jorels al emitir (decisión 2026-10-16).
+            "email_edi": bool(dian_email and (partner.email_edi or "").strip().casefold() != dian_email.strip().casefold()),
         }
         return missing, fillable, diff
 
@@ -458,7 +480,7 @@ class ResPartner(models.Model):
 
     @api.model
     def pos_dian_confirm(self, doc_code, number, dv=False, action="assign",
-                         dian_name=False, dian_email=False, email=False, replace=False):
+                         dian_name=False, dian_email=False, email=False):
         """Escribe con la misma resolución de la fase 1, pero **sin** volver a
         llamar a la DIAN: los valores de la DIAN viajan desde el popup y se
         revalidan aquí (formatos, largos, dominio de escritura)."""
@@ -519,19 +541,20 @@ class ResPartner(models.Model):
                         return {"status": "incomplete",
                                 "detail": _("El cliente existe en Odoo pero le falta: %s.") % "; ".join(missing)}
                     return {"status": "assigned", "partner_id": partner.id, "name": partner.display_name}
-                # update: solo campos vacíos, y nombre/correo SOLO con replace
+                # update: completa los campos fiscales vacíos y actualiza SOLO
+                # el correo de facturación electrónica (decisión 2026-10-16).
+                # El nombre y el correo del contacto NUNCA se pisan: el popup
+                # muestra ambos y el cajero confirma con el cliente que es el
+                # mismo. `vals` lleva solo diferencias reales: si nada cambia,
+                # no se ejecuta write.
                 _missing, fillable, _diff = self._pos_dian_readiness(partner, resolved, dian_name, dian_email)
-                vals = {}
-                for fname, fvalue in fillable.items():
-                    vals[fname] = fvalue
-                if replace:
-                    if dian_name:
-                        # El nombre de la DIAN se guarda tal cual (solo se
-                        # colapsan espacios dobles): reordenarlo sería adivinar.
-                        vals["name"] = re.sub(r"\s+", " ", dian_name).strip()
-                    if dian_email or email:
-                        vals["email"] = dian_email or email
-                        vals.setdefault("email_edi", dian_email or email)
+                vals = dict(fillable)
+                source_email = dian_email or email
+                if source_email:
+                    if _diff.get("email_edi"):
+                        vals["email_edi"] = source_email
+                    if not partner.email:
+                        vals["email"] = source_email
                 if vals:
                     with self.env.cr.savepoint():
                         partner.write(vals)

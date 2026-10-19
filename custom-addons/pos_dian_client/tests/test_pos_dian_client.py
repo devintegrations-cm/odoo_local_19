@@ -230,7 +230,7 @@ class TestPosDianClient(TransactionCase):
         existing.invalidate_recordset()
         self.assertEqual(existing.vat, "%s-%s" % (self.NIT_BASE, self.NIT_DV))
 
-    def test_existing_no_email_fills_email_edi_only(self):
+    def test_existing_emails_filled_but_name_kept(self):
         existing = self._full_existing("%s-%s" % (self.NIT_BASE, self.NIT_DV))
         existing.write({"email_edi": False, "email": False})
         with patch("odoo.addons.pos_dian_client.models.res_partner.requests.post") as mock_post:
@@ -240,21 +240,51 @@ class TestPosDianClient(TransactionCase):
         self.assertEqual(res["fillable"].get("email_edi"), "nueva@x.co")
         self.assertTrue(res["diff"]["name"])
         out = self._confirm(action="update", dian_name="Nombre Distinto DIAN",
-                            dian_email="nueva@x.co", replace=False)
+                            dian_email="nueva@x.co")
         existing.invalidate_recordset()
         self.assertEqual(out["status"], "updated")
         self.assertEqual(existing.email_edi, "nueva@x.co")
-        self.assertEqual(existing.name, "Empresa Ya Cargada SAS", "sin replace no se pisa el nombre")
+        self.assertEqual(existing.email, "nueva@x.co",
+                         "el correo del contacto vacío se completa con el de la DIAN")
+        self.assertEqual(existing.name, "Empresa Ya Cargada SAS",
+                         "el nombre del contacto existente no se pisa")
 
-    def test_replace_updates_name_and_emails(self):
+    def test_update_sets_email_edi_and_keeps_contact_email(self):
         existing = self._full_existing("%s-%s" % (self.NIT_BASE, self.NIT_DV))
+        existing.email = "contacto@propio.co"
         out = self._confirm(action="update", dian_name="Otra Razon SA",
-                            dian_email="otro@x.co", replace=True)
+                            dian_email="otro@x.co")
         self.assertEqual(out["status"], "updated")
         existing.invalidate_recordset()
-        self.assertEqual(existing.name, "Otra Razon SA")
-        self.assertEqual(existing.email, "otro@x.co")
-        self.assertEqual(existing.email_edi, "otro@x.co")
+        self.assertEqual(existing.name, "Empresa Ya Cargada SAS",
+                         "el nombre no se reemplaza con el de la DIAN")
+        self.assertEqual(existing.email_edi, "otro@x.co",
+                         "el correo de facturación electrónica sí se actualiza")
+        self.assertEqual(existing.email, "contacto@propio.co",
+                         "el correo del contacto con valor no se toca")
+
+    def test_name_diff_ignores_comma_order_and_accents(self):
+        existing = self._full_existing("%s-%s" % (self.NIT_BASE, self.NIT_DV))
+        with patch("odoo.addons.pos_dian_client.models.res_partner.requests.post") as mock_post:
+            self._mock(mock_post, {"name": "SAS, Cargada Ya Empresa", "email": "previo@x.co"})
+            res = self._lookup()
+        self.assertEqual(res["status"], "found")
+        self.assertFalse(res["diff"]["name"], "comas y orden no cuentan como diferencia")
+        self.assertTrue(self.partner._pos_dian_names_match(
+            "EMPRESA  Ya Cargada SAS", "empresa, ya cargada sas"))
+        self.assertTrue(self.partner._pos_dian_names_match("JOSÉ PÉREZ", "jose perez"),
+                        "las tildes no cuentan como diferencia")
+        self.assertFalse(self.partner._pos_dian_names_match(
+            "Empresa Ya Cargada SAS", "Otra Empresa SAS"))
+
+    def test_update_without_changes_does_not_write(self):
+        existing = self._full_existing("%s-%s" % (self.NIT_BASE, self.NIT_DV))
+        existing.email = "contacto@propio.co"
+        with patch.object(type(existing), "write") as mock_write:
+            out = self._confirm(action="update", dian_name=existing.name,
+                                dian_email=existing.email_edi)
+            self.assertEqual(out["status"], "updated")
+            mock_write.assert_not_called()
 
     def test_existing_missing_regime_is_fillable(self):
         existing = self._full_existing("%s-%s" % (self.NIT_BASE, self.NIT_DV))

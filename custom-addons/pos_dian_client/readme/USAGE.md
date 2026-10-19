@@ -31,12 +31,17 @@ por defecto. En empresas (NIT), un aviso azul pide confirmar los datos fiscales 
 ![Cliente confirmado por la DIAN que no existe en Odoo: Crear y asignar](../static/description/04_previsualizacion_crear.png)
 
 Cliente que ya existe en Odoo: se muestra debajo de los datos de la DIAN. **Asignar y actualizar**
-solo completa los campos vacíos (correo de facturación, municipio, régimen, responsabilidad, formato
-del NIT). Si el nombre o el correo difieren de los de la DIAN, la casilla **Reemplazar nombre y
-correo con los datos de la DIAN** los sobrescribe; sin marcarla, no se tocan. Si no hay nada que
-completar, el botón dice **Asignar cliente**.
+completa los campos vacíos (correo de facturación, municipio, régimen, responsabilidad, formato del
+NIT) y actualiza el **correo de facturación electrónica** con el de la DIAN. El **nombre** y el
+**correo del contacto** no se pisan: si el nombre difiere, el popup pide confirmar con el cliente
+que es el mismo (las diferencias de comas, tildes u orden de palabras no cuentan); el correo del
+contacto solo se completa si estaba vacío. Si no hay nada que actualizar, el botón dice **Asignar
+cliente**.
 
-![Cliente existente: casilla para reemplazar nombre y correo, y Asignar y actualizar](../static/description/05_previsualizacion_existente.png)
+El popup recuerda que la factura se enviará al correo de facturación electrónica con copia al correo
+de contacto (el envío lo gestiona la configuración de facturación electrónica de la compañía).
+
+![Cliente existente: Asignar y actualizar sin pisar nombre ni correo del contacto](../static/description/05_previsualizacion_existente.png)
 
 Al confirmar, el popup se cierra, el cliente queda en la orden y aparece la notificación
 "Cliente … asignado para factura electrónica".

@@ -37,7 +37,7 @@
             <t t-else="">
                 <div t-if="this.res.dian" class="alert alert-light border py-2 mb-3">
                     <div class="fw-bold" t-out="this.res.dian.name"/>
-                    <div t-if="this.res.vat_expected" class="fs-4 fw-bold text-center my-1">
+                    <div t-if="this.res.vat_expected" class="fs-4 fw-bold my-1">
                         <t t-out="this.res.vat_expected"/>
                     </div>
                     <div t-if="this.res.dian.email">
@@ -53,6 +53,11 @@
                         <t t-if="this.res.partner.email_edi and !this.res.partner.email"> · <t t-out="this.res.partner.email_edi"/></t>
                     </div>
                 </div>
+                <div t-if="this.status === 'found' or this.status === 'create_ok' or this.status === 'needs_email'"
+                     class="small text-muted mb-2">
+                    <i class="fa fa-envelope-o me-1"/>
+                    La factura se enviará al correo de facturación electrónica con copia al correo de contacto.
+                </div>
                 <div t-if="this.status === 'found' and this.res.missing and this.res.missing.length"
                      class="text-danger small mb-2">
                     <t t-foreach="this.res.missing" t-as="m" t-key="m_index">• <t t-out="m"/></t>
@@ -65,15 +70,12 @@
                         </li>
                     </ul>
                 </div>
-                <div t-if="this.status === 'found' and this.hasFillable" class="small text-muted mb-2">
-                    Se completarán datos vacíos del cliente (correo de facturación, formato del documento).
+                <div t-if="this.status === 'found' and (this.hasFillable or this.hasDiff)" class="small text-muted mb-2">
+                    Se completarán los datos fiscales que falten y se usará el correo de la DIAN
+                    para la facturación electrónica.
                 </div>
-                <div t-if="this.status === 'found' and this.hasDiff" class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="dianReplace"
-                           t-on-change="(ev) => this.set('replace', ev.target.checked)"/>
-                    <label class="form-check-label" for="dianReplace">
-                        Reemplazar nombre y correo con los datos de la DIAN
-                    </label>
+                <div t-if="this.status === 'found' and this.res.diff?.name" class="small text-muted mb-2">
+                    El nombre del contacto es distinto al de la DIAN: confirme con el cliente que es el mismo.
                 </div>
                 <div t-if="this.status === 'create_ok' or this.status === 'needs_email'" class="small text-muted mb-2">
                     Se creará con régimen "No responsable de IVA", responsabilidad "No aplica – Otros" y

@@ -31,7 +31,6 @@ export class DianClientPopup extends Component {
             busy: false,
             res: null,
             confirmError: "",
-            replace: false,
         });
     }
 
@@ -61,8 +60,10 @@ export class DianClientPopup extends Component {
     }
 
     get hasDiff() {
+        // Solo el correo de facturación electrónica dispara la actualización:
+        // el nombre y el correo del contacto no se pisan (decisión 2026-10-16).
         const diff = this.res.diff || {};
-        return diff.name || diff.email;
+        return diff.email_edi;
     }
 
     get bannerClass() {
@@ -125,7 +126,6 @@ export class DianClientPopup extends Component {
         this.state.phase = "form";
         this.state.res = null;
         this.state.confirmError = "";
-        this.state.replace = false;
     }
 
     async validate() {
@@ -171,7 +171,6 @@ export class DianClientPopup extends Component {
                 res.dian?.name || false,
                 res.dian?.email || false,
                 this.state.email.trim() || false,
-                action === "update" ? this.state.replace : false,
             ]);
         } catch (error) {
             out = { status: "connection_error", detail: _t("Error de comunicación con el servidor.") };

@@ -7,8 +7,9 @@ Con el resultado, el cajero ve el nombre que registró la DIAN, el documento tal
 (p.ej. `890903938-8`) y el correo, y decide:
 
 - **Asignar** al cliente que ya existe en Odoo. Si le faltan datos de facturación, se completan solo
-  los campos **vacíos**. Nunca se pisan valores existentes, salvo que el cajero marque
-  *Reemplazar nombre y correo con los datos de la DIAN*.
+  los campos **vacíos**. El **nombre nunca se reemplaza** y el correo del contacto tampoco: solo se
+  completa si está vacío. El correo de **facturación electrónica** sí se actualiza con el de la DIAN,
+  que es el que usa Jorels al emitir.
 - **Crear y asignar** al cliente que la DIAN confirma y no existe en Odoo. Se crea con el nombre tal
   como lo devuelve la DIAN, régimen *No responsable de IVA*, responsabilidad *No aplica – Otros*,
   el municipio de la compañía y país Colombia. Si la DIAN no tiene correo, el popup se lo pide al
