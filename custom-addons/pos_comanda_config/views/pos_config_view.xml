@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="pos_config_view_form_comanda" model="ir.ui.view">
+        <field name="name">pos.config.form.comanda</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='configuration']//div[hasclass('o_settings_container')]" position="inside">
+                <setting string="Comanda de cocina"
+                         help="Ajusta el espaciado, el encabezado y los textos de la comanda (ticket de preparación) que imprime este punto de venta.">
+                    <div class="content-group mt16">
+                        <div>
+                            <label for="comanda_padding_top" string="Espacio superior (px)"/>
+                            <field name="comanda_padding_top"/>
+                        </div>
+                        <div class="mt8">
+                            <label for="comanda_padding_bottom" string="Espacio inferior (px)"/>
+                            <field name="comanda_padding_bottom"/>
+                        </div>
+                        <div class="mt8">
+                            <label for="comanda_show_employee" string="Mostrar empleado"/>
+                            <field name="comanda_show_employee"/>
+                        </div>
+                        <div class="mt8">
+                            <label for="comanda_show_reference" string="Mostrar número de pedido"/>
+                            <field name="comanda_show_reference"/>
+                        </div>
+                        <div class="mt8">
+                            <label for="comanda_spanish_labels" string="Etiquetas en español"/>
+                            <field name="comanda_spanish_labels"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

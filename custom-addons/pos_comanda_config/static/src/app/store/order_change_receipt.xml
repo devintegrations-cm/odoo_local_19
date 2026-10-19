@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--
+        Comanda (ticket de preparación / cocina).
+
+        El template del core en Odoo 19 añade las utilidades Bootstrap
+        `pt-5 mt-5` al div raíz (~96 px de espacio en blanco arriba) y
+        `pb-5` al cuerpo (~48 px abajo) que no existían en Odoo 17 y que
+        empujan las notas fuera del área útil del papel térmico. Aquí se
+        quitan solo esas clases y el espaciado pasa a ser configurable por
+        punto de venta (`data.comanda_opts`, inyectado por el patch de
+        `getOrderData`).
+
+        Etiquetas: no se reemplazan los nodos del core. Se ocultan con una
+        condición y se agrega al lado la versión en español; así, con
+        "Etiquetas en español" desmarcado vuelve el texto del core con su
+        traducción de Odoo, y se conservan los atributos que otros módulos
+        agregan a esos nodos (p.ej. el `t-if` de pos_self_order sobre
+        `order-ref-prefix`).
+
+        La referencia grande (`receipt-order-reference`) no se toca: ahí
+        pos_restaurant imprime el piso y la mesa.
+    -->
+    <t t-name="pos_comanda_config.OrderChangeReceipt"
+       t-inherit="point_of_sale.OrderChangeReceipt"
+       t-inherit-mode="extension">
+
+        <!-- Espaciado superior configurable (0 por defecto). -->
+        <xpath expr="//div[hasclass('pos-receipt')]" position="attributes">
+            <!-- `p-0` también se quita: es `padding: 0 !important` y anularía
+                 el padding-top en línea; el resto del padding queda en 0. -->
+            <attribute name="class" remove="pt-5 mt-5 p-0" separator=" "/>
+            <attribute name="t-attf-style">padding: {{ data.comanda_opts?.padding_top || 0 }}px 0 0 0</attribute>
+        </xpath>
+
+        <!-- Opciones con defaults: visibles en el encabezado y en el cuerpo. -->
+        <xpath expr="//div[hasclass('receipt-header')]" position="before">
+            <t t-set="comanda" t-value="data.comanda_opts || {}"/>
+        </xpath>
+
+        <!-- Línea del empleado: "By: ..." del core / "Atendido por: ...". -->
+        <xpath expr="//div[hasclass('o-employee-name')]/span[t[@t-esc='data.employee_name']]" position="attributes">
+            <attribute name="t-if">comanda.show_employee !== false and !comanda.spanish_labels</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o-employee-name')]/span[t[@t-esc='data.employee_name']]" position="after">
+            <span t-if="comanda.show_employee !== false and comanda.spanish_labels">Atendido por: <t t-esc="data.employee_name"/></span>
+        </xpath>
+
+        <!-- Línea "Order # tracking": ocultable con comanda_show_reference. -->
+        <xpath expr="//span[hasclass('my-4')]" position="attributes">
+            <attribute name="t-if">comanda.show_reference !== false</attribute>
+        </xpath>
+
+        <!-- "Order " → "Pedido ". El nodo del core se oculta por clase (no por
+             t-if, que es de pos_self_order); el español repite su condición
+             para no anteponer el prefijo a los pedidos de autoservicio. -->
+        <xpath expr="//span[hasclass('order-ref-prefix')]" position="attributes">
+            <attribute name="t-att-class">{ 'd-none': comanda.spanish_labels }</attribute>
+        </xpath>
+        <xpath expr="//span[hasclass('order-ref-prefix')]" position="after">
+            <span t-if="comanda.spanish_labels and !data.pos_reference?.startsWith('Self-Order')">Pedido </span>
+        </xpath>
+
+        <!-- "(DUPLICATE !)" → "(DUPLICADO !)". -->
+        <xpath expr="//t[@t-if='data.reprint']" position="attributes">
+            <attribute name="t-if">data.reprint and !comanda.spanish_labels</attribute>
+        </xpath>
+        <xpath expr="//t[@t-if='data.reprint and !comanda.spanish_labels']" position="after">
+            <t t-if="data.reprint and comanda.spanish_labels"> (DUPLICADO !)</t>
+        </xpath>
+
+        <!-- "INTERNAL NOTE" → "NOTA INTERNA". -->
+        <xpath expr="//strong[text()='INTERNAL NOTE']" position="attributes">
+            <attribute name="t-if">!comanda.spanish_labels</attribute>
+        </xpath>
+        <xpath expr="//strong[text()='INTERNAL NOTE']" position="after">
+            <strong t-if="comanda.spanish_labels">NOTA INTERNA</strong>
+        </xpath>
+
+        <!-- "CUSTOMER NOTE" → "NOTA DEL CLIENTE". -->
+        <xpath expr="//strong[text()='CUSTOMER NOTE']" position="attributes">
+            <attribute name="t-if">!comanda.spanish_labels</attribute>
+        </xpath>
+        <xpath expr="//strong[text()='CUSTOMER NOTE']" position="after">
+            <strong t-if="comanda.spanish_labels">NOTA DEL CLIENTE</strong>
+        </xpath>
+
+        <!-- Espaciado inferior configurable (0 por defecto). -->
+        <xpath expr="//div[hasclass('pos-receipt-body')]" position="attributes">
+            <attribute name="class" remove="pb-5" separator=" "/>
+            <attribute name="t-attf-style">padding-bottom: {{ data.comanda_opts?.padding_bottom || 0 }}px</attribute>
+        </xpath>
+
+    </t>
+
+</templates>

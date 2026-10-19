@@ -1,0 +1,55 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Ajusta, <strong>por punto de venta</strong>, la comanda que el POS imprime en las impresoras de preparación
+(cocina, barra). Es la plantilla <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.OrderChangeReceipt</code>, la misma que heredan
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_self_order</code>.</p>
+<p style="margin:0 0 12px;">En Odoo 19 la comanda trae unos 96 px en blanco arriba (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pt-5 mt-5</code>) y 48 px abajo (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pb-5</code>) que en
+Odoo 17 no existían y desperdician papel térmico. Además, en español (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">es_419</code>) Odoo imprime
+«Ordenar», «Por:» y «(DUPLICAR)». El módulo:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Quita ese espaciado</strong> y lo deja configurable (0 a 100 px arriba y abajo; 0 por defecto).</li>
+<li style="margin-bottom:7px;">Permite <strong>ocultar la línea del empleado</strong> («Atendido por: …»).</li>
+<li style="margin-bottom:7px;">Permite <strong>ocultar el número de pedido</strong> («Pedido # N»). La referencia grande, que en restaurante
+  lleva el <strong>piso y la mesa</strong>, se imprime siempre.</li>
+<li style="margin-bottom:7px;">Imprime las <strong>etiquetas en español</strong>: <em>Pedido</em>, <em>Atendido por:</em>, <em>NOTA INTERNA</em>,
+  <em>NOTA DEL CLIENTE</em>, <em>(DUPLICADO !)</em>. Desmarcado, vuelve el texto de Odoo con su traducción.</li>
+</ul>
+<p style="margin:0 0 12px;">No cambia qué se envía a cada impresora ni cuándo, ni el recibo del cliente.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">En <em>Punto de Venta › Configuración › Puntos de venta</em>, abrir la caja y, en la pestaña
+<strong>Configuración</strong>, ir al bloque <strong>Comanda de cocina</strong>:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Espacio superior (px)</strong> — 0 por defecto, de 0 a 100: blanco arriba de la comanda.</li>
+<li style="margin-bottom:7px;"><strong>Espacio inferior (px)</strong> — 0 por defecto, de 0 a 100: blanco al final del cuerpo.</li>
+<li style="margin-bottom:7px;"><strong>Mostrar empleado</strong> — marcado por defecto: línea «Atendido por: …».</li>
+<li style="margin-bottom:7px;"><strong>Mostrar número de pedido</strong> — marcado por defecto: línea «Pedido # N». No afecta al piso ni a
+  la mesa.</li>
+<li style="margin-bottom:7px;"><strong>Etiquetas en español</strong> — marcado por defecto. Desmarcado, se usa el texto de Odoo en el idioma
+  del usuario.</li>
+</ul>
+<div class="lc-fig"><img alt="Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: bloque «Comanda de cocina»" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de Venta › Configuración › Puntos de venta › (caja) › Configuración: bloque «Comanda de cocina»</p></div>
+<p style="margin:0 0 12px;">Para imprimir comandas, la caja necesita al menos una impresora de preparación. Los cambios se
+aplican la próxima vez que se carga el POS, y se pueden hacer con la sesión abierta.</p>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">No hay nada que hacer en la caja: al enviar el pedido a cocina (<em>Enviar</em> en restaurante, o al
+validar el pago en una caja sin mesas), la comanda sale con la configuración de esa caja. Con los
+valores por defecto sale sin blanco arriba ni abajo y con las etiquetas en español, también en
+la reimpresión (ícono de cubiertos) y en la comanda de notas:</p>
+<div class="lc-fig"><img alt="Comanda real con los valores por defecto: pedido, reimpresión y notas" src="02_comanda_por_defecto.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Comanda real con los valores por defecto: pedido, reimpresión y notas</p></div>
+<p style="margin:0 0 12px;">Al ocultar el empleado o el número de pedido, el piso y la mesa siguen impresos:</p>
+<div class="lc-fig"><img alt="Comanda real con «Mostrar número de pedido» y «Mostrar empleado» desmarcados" src="03_comanda_opciones.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Comanda real con «Mostrar número de pedido» y «Mostrar empleado» desmarcados</p></div>
+<p style="margin:0 0 12px;">Con <strong>Etiquetas en español</strong> desmarcado vuelve el texto de Odoo en el idioma del usuario:</p>
+<div class="lc-fig"><img alt="Comanda real con «Etiquetas en español» desmarcado" src="04_comanda_etiquetas_core.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Comanda real con «Etiquetas en español» desmarcado</p></div>
+<p style="margin:0 0 12px;">El espacio superior e inferior se suma al papel impreso, sin cambiar el contenido:</p>
+<div class="lc-fig"><img alt="Mismo pedido con espacio 0/0 y con 30/30 px" src="05_comanda_espaciado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Mismo pedido con espacio 0/0 y con 30/30 px</p></div>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">«Guest: N» (comensales, de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code>) es texto fijo en inglés del core y no se traduce;
+  el módulo no lo toca.</li>
+<li style="margin-bottom:7px;">La comanda solo de notas no lleva la marca de duplicado al reimprimirse: así lo hace el core.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Miguel Bolivar, Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Miguel Bolivar</li>
+<li style="margin-bottom:7px;">Desarrollo Libertario \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#101;&#103;&#105;&#111;&#110;&#97;&#108;&#105;&#116;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#114;&#101;&#103;&#105;&#111;&#110;&#97;&#108;&#105;&#116;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>
