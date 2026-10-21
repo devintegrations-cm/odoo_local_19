@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Escritorio, fila principal: botón SOLO-LOGO junto al botón "Nota".
+         La imagen llena todo el botón (cuadrado, object-fit: contain para
+         no deformarla). En pruebas: convive con el del submenú de los 3
+         puntos para decidir cuál queda. -->
+    <t t-name="pos_luyoa_client.ControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//InternalNoteButton" position="before">
+            <button t-if="pos.config.luyoa_client_enabled and !props.showRemainingButtons"
+                    class="btn btn-secondary btn-lg lh-lg flex-shrink-0 p-0 d-flex align-items-center justify-content-center"
+                    style="width: 3rem; height: 3rem;"
+                    title="Cliente Luyoa"
+                    t-on-click="() => this.openLuyoaClientPopup()">
+                <img src="/pos_luyoa_client/static/src/img/icon_luyoa.png"
+                     style="width: 100%; height: 100%; object-fit: contain; padding: 0.05rem;"
+                     alt="Luyoa"/>
+            </button>
+        </xpath>
+        <xpath expr="//t[@t-if='props.showRemainingButtons']/div[hasclass('control-buttons-modal')]" position="inside">
+            <button t-if="pos.config.luyoa_client_enabled"
+                    class="control-button btn btn-secondary btn-lg lh-lg text-truncate"
+                    title="Escanear tarjeta de lealtad Luyoa"
+                    t-on-click="() => this.openLuyoaClientPopup()">
+                <i class="fa fa-qrcode me-2"/>Cliente Luyoa
+            </button>
+        </xpath>
+    </t>
+
+    <!-- Pantallas chicas: la fila de la ActionPad que ya trae el botón Cliente. -->
+    <t t-name="pos_luyoa_client.ActionpadWidget" t-inherit="point_of_sale.ActionpadWidget" t-inherit-mode="extension">
+        <xpath expr="//SelectPartnerButton" position="after">
+            <button t-if="pos.config.luyoa_client_enabled"
+                    class="set-partner btn btn-secondary btn-lg lh-lg text-truncate"
+                    title="Escanear tarjeta de lealtad Luyoa"
+                    t-on-click="() => this.openLuyoaClientPopup()">
+                <i class="fa fa-qrcode me-1"/>Luyoa
+            </button>
+        </xpath>
+    </t>
+
+    <!-- Botón de la pantalla de pago: solo el logo (luyoa_logo2.png), alto
+         fijo de 3rem como los demás botones de la fila y sin el padding
+         extra del nativo; el ancho lo define la imagen (height: 100% +
+         width: auto). Queda dentro de PaymentScreenButtons, que en desktop
+         se renderiza justo encima del teclado numérico. -->
+    <t t-name="pos_luyoa_client.PaymentLuyoaButton">
+        <button class="button btn btn-secondary lh-lg p-0 px-1 border-1 d-flex align-items-center justify-content-center"
+                style="height: 3rem; "
+                title="Cliente Luyoa"
+                t-on-click="() => this.openLuyoaClientPopup()">
+            <img src="/pos_luyoa_client/static/src/img/luyoa_logo2.png"
+                 style="height: 100%; width: auto;"
+                 alt="Luyoa"/>
+        </button>
+    </t>
+
+    <!-- Pantalla de pago: después de la fila Cliente / Factura. El botón
+         nativo de Cliente NO se oculta (mismo criterio que en la orden). -->
+    <t t-name="pos_luyoa_client.PaymentScreenButtons" t-inherit="point_of_sale.PaymentScreenButtons" t-inherit-mode="extension">
+        <xpath expr="//div[@class='d-flex flex-column flex-sm-row gap-1 w-100']" position="after">
+            <t t-if="pos.config.luyoa_client_enabled"
+               t-call="pos_luyoa_client.PaymentLuyoaButton"/>
+        </xpath>
+    </t>
+
+</templates>

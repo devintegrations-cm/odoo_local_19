@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="pos_config_view_form_luyoa_client" model="ir.ui.view">
+        <field name="name">pos.config.form.luyoa.client</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='configuration']//div[hasclass('o_settings_container')]" position="inside">
+                <setting string="Cliente Luyoa (lealtad)"
+                         help="Muestra el botón 'Luyoa' en la pantalla de la orden para escanear la tarjeta de lealtad del cliente, consultarlo en Luyoa y asignarlo a la orden.">
+                    <div class="content-group mt16">
+                        <div>
+                            <field name="luyoa_client_enabled"/>
+                        </div>
+                        <!-- Credenciales obligatorias cuando el botón está
+                             activo (las cuatro hacen falta para consultar;
+                             sin ellas _pos_luyoa_config_error bloquea el uso
+                             y la API responde 401). -->
+                        <div class="mt8">
+                            <label for="luyoa_base_url" string="URL del API"/>
+                            <field name="luyoa_base_url" required="luyoa_client_enabled"
+                                   placeholder="https://demo.luyoa.com/api/external/v1"/>
+                        </div>
+                        <div class="mt8">
+                            <label for="luyoa_integration_uid" string="Integration UID"/>
+                            <field name="luyoa_integration_uid" required="luyoa_client_enabled"/>
+                        </div>
+                        <div class="mt8">
+                            <label for="luyoa_business_uid" string="Business UID"/>
+                            <field name="luyoa_business_uid" required="luyoa_client_enabled"/>
+                        </div>
+                        <div class="mt8">
+                            <label for="luyoa_api_token" string="Token"/>
+                            <field name="luyoa_api_token" password="True" required="luyoa_client_enabled"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

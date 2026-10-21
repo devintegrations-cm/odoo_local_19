@@ -1,0 +1,147 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Agrega al POS un botón <strong>Cliente Luyoa</strong> para identificar al cliente escaneando
+el <strong>QR de su tarjeta de lealtad digital</strong> (Apple/Google Wallet) con la cámara
+del dispositivo, consultarlo en la <strong>API de Luyoa</strong> y asignarlo a la orden para
+facturarle.</p>
+<p style="margin:0 0 12px;">El flujo completo desde cualquier botón (junto a <em>Nota</em>, en el submenú de los
+3 puntos y en la pantalla de pago):</p>
+<ol style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Se abre la cámara; el cajero apunta al QR de la tarjeta del cliente.</li>
+<li style="margin-bottom:7px;">El sistema extrae el identificador del cliente de la URL de la tarjeta
+   (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">…/c/&lt;customerUID&gt;</code>) y consulta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">GET /customer/:customerUID</code> en Luyoa con
+   las credenciales del punto de venta.</li>
+<li style="margin-bottom:7px;">El popup muestra los datos que devolvió Luyoa (nombre, correo, teléfono,
+   sellos/saldo) y el contacto de Odoo que coincide, indicando por qué regla
+   coincidió.</li>
+<li style="margin-bottom:7px;">El cajero confirma. <strong>Asignar cliente</strong> si ya existe en Odoo, o <strong>Crear y
+   asignar</strong> si no existe: se crea con los datos básicos de Luyoa (nombre,
+   correo y teléfono) y se asigna a la orden.</li>
+</ol>
+<p style="margin:0 0 12px;">El contacto de Odoo se busca, en este orden:</p>
+<ol style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Tarjeta ya vinculada</strong>: el identificador de Luyoa guardado en el contacto
+   (dato interno, no visible). Una tarjeta solo puede estar en un contacto.</li>
+<li style="margin-bottom:7px;"><strong>Correo</strong> (sin distinguir mayúsculas).</li>
+<li style="margin-bottom:7px;"><strong>Nombre y teléfono juntos</strong>.</li>
+</ol>
+<p style="margin:0 0 12px;">Solo el nombre o solo el teléfono <strong>no alcanzan</strong> para asignar: dos personas
+pueden compartirlos. La primera vez que el cliente se asigna o se crea, su
+identificador de Luyoa queda guardado y los próximos escaneos lo encuentran
+directo. Si el contacto encontrado ya está vinculado a <strong>otra</strong> tarjeta, no se
+asigna ni se crea un duplicado: se pide revisarlo en Contactos.</p>
+<ol start="5" style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Al asignarse se marca la orden para facturar.</li>
+</ol>
+<p style="margin:0 0 12px;">Si el QR no corresponde a un cliente de Luyoa, hay dos contactos en Odoo que
+coinciden (el popup lista los candidatos), el contacto está archivado, o falla
+la credencial o la conexión, se muestra al cajero un mensaje claro con qué
+hacer y <strong>no se asigna nadie</strong>.</p>
+<p style="margin:0 0 12px;">Solo se identifica por QR, con la cámara del POS o de la tablet: no hay entrada
+manual de identificadores. Las credenciales (Integration UID, Business UID y
+token) solo las ve el responsable del POS y nunca llegan al navegador: la
+consulta a Luyoa la hace el servidor.</p>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;">En <strong>Punto de Venta → Configuración → Puntos de venta → (tu tienda) →
+pestaña Configuración → Cliente Luyoa (lealtad)</strong>:</p>
+<ol style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Marque <strong>Botón Luyoa</strong> para mostrar el botón en el POS.</li>
+<li style="margin-bottom:7px;">Complete las credenciales (todas obligatorias para usar el botón):</li>
+</ol>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>URL del API</strong>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">https://demo.luyoa.com/api/external/v1</code> (viene por defecto; es el entorno donde está registrado y habilitado el negocio, no la web de la tarjeta del cliente). Las credenciales solo valen en el entorno donde se generaron: al cambiar la URL el formulario muestra una advertencia.</li>
+<li style="margin-bottom:7px;"><strong>Integration UID</strong>: identificador de la integración (partner). Lo entrega Luyoa al registrar el acceso a la API y debe ser el de la misma integración que generó el token; sin él la API responde <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">401</code>.</li>
+<li style="margin-bottom:7px;"><strong>Business UID</strong>: identificador del negocio, en el dashboard de Luyoa.</li>
+<li style="margin-bottom:7px;"><strong>Token</strong>: token de autenticación del negocio, en el dashboard de Luyoa. Es información sensible: guárdela con cuidado.</li>
+</ul>
+<p style="margin:0 0 12px;">Con el botón marcado, los cuatro campos son obligatorios para guardar la
+configuración; además, si falta alguno, el popup informa exactamente qué falta
+antes de consultar. Las credenciales solo las ve y edita el responsable del
+POS (grupo <em>Punto de Venta / Administrador</em>).</p>
+<div class="lc-fig"><img alt="Punto de Venta › Configuración › Puntos de venta › (tienda) › Configuración: 1. «Botón Luyoa»; 2. las cuatro credenciales" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de Venta › Configuración › Puntos de venta › (tienda) › Configuración: 1. «Botón Luyoa»; 2. las cuatro credenciales</p></div>
+<p style="margin:0 0 12px;">La cámara del navegador solo funciona sobre <strong>HTTPS</strong> (en desarrollo,
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">localhost</code> también sirve). En cajas sin cámara, el diálogo de escaneo del
+core muestra el motivo y el cajero puede cerrarlo sin perder la orden.</p>
+<h2>Uso</h2>
+<ol style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Con una orden abierta, toque el botón <strong>Cliente Luyoa</strong>:</li>
+</ol>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">En desktop: el icono cuadrado junto al botón <em>Nota</em>, o <em>Cliente Luyoa</em> en el submenú de los 3 puntos.</li>
+<li style="margin-bottom:7px;">En pantallas pequeñas: el botón <em>Luyoa</em> de la barra de acciones (junto a <em>Cliente</em>).</li>
+<li style="margin-bottom:7px;">En la pantalla de pago: el logo de Luyoa sobre el teclado numérico.</li>
+</ul>
+<div class="lc-fig"><img alt="Pantalla de la orden: botón Cliente Luyoa junto a Nota" src="02_boton_orden.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de la orden: botón Cliente Luyoa junto a Nota</p></div>
+<ol start="2" style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Se abre la cámara; apunte al QR de la tarjeta digital del cliente
+   (Apple/Google Wallet). Si cancela la cámara, el popup queda abierto para
+   reintentar.</li>
+<li style="margin-bottom:7px;">Revise los datos mostrados (cliente de Luyoa y contacto de Odoo) y toque
+   <strong>Asignar cliente</strong> o <strong>Crear y asignar</strong>. La orden queda con el cliente
+   asignado y marcada para facturar.</li>
+</ol>
+<p style="margin:0 0 12px;">Si el cliente ya existe en Odoo, el popup muestra los dos lados y por qué
+coincidieron (tarjeta escaneada, correo, o nombre y teléfono):</p>
+<div class="lc-fig"><img alt="Cliente de Luyoa que ya existe en Odoo: Asignar cliente" src="03_cliente_encontrado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cliente de Luyoa que ya existe en Odoo: Asignar cliente</p></div>
+<p style="margin:0 0 12px;">Si no existe, se ofrece crearlo con su nombre, correo y teléfono de Luyoa:</p>
+<div class="lc-fig"><img alt="Cliente de Luyoa que no existe en Odoo: Crear y asignar" src="04_cliente_nuevo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cliente de Luyoa que no existe en Odoo: Crear y asignar</p></div>
+<p style="margin:0 0 12px;">Cuando el QR no es de una tarjeta de Luyoa, o falla la credencial o la
+conexión, el popup explica el motivo y ofrece <strong>Escanear de nuevo</strong> o
+<strong>Reintentar</strong>; no se asigna nadie:</p>
+<div class="lc-fig"><img alt="QR que no corresponde a un cliente de Luyoa" src="05_qr_invalido.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">QR que no corresponde a un cliente de Luyoa</p></div>
+<p style="margin:0 0 12px;">El mismo flujo se abre desde la pantalla de pago:</p>
+<div class="lc-fig"><img alt="Pantalla de pago: logo de Luyoa sobre el teclado numérico" src="06_boton_pago.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de pago: logo de Luyoa sobre el teclado numérico</p></div>
+<p style="margin:0 0 12px;">Con dos contactos de Odoo que matchean al mismo cliente, el popup lista los
+candidatos y no deja asignar hasta resolverlo en <em>Contactos</em>. Un contacto
+archivado, o uno ya vinculado a otra tarjeta de Luyoa, también bloquea la
+asignación con el aviso correspondiente.</p>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Upgrade pendiente: registrar transacciones en Luyoa</h2>
+<p style="margin:0 0 12px;">El módulo hoy <strong>solo identifica</strong> al cliente (lectura). El API de Luyoa
+expone tres endpoints de escritura para un futuro upgrade, documentados acá
+para no tener que volver al spec:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">POST /transaction</code> — registrar una compra (suma sellos/saldo según las
+  reglas del negocio en Luyoa). Campos: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">customerUID</code> (opcional: sin él la
+  transacción se guarda solo para análisis), <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">businessBranchUID</code> (obligatorio:
+  mapear cada <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> → un branch de Luyoa con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">GET /business-branch</code>),
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">total</code> (≥ 0), <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reference</code> (nº de ticket, único), <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">createdAt</code> (ISO 8601,
+  opcional) y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">items[]</code> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">code</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">name</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">quantity</code> ≥ 1, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">priceEach</code> ≥ 0).
+  Respuesta: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{"success": true, "data": "…"}</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">POST /transaction/bulk</code> — hasta 100 transacciones por llamada
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{"transactions": [...]}</code>). Respuesta con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">processed</code> / <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">successful</code> /
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">failed</code> y errores por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">reference</code>: sirve para subir el día completo al
+  cierre de caja.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">POST /reward/redeem/:rewardUID</code> — canjear un reward del cliente. Cuerpo:
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{"businessBranchUID": "…"}</code>. Los rewards disponibles por cliente vienen en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">GET /customer/:customerUID</code> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data.rewards[]</code>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">uid</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">name</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">type</code> en
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">FREE_PRODUCT</code> | <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">DISCOUNT</code> | <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">OTHER</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">expiresAt</code> en ms y
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">externalReference</code> para ligarlo a un producto del POS).</li>
+</ul>
+<p style="margin:0 0 12px;">Punto de enganche natural: la validación del pago (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">validateOrder</code>) para
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/transaction</code>, y el cierre de caja para el bulk. La UI ya conoce el
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">customerUID</code> (se guarda en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.partner.luyoa_customer_uid</code> al asignar).</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Límites conocidos</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Sin webhook</strong>: Luyoa no notifica cambios (puntos canjeados en su app,
+  por ejemplo); todo lo que el POS muestra es lo que consulta al escanear.</li>
+<li style="margin-bottom:7px;"><strong>Sin historial de transacciones</strong>: el API no expone <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">GET /transaction</code>, no
+  se puede conciliar desde Odoo.</li>
+<li style="margin-bottom:7px;"><strong>Nombre y teléfono</strong>: el teléfono se compara por dígitos con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ILIKE '%&lt;dígitos&gt;%'</code>; uno guardado en Odoo con espacios (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">+52 55 1234 5678</code>)
+  no coincide y el popup ofrece crear el cliente. El correo es la clave
+  principal y la tarjeta vinculada resuelve los próximos escaneos.</li>
+<li style="margin-bottom:7px;"><strong>Tarjeta vinculada no visible</strong>: el identificador de Luyoa del contacto no
+  se muestra en ninguna vista. Si hubiera que desvincular una tarjeta, hoy se
+  hace por base de datos o modo desarrollador.</li>
+<li style="margin-bottom:7px;"><strong>Sin catálogo de rewards</strong>: solo se ven los rewards del cliente escaneado
+  (vienen en su respuesta); no hay endpoint de catálogo.</li>
+<li style="margin-bottom:7px;"><strong>Concurrencia</strong>: dos cajas que crean el mismo cliente al mismo tiempo
+  pueden dejar un duplicado; la restricción de unicidad impide que la misma
+  tarjeta quede en dos contactos, y la próxima consulta informa el resto
+  como ambiguo.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Desarrollo Libertario (Miguel Bolivar) \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#100;&#101;&#118;&#105;&#110;&#116;&#101;&#103;&#114;&#97;&#116;&#105;&#111;&#110;&#115;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#100;&#101;&#118;&#105;&#110;&#116;&#101;&#103;&#114;&#97;&#116;&#105;&#111;&#110;&#115;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>

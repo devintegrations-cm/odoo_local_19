@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_luyoa_client.LuyoaClientPopup">
+        <Dialog title="'Luyoa — Programa de lealtad'" size="'md'">
+
+            <!-- Fase 1: escanear con la cámara -->
+            <t t-if="state.phase === 'scan'">
+                <div class="mb-3">
+                    <button type="button" class="btn btn-primary btn-lg w-100 mb-3"
+                            t-att-disabled="state.scanning || state.busy"
+                            t-on-click="() => this.scan()">
+                        <i t-if="state.scanning" class="fa fa-circle-o-notch fa-spin me-2"/>
+                        <i t-else="" class="fa fa-qrcode me-2"/>
+                        Escanear QR Luyoa
+                    </button>
+                    <div class="text-center text-muted small">
+                        Apunte la cámara del dispositivo al QR de la tarjeta digital
+                        Luyoa del cliente.
+                    </div>
+                </div>
+            </t>
+
+            <!-- Fase 2: previsualización y acción -->
+            <t t-else="">
+                <div t-if="this.luyoaName || this.luyoa.uid"
+                     class="alert alert-light border py-2 mb-3">
+                    <div class="text-muted small">Cliente en Luyoa</div>
+                    <div class="fw-bold" t-out="this.luyoaName || this.luyoa.uid"/>
+                    <div t-if="this.luyoa.email">
+                        <i class="fa fa-envelope-o me-1"/><t t-out="this.luyoa.email"/>
+                    </div>
+                    <div t-if="this.luyoa.phone">
+                        <i class="fa fa-phone me-1"/><t t-out="this.luyoa.phone"/>
+                    </div>
+                    <div t-if="this.luyoa.current_balance !== undefined and this.luyoa.current_balance !== null"
+                         class="small text-muted mt-1">
+                        Sellos/saldo actual: <t t-out="this.luyoa.current_balance"/>
+                        <t t-if="this.luyoa.total_balance !== undefined and this.luyoa.total_balance !== null">
+                            · Total: <t t-out="this.luyoa.total_balance"/>
+                        </t>
+                    </div>
+                </div>
+                <div t-if="this.res.partner" class="alert alert-light border py-2 mb-3">
+                    <div class="text-muted small">Contacto en Odoo</div>
+                    <div class="fw-bold" t-out="this.res.partner.name"/>
+                    <div t-if="this.res.partner.email">
+                        <i class="fa fa-envelope-o me-1"/><t t-out="this.res.partner.email"/>
+                    </div>
+                    <div t-if="this.res.partner.phone">
+                        <i class="fa fa-phone me-1"/><t t-out="this.res.partner.phone"/>
+                    </div>
+                </div>
+                <div t-if="this.status === 'ambiguous'" class="mb-2">
+                    <ul class="mb-0">
+                        <li t-foreach="this.res.candidates" t-as="cand" t-key="cand.id">
+                            <t t-out="cand.name"/> — <t t-out="cand.email"/>
+                            <span t-if="!cand.active" class="badge bg-secondary ms-1">Archivado</span>
+                        </li>
+                    </ul>
+                </div>
+                <div t-if="this.mainMessage()"
+                     t-att-class="'alert py-2 mb-3 ' + this.bannerClass" role="alert">
+                    <t t-out="this.mainMessage()"/>
+                </div>
+                <div t-if="state.confirmError" class="alert alert-danger py-2 mb-3" role="alert">
+                    <t t-out="state.confirmError"/>
+                </div>
+            </t>
+
+            <t t-set-slot="footer">
+                <div class="d-flex w-100 gap-2 justify-content-end">
+                    <button type="button" class="button cancel btn btn-lg btn-secondary"
+                            t-on-click="() => this.cancel()">
+                        Cancelar
+                    </button>
+                    <button t-if="this.primaryButton()" type="button"
+                            t-att-class="'button confirm btn btn-lg ' + this.primaryButton().cls"
+                            t-att-disabled="state.busy" t-on-click="() => this.primaryButton().action()">
+                        <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-2"/>
+                        <t t-out="this.primaryButton().label"/>
+                    </button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>
