@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+</head>
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+		<div class="oe_span12">
+			<h1 class="oe_slogan" style="color:#337ab7;">Dispersión de pagos (Banco de Occidente)</h1>
+			<h2 class="oe_slogan">
+                Este módulo facilita la generación de un archivo plano conforme a los lineamientos establecidos por el Banco de Occidente para la construcción del archivo de texto requerido para la dispersión bancaria en su plataforma.
+            </h2>
+            <section class="oe_container oe_separator">
+            </section>
+            <h2 class="oe_slogan">
+                En las cuentas bancarias, se añaden dos campos adicionales: la forma de pago y el tipo de servicio. Estos campos se transfieren automáticamente al formulario de pago a proveedores cuando se selecciona la cuenta del tercero.
+            </h2>    
+            <img style="max-width: 100%;" src="campos_cuenta_bancaria.png"/>
+            <img style="max-width: 100%;" src="campos_pago_proveedor.png"/>
+            <section class="oe_container oe_separator">
+            </section>
+            <h2 class="oe_slogan">
+                En los pagos, se crea una nueva acción llamada "Generar fichero de dispersión Banco de Occidente".
+            </h2>    
+            <img style="max-width: 100%;" src="accion_generar_archivo.png"/>
+            <section class="oe_container oe_separator">
+            </section>
+            <h2 class="oe_slogan">
+                En el menú de configuración de la aplicación de facturación, se incluye un nuevo submenú llamado "Configuraciones Banco de Occidente" dentro de "Dispersiones bancarias". Aquí se ubicará el formulario para configurar los campos que constituirán el cuerpo o sección 2 del archivo plano que se envía al banco.
+            </h2>    
+            <img style="max-width: 100%;" src="menu_dispersiones_banco_occidente.png"/>
+            <img style="max-width: 100%;" src="vista_lista_campos.png"/>
+            <section class="oe_container oe_separator">
+            </section>
+            <h2 class="oe_slogan">
+                Los campos para la configuración del archivo plano constan de los siguientes elementos:
+                <ul>
+                    <li>
+                        Nombre: Es el nombre descriptivo del campo.
+                    </li>
+                    <li>
+                        Valor del campo: Viene predefinido con valores por defecto, pero también se pueden definir expresiones en Python. Estas expresiones se evaluarán al ejecutar la función que genera el archivo.
+                    </li>
+                    <li>
+                        Longitud máxima: Indica la longitud máxima del campo en el archivo plano.
+                    </li>
+                    <li>
+                        Rellenar con ceros o espacios: Se selecciona si el campo debe rellenarse con ceros o con espacios, de acuerdo con la especificación del manual. Algunos campos requieren alineación a la izquierda con ceros o a la derecha con espacios.
+                    </li>
+                </ul>
+                <strong>importante resaltar que la secuencia de los campos no debe alterarse, ya que esta determina las posiciones dentro del archivo.</strong> 
+            </h2>    
+            <img style="max-width: 100%;" src="formulario_campos.png"/>
+
+            <h2 class="oe_slogan">
+                Cuando se activa la acción para generar el archivo de dispersión del Banco de Occidente, el sistema descarga el archivo y, simultáneamente, crea un registro en el menú "Dispersiones bancarias" dentro de la sección de "Facturación/Proveedores".
+            </h2>   
+		</div>
+	</div>
+</section>
+<section class="oe_container oe_separator">
+</section>
+
+<section class="oe_container oe_separator">
+</section>
+
+<section class="oe_container oe_dark">	
+    <div class="oe_row">	
+        <div class="oe_span12 oe_centeralign">	
+            <br/>	
+            <h3>Ayuda y Soporte</h3>
+            <br/>		
+                Contacto: <a href="mailto:juan.zuluaga@firefly-e.com" subject="account_payment_dispersion">Correo de soporte</a><br/>
+            <br/>	
+        </div>	
+    </div>	
+</section>
+

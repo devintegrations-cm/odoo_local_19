@@ -2,12 +2,12 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import logging
 
-from odoo import api, fields, models, _, exceptions
+from odoo import fields, models
 
 _logger = logging.getLogger(__name__)
 
 
-class AccountPaymentDispersalField(models.Model):
+class AccountPaymentDispersal(models.Model):
 
     _name = 'account.payment_dispersal'
     _description = 'It shows the dispersions that have taken place over time.'
@@ -19,6 +19,7 @@ class AccountPaymentDispersalField(models.Model):
     binary_file = fields.Binary(string='File', tracking=True)
     binary_file_name = fields.Char(string='File name', tracking=True)
 
+    # NOTE: the relation table keeps its historical name to preserve existing data
     account_payment_ids = fields.Many2many(comodel_name='account.payment', relation="bancolombia_payment_dispersal_account_payment_rel",
                                            column1="bancolombia_payment_dispersal_id", column2="account_payment_id", string='Payments')
     company_id = fields.Many2one(

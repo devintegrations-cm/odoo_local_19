@@ -1,0 +1,480 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* banco_de_occidente_payment_dispersal
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-04-13 03:34+0000\n"
+"PO-Revision-Date: 2024-04-13 03:34+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_account_no_destination
+msgid "Account No. Destination"
+msgstr "No. Cuenta Destino"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_needaction
+msgid "Action Needed"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__active
+msgid "Active"
+msgstr "Activo"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_ids
+msgid "Activities"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_state
+msgid "Activity State"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_type_icon
+msgid "Activity Type Icon"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_view_form
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_view_search
+msgid "Archived"
+msgstr "Archivado"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_attachment_count
+msgid "Attachment Count"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.banco_de_occidente_payment_dispersal_inherit_view_partner_bank_form
+msgid "Banco de Occidente"
+msgstr "Banco de Occidente"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model,name:banco_de_occidente_payment_dispersal.model_res_partner_bank
+msgid "Bank Accounts"
+msgstr "Cuentas bancarias"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_bank_code
+msgid "Bank Code"
+msgstr "Código del banco"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_beneficiary_name
+msgid "Beneficiary Name"
+msgstr "Nombre Beneficiario"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__company_id
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_view_search
+msgid "Company"
+msgstr "Compañía"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_concept
+msgid "Concept"
+msgstr "Concepto"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model,name:banco_de_occidente_payment_dispersal.model_bancodeoccidente_payment_dispersal_field
+msgid ""
+"Configuration of the fields to be displayed in the excel file for payments "
+"with Banco de Occidente."
+msgstr ""
+"Configuración de los campos a mostrar en el fichero excel para pagos con "
+"Banco de Occidente."
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.actions.act_window,name:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_action
+#: model:ir.ui.menu,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_config_excel_field
+msgid "Configuration payment dispersal fields"
+msgstr "Configuración de los campos de dispersión de pagos"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.ui.menu,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_root_config
+msgid "Configurations Banco de Occidente"
+msgstr "Configuraciones Banco de Occidente"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.actions.act_window,help:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_action
+msgid "Create your excel field for payment dispersion Banco de occidente"
+msgstr "Cree su campo excel para la dispersión de pagos Banco de occidente"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__create_date
+msgid "Created on"
+msgstr "Creado en"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_date_of_application
+msgid "Date of implementation"
+msgstr "Fecha de pago"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_view_form
+msgid "Excel field"
+msgstr "Campo Excel"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_view_tree
+msgid "Excel fields"
+msgstr "Campos Excel"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__name
+msgid "Field name excel"
+msgstr "Nombre del campo excel"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__value
+msgid "Field value"
+msgstr "Valor del campo"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_inherit_view_account_payment_dispersion_form
+msgid "Fields Banco de occidente"
+msgstr "Campos Banco de occidente"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__fill_with_spaces
+msgid "Fill with spaces"
+msgstr "Rellenar con espacios"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__fill_with_zeros
+msgid "Fill with zeros"
+msgstr "Rellenar con ceros"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_follower_ids
+msgid "Followers"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_partner_ids
+msgid "Followers (Partners)"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_form_of_payment
+msgid "Form of Payment"
+msgstr "Forma de Pago"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_account_payment__bancodeoccidente_form_of_payment
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_account_setup_bank_manual_config__bancodeoccidente_form_of_payment
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_res_partner_bank__bancodeoccidente_form_of_payment
+msgid "Form of payment"
+msgstr "Forma de pago"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.actions.server,name:banco_de_occidente_payment_dispersal.action_account_payment_generate_dispersion_bancodeoccidente
+msgid "Generate dispersion file Banco de Occidente"
+msgstr "Generar fichero de dispersión Banco de Occidente"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_view_search
+msgid "Group By"
+msgstr "Agrupar Por"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__has_message
+msgid "Has Message"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__id
+msgid "ID"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_exception_icon
+msgid "Icon"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_has_error
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_is_follower
+msgid "Is Follower"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field____last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_main_attachment_id
+msgid "Main Attachment"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__max_length
+msgid "Max length"
+msgstr "Longitud máxima"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_maximun_payment_value
+msgid "Maximum Payment Value"
+msgstr "Valor Máximo de Pago"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_ids
+msgid "Messages"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_summary
+msgid "Next Activity Summary"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_type_id
+msgid "Next Activity Type"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_beneficiary_document
+msgid "Nit/CC"
+msgstr "NIT/CC"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model,name:banco_de_occidente_payment_dispersal.model_account_payment
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_user_id
+msgid "Responsible User"
+msgstr "Usuario Responsable"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_view_search
+msgid "Search excel fields"
+msgstr "Buscar campos excel"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__sequence
+msgid "Sequence"
+msgstr "Secuencia"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_source_account
+msgid "Source account"
+msgstr "Cuenta de origen"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_account_payment__bancodeoccidente_type_of_service
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_account_setup_bank_manual_config__bancodeoccidente_type_of_service
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_res_partner_bank__bancodeoccidente_type_of_service
+msgid "Type of service"
+msgstr "Tipo de servicio"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_type_target_account
+msgid "Type of target accounts"
+msgstr "Tipo de cuentas de destino"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_voucher
+msgid "Voucher"
+msgstr "Comprobante"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,field_description:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__website_message_ids
+msgid "Website Messages"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:ir.model.fields,help:banco_de_occidente_payment_dispersal.field_bancodeoccidente_payment_dispersal_field__website_message_ids
+msgid "Website communication history"
+msgstr ""
+
+#. module: banco_de_occidente_payment_dispersal
+#: model_terms:ir.ui.view,arch_db:banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_view_form
+msgid "e.g. Name of beneficiary"
+msgstr "p. ej. Nombre del beneficiario"
+
+#. module: banco_de_occidente_payment_dispersal
+#: model:bancodeoccidente.payment_dispersal_field,name:banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_field_invoice_number
+msgid "invoice number"
+msgstr "Número de factura"
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/bancodeoccidente_payment_dispersal_field.py:0
+#, python-format
+msgid ""
+"You cannot fill with zeros and spaces at the same time, select only one."
+msgstr ""
+"No puede rellenar con ceros y espacios al mismo tiempo, seleccione sólo uno."
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid ""
+"The payment dispersions must be for a single journal and in this case it has the following journals: %s"
+msgstr ""
+"Las dispersiones de pago deben ser para una solo diario y en este caso tiene los siguientes: %s"
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid ""
+"The journal %s does not have a source account set up"
+msgstr ""
+"El diario %s no tiene una cuenta de origen configurada"
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid ""
+"One or more of the payments has no target account: %s"
+msgstr ""
+"Uno o más de los pagos no tiene cuenta de destino: %s"
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid ""
+"No bank or bank code configured: %s"
+msgstr ""
+"Ningún banco o código bancario configurado: %s"
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid ""
+"No payment method configured: %s"
+msgstr ""
+"No se ha configurado ningún método de pago: %s"
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_payment.py:0
+#, python-format
+msgid ""
+"No account type configured: %s"
+msgstr ""
+"No se ha configurado ningún tipo de cuenta: %s"

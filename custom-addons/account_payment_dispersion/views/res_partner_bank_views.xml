@@ -1,20 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record id="account_payment_dispersion_inherit_view_partner_bank_form" model="ir.ui.view">
-            <field name="name">account.payment.dispersion.inherit.view.partner.bank.form</field>
-            <field name="model">res.partner.bank</field>
-            <field name="inherit_id" ref="base.view_partner_bank_form"/>
-            <field name="arch" type="xml">
-                <field name="acc_number" position="after">
-                    <field name="type_of_account"/>
-                </field>
 
-                <xpath expr="//sheet" position="inside">
-                    <notebook name="dispersion_banks"/>
-                </xpath>
-                
+    <!-- =============================================== -->
+    <!-- Partner Bank Account Form View                -->
+    <!-- =============================================== -->
+
+    <record id="account_payment_dispersion_inherit_view_partner_bank_form" model="ir.ui.view">
+        <field name="name">account.payment.dispersion.inherit.view.partner.bank.form</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="base.view_partner_bank_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add Colombian account type after account number -->
+            <field name="acc_number" position="after">
+                <field name="co_account_type"
+                       placeholder="Seleccione tipo de cuenta..."/>
             </field>
-        </record>
-	</data>
+
+            <!-- Add notebook for bank-specific configurations -->
+            <xpath expr="//sheet" position="inside">
+                <notebook name="dispersion_banks">
+                    <page string="Configuración de Dispersión"
+                          name="dispersal_config"
+                          groups="account.group_account_invoice">
+
+                        <group string="Ayuda" col="1">
+                            <div class="alert alert-info" role="alert">
+                                <p><strong>Información de Tipo de Cuenta:</strong></p>
+                                <ul>
+                                    <li><strong>Cuenta de Ahorros:</strong> Cuenta de ahorros para uso personal</li>
+                                    <li><strong>Cuenta Corriente:</strong> Cuenta corriente para transacciones empresariales</li>
+                                </ul>
+                                <p>Esta información es requerida para generar archivos de dispersión de pago para bancos colombianos.</p>
+                            </div>
+                        </group>
+
+                    </page>
+                </notebook>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- =============================================== -->
+    <!-- Partner Bank Account Tree View                -->
+    <!-- =============================================== -->
+
+    <record id="account_payment_dispersion_inherit_view_partner_bank_tree" model="ir.ui.view">
+        <field name="name">account.payment.dispersion.inherit.view.partner.bank.tree</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="base.view_partner_bank_tree"/>
+        <field name="arch" type="xml">
+
+            <!-- Add account type column -->
+            <field name="acc_number" position="after">
+                <field name="co_account_type" optional="show"/>
+            </field>
+
+        </field>
+    </record>
+
 </odoo>

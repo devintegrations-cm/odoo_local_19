@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+        <record id="bancodeoccidente_payment_dispersal_field_source_account" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Source account</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">2</field>
+            <field name="value">
+source_account = ''
+if object.journal_id and  object.journal_id.bank_account_id and object.journal_id.bank_account_id.acc_number:
+    source_account= object.journal_id.bank_account_id.acc_number
+result = source_account
+            </field>
+            <field name="max_length">16</field>
+            <field name="fill_with_zeros" eval="True"/>
+            <field name="fill_with_spaces" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_beneficiary_name" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Beneficiary Name</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">3</field>
+            <field name="value">
+beneficiary_name = ' '
+if object.partner_id and  object.partner_id.display_name:
+    beneficiary_name=object.partner_id.display_name.upper()
+    if len(beneficiary_name) &gt; 30:
+        beneficiary_name=object.partner_id.display_name[0:29]
+    
+    if 'Ñ' in beneficiary_name:
+        beneficiary_name = beneficiary_name.replace('Ñ', 'N').upper()
+result = beneficiary_name
+            </field>
+            <field name="max_length">30</field>
+            <field name="fill_with_zeros" eval="False"/>
+            <field name="fill_with_spaces" eval="True"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_beneficiary_document" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Nit/CC</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">4</field>
+            <field name="value">
+beneficiary_nit = ' '
+if object.partner_id and object.partner_id.vat:
+    beneficiary_nit = object.partner_id.vat.replace('-', '').replace('.', '').replace(' ', '')
+result = beneficiary_nit
+            </field>
+            <field name="max_length">11</field>
+            <field name="fill_with_zeros" eval="True"/>
+            <field name="fill_with_spaces" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_bank_code" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Bank Code</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">5</field>
+            <field name="value">
+bank = object.partner_bank_id.bank_id if object.partner_bank_id else False
+result = bank.dispersal_code[-4:] if bank and bank.dispersal_code else '0000'
+            </field>
+            <field name="max_length">4</field>
+            <field name="fill_with_zeros" eval="True"/>
+            <field name="fill_with_spaces" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_date_of_application" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Date of implementation</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">6</field>
+            <field name="value">
+date_of_application = ''
+if object.date:
+    date_of_application = datetime.strftime(object.date, '%Y%m%d')
+result = date_of_application
+            </field>
+            <field name="max_length">8</field>
+            <field name="fill_with_zeros" eval="False"/>
+            <field name="fill_with_spaces" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_form_of_payment" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Form of Payment</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">7</field>
+            <field name="value">
+form_of_payment = ''
+if object.bancodeoccidente_form_of_payment:
+    form_of_payment = object.bancodeoccidente_form_of_payment
+    if form_of_payment == 'payment_by_cheque':
+        form_of_payment = '1'
+    elif form_of_payment == 'credit_to_bancodeoccidente_account':
+        form_of_payment = '2'
+    elif form_of_payment == 'credit_to_other_entities_accounts':
+        form_of_payment = '3'
+    elif form_of_payment == 'payment_in_cash':
+        form_of_payment = '4'
+result = form_of_payment
+            </field>
+            <field name="max_length">1</field>
+            <field name="fill_with_zeros" eval="False"/>
+            <field name="fill_with_spaces" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_maximun_payment_value" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Maximum Payment Value</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">8</field>
+            <field name="value">
+maximun_payment_value = 0.00
+if object.amount:
+    maximun_payment_value = float(object.amount)
+result = maximun_payment_value
+            </field>
+            <field name="max_length">15</field>
+            <field name="fill_with_zeros" eval="True"/>
+            <field name="fill_with_spaces" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_target_financial_institution" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Financial Institution Destination</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">9</field>
+            <field name="value">
+acc_number = ''
+if object.partner_bank_id and object.partner_bank_id.acc_number:
+    acc_number = object.partner_bank_id.acc_number
+result = acc_number
+            </field>
+            <field name="max_length">16</field>
+            <field name="fill_with_zeros" eval="False"/>
+            <field name="fill_with_spaces" eval="True"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_voucher" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Voucher</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">10</field>
+            <field name="value">
+date_of_application = ' '
+if object.date:
+    date_of_application = datetime.strftime(object.date, '%Y%m%d')
+result = date_of_application
+            </field>
+            <field name="max_length">12</field>
+            <field name="fill_with_zeros" eval="False"/>
+            <field name="fill_with_spaces" eval="True"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+
+        <record id="bancodeoccidente_payment_dispersal_field_type_target_account" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Type of target accounts</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">11</field>
+            <field name="value">
+type_of_account = ' '
+if object.partner_bank_id and object.partner_bank_id.co_account_type:
+    if object.partner_bank_id.co_account_type == 'current_account':
+        type_of_account = 'C'
+    elif object.partner_bank_id.co_account_type == 'savings_account':
+        type_of_account = 'A'
+result = type_of_account
+            </field>
+            <field name="max_length">1</field>
+            <field name="fill_with_zeros" eval="False"/>
+            <field name="fill_with_spaces" eval="False"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_invoice_number" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">invoice number</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">12</field>
+            <field name="value">
+result = ' '
+            </field>
+            <field name="max_length">24</field>
+            <field name="fill_with_zeros" eval="False"/>
+            <field name="fill_with_spaces" eval="True"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="bancodeoccidente_payment_dispersal_field_concept" model="bancodeoccidente.payment_dispersal_field">
+            <field name="name">Concept</field>
+            <field name="active" eval="True"/>
+            <field name="sequence">13</field>
+            <field name="value">
+result = ' '
+            </field>
+            <field name="max_length">56</field>
+            <field name="fill_with_zeros" eval="False"/>
+            <field name="fill_with_spaces" eval="True"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+</odoo>

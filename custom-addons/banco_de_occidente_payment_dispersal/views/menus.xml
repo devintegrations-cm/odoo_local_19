@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem parent="account_payment_dispersion.account_payment_dispersed_root_menu" id="bancodeoccidente_payment_dispersal_root_config" name="Configuración Banco de Occidente" groups="account.group_account_manager" sequence="100"/>
+    <menuitem parent="banco_de_occidente_payment_dispersal.bancodeoccidente_payment_dispersal_root_config" id="bancodeoccidente_payment_dispersal_config_excel_field" action="banco_de_occidente_payment_dispersal.bancodeoocidente_payment_dispersal_field_action" sequence="1"/>
+</odoo>

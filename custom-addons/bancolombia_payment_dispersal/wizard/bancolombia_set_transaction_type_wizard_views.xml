@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <!-- Wizard Form View -->
+        <record id="view_bancolombia_set_transaction_type_wizard_form" model="ir.ui.view">
+            <field name="name">bancolombia.set.transaction.type.wizard.form</field>
+            <field name="model">bancolombia.set.transaction.type.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Configurar Tipo de Transacción Bancolombia">
+                    <group>
+                        <group>
+                            <field name="payment_count" readonly="1"/>
+                            <field name="bancolombia_type_of_transaction"/>
+                        </group>
+                        <group>
+                            <field name="also_set_in_bank_account"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        <p>
+                            <strong>Información:</strong> Esta acción configurará el tipo de transacción seleccionado en los
+                            <field name="payment_count" readonly="1" class="oe_inline"/> pago(s) seleccionado(s).
+                        </p>
+                        <p>
+                            Si activa la opción "También configurar en cuenta bancaria", el tipo de transacción también se guardará
+                            en la cuenta bancaria del beneficiario como valor por defecto para futuros pagos.
+                        </p>
+                    </div>
+                    <footer>
+                        <button name="action_set_transaction_type" type="object" string="Aplicar" class="btn-primary"/>
+                        <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_bancolombia_set_transaction_type_wizard" model="ir.actions.act_window">
+            <field name="name">Configurar Tipo de Transacción Bancolombia</field>
+            <field name="res_model">bancolombia.set.transaction.type.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="account.model_account_payment"/>
+            <field name="binding_view_types">list</field>
+        </record>
+
+</odoo>

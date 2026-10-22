@@ -1,15 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record id="account_payment_dispersion_inherit_view_res_bank_form" model="ir.ui.view">
-            <field name="name">account.payment.dispersion.inherit.view.res.bank.form</field>
-            <field name="model">res.bank</field>
-            <field name="inherit_id" ref="base.view_res_bank_form"/>
-            <field name="arch" type="xml">
-                <field name="bic" position="after">
-                    <field name="code"/>
-                </field>
+    <record id="account_payment_dispersion_inherit_view_res_bank_form" model="ir.ui.view">
+        <field name="name">account.payment.dispersion.inherit.view.res.bank.form</field>
+        <field name="model">res.bank</field>
+        <field name="inherit_id" ref="base.view_res_bank_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='address_details']/.." position="after">
+                <group name="dispersal_codes" string="Dispersión Bancaria">
+                    <group name="dispersal_codes_left">
+                        <field name="code" placeholder="p. ej. 1051"/>
+                        <field name="dispersal_code" placeholder="p. ej. 000051"/>
+                    </group>
+                    <group name="dispersal_codes_right"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account_payment_dispersion_inherit_view_res_bank_tree" model="ir.ui.view">
+        <field name="name">account.payment.dispersion.inherit.view.res.bank.list</field>
+        <field name="model">res.bank</field>
+        <field name="inherit_id" ref="base.view_res_bank_tree"/>
+        <field name="arch" type="xml">
+            <field name="bic" position="after">
+                <field name="code" optional="show"/>
+                <field name="dispersal_code" optional="show"/>
             </field>
-        </record>
-	</data>
+        </field>
+    </record>
+
+    <record id="account_payment_dispersion_inherit_view_res_bank_search" model="ir.ui.view">
+        <field name="name">account.payment.dispersion.inherit.view.res.bank.search</field>
+        <field name="model">res.bank</field>
+        <field name="inherit_id" ref="base.res_bank_view_search"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="code"/>
+                <field name="dispersal_code"/>
+            </field>
+            <filter name="inactive" position="before">
+                <filter string="Sin Código de Dispersión" name="no_dispersal_code" domain="[('dispersal_code', '=', False)]"/>
+            </filter>
+        </field>
+    </record>
 </odoo>

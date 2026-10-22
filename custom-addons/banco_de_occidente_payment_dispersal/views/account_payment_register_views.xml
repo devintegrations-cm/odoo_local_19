@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_payment_register_form_occidente" model="ir.ui.view">
+        <field name="name">account.payment.register.form.occidente</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account_payment_dispersion.view_account_payment_register_form_dispersion"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type_of_account']" position="after">
+                <field name="bancodeoccidente_form_of_payment"
+                       invisible="payment_method_code != 'banco_occidente_dispersion'"/>
+                <field name="bancodeoccidente_type_of_service"
+                       invisible="payment_method_code != 'banco_occidente_dispersion'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

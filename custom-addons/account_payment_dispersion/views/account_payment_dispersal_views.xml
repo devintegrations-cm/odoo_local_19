@@ -22,11 +22,12 @@
     <record id="account_payment_dispersal_view_form" model="ir.ui.view">
         <field name="name">account.payment.dispersal.view.form</field>
         <field name="model">account.payment_dispersal</field>
+        <field name="type">form</field>
         <field name="arch" type="xml">
             <form string="Banking Dispersion" create="0" delete="0" edit="0">
                 <sheet>
                     <div name="button_box" class="oe_button_box"/>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active == True"/>
                     <div class="oe_title" name="account_payment_dispersal_title">
                         <label for="name" id="account_payment_dispersal_title"/>
                         <h1>
@@ -50,7 +51,6 @@
                     </group>
                 </sheet>
                 <chatter/>
-                
             </form>
         </field>
     </record>
@@ -58,6 +58,7 @@
     <record id="account_payment_dispersal_view_tree" model="ir.ui.view">
         <field name="name">account.payment.dispersal.view.tree</field>
         <field name="model">account.payment_dispersal</field>
+        <field name="type">list</field>
         <field name="arch" type="xml">
             <list string="Bank Dispersals" create="0" delete="0">
                 <field name="name"/>
@@ -69,7 +70,7 @@
         </field>
     </record>
 
-    <record id="account_payment_dispersal_action" model="ir.actions.act_window">
+    <!--<record id="account_payment_dispersal_action" model="ir.actions.act_window">
         <field name="name">Bank Dispersals</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">account.payment_dispersal</field>
@@ -79,6 +80,6 @@
                 Check the different dispersals that have been made to banks for payment.
             </p>
         </field>
-    </record>
+    </record>-->
 
 </odoo>

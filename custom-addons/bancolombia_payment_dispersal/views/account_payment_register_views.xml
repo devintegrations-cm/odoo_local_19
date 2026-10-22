@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_payment_register_form_bancolombia" model="ir.ui.view">
+        <field name="name">account.payment.register.form.bancolombia</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account_payment_dispersion.view_account_payment_register_form_dispersion"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type_of_account']" position="after">
+                <field name="bancolombia_payment_type"
+                       invisible="payment_method_code != 'bancolombia_dispersion'"/>
+                <field name="bancolombia_type_of_transaction"
+                       invisible="payment_method_code != 'bancolombia_dispersion' or not show_partner_bank_account"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

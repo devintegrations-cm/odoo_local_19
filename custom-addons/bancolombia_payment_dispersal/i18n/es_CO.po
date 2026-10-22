@@ -350,7 +350,7 @@ msgstr ""
 #. module: bancolombia_payment_dispersal
 #: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_type_transaction
 msgid "Transaction Type"
-msgstr "Tipo Transaccion "
+msgstr "Tipo de Transacción"
 
 #. module: bancolombia_payment_dispersal
 #: model:bancolombia.payment_dispersal_field,name:bancolombia_payment_dispersal.bancolombia_payment_dispersal_field_beneficiary_transaction_value
@@ -370,8 +370,8 @@ msgstr ""
 #. module: bancolombia_payment_dispersal
 #: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_account_payment__bancolombia_type_of_transaction
 #: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_res_partner_bank__bancolombia_type_of_transaction
-msgid "Type of transaction"
-msgstr "Tipo Transaccion "
+msgid "Tipo de Transacción Bancolombia"
+msgstr "Tipo de Transacción Bancolombia"
 
 #. module: bancolombia_payment_dispersal
 #: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_bancolombia_payment_dispersal_field__website_message_ids
@@ -391,85 +391,67 @@ msgstr "p. ej. Tipo de documento Beneficiario"
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Pre-notification Checking Account"
-msgstr "Pre-notifica ct Corriente"
+msgid "23 - Pre-notificación Cuenta Corriente"
+msgstr "23 - Pre-notificación Cuenta Corriente"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Cash Payment"
-msgstr "Pago en Efectivo"
+msgid "25 - Pago en Efectivo"
+msgstr "25 - Pago en Efectivo"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Deposit to Checking Account"
-msgstr "Abono  cta Corriente"
+msgid "27 - Depósito a Cuenta Corriente"
+msgstr "27 - Depósito a Cuenta Corriente"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Pre-notify savings account"
-msgstr "Pre-notifica cuenta de ahorros"
+msgid "33 - Pre-notificación Cuenta de Ahorros"
+msgstr "33 - Pre-notificación Cuenta de Ahorros"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Manager\'s Check Payment"
-msgstr "Pago Cheque Gerencia"
+msgid "36 - Pago con Cheque de Gerencia"
+msgstr "36 - Pago con Cheque de Gerencia"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Deposit to Savings Account"
-msgstr "Abono a cta de Ahorros"
+msgid "37 - Depósito a Cuenta de Ahorros"
+msgstr "37 - Depósito a Cuenta de Ahorros"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Secure Cash (Visa Payments)"
-msgstr "Efectivo Seguro (visa pagos)"
+msgid "40 - Efectivo Seguro (Pagos Visa)"
+msgstr "40 - Efectivo Seguro (Pagos Visa)"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Electronic deposit payment"
-msgstr "Abono Depos Electroni"
+msgid "52 - Pago Depósito Electrónico"
+msgstr "52 - Pago Depósito Electrónico"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#: code:addons/bancolombia_payment_dispersal/models/res_partner_bank.py:0
-#, python-format
-msgid "Pre-notification of Electronic Deposit"
-msgstr "Notificación previa de depósito electrónico"
+msgid "53 - Pre-notificación Depósito Electrónico"
+msgstr "53 - Pre-notificación Depósito Electrónico"
 
 #. module: bancolombia_payment_dispersal
 #. odoo-python
 #: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
 #, python-format
 msgid "The payment dispersions must be for a single journal and in this case it has the following journals: %s"
-msgstr "Las dispersiones de pago deben ser para un solo diario y en este caso tiene los siguientes diarios: %s"
+msgstr "Las dispersiones de pago deben ser para una sola revista y en este caso tiene los siguientes diarios: %s"
 
 #. module: bancolombia_payment_dispersal
 #: model:ir.model.fields,field_description:bancolombia_payment_dispersal.field_res_bank__bancolombia_code
-msgid "Bancolombia Code"
+msgid "Código Bancolombia"
 msgstr "Código Bancolombia"
 
 #. module: bancolombia_payment_dispersal
@@ -507,31 +489,3 @@ msgid ""
 "No bank or bank code configured: %s"
 msgstr ""
 "Ningún banco o código bancario configurado: %s"
-
-#. module: bancolombia_payment_dispersal
-#. odoo-python
-#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#, python-format
-msgid "The journal %s does not have a source account set up"
-msgstr "El diario %s no tiene configurada una cuenta de origen"
-
-#. module: bancolombia_payment_dispersal
-#. odoo-python
-#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#, python-format
-msgid "No transaction type configured: %s"
-msgstr "No hay tipo de transacción configurado: %s"
-
-#. module: bancolombia_payment_dispersal
-#. odoo-python
-#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#, python-format
-msgid "One or more of the payments has no target account: %s"
-msgstr "Uno o más pagos no tienen cuenta de destino: %s"
-
-#. module: bancolombia_payment_dispersal
-#. odoo-python
-#: code:addons/bancolombia_payment_dispersal/models/account_payment.py:0
-#, python-format
-msgid "No bank or bank code configured: %s"
-msgstr "No hay banco o código de banco configurado: %s"

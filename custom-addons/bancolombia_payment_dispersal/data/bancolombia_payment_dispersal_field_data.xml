@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <data noupdate="1">
+<odoo noupdate="1">
         <record id="bancolombia_payment_dispersal_field_name" model="bancolombia.payment_dispersal_field">
             <field name="name">Type of Document Beneficiary</field>
             <field name="active" eval="True"/>
@@ -31,8 +30,15 @@ result = type_document_code
 beneficiary_nit = ' '
 if object.partner_id and object.partner_id.vat and object.partner_id.l10n_latam_identification_type_id:
     type_document = object.partner_id.l10n_latam_identification_type_id
-    if '-' in object.partner_id.vat:
-        beneficiary_nit=object.partner_id.vat.split('-')[0]
+    if type_document.id == env.ref('l10n_co.rut').id:
+        beneficiary_nit = object.partner_id.ref or object.partner_id.vat
+    else:
+        beneficiary_nit = object.partner_id.vat
+    # Remove non-numeric characters and truncate to 15 digits as per Bancolombia spec
+    if beneficiary_nit:
+        beneficiary_nit = ''.join(filter(str.isdigit, str(beneficiary_nit)))
+        if len(beneficiary_nit) &gt; 15:
+            beneficiary_nit = beneficiary_nit[:15]
 result = beneficiary_nit
             </field>
             <field name="company_id" ref="base.main_company"/>
@@ -43,13 +49,14 @@ result = beneficiary_nit
             <field name="sequence">3</field>
             <field name="value">
 beneficiary_name = ' '
-if object.partner_id and  object.partner_id.display_name:
-    beneficiary_name=object.partner_id.display_name.upper()
-    if len(beneficiary_name) &gt; 30:
-        beneficiary_name=object.partner_id.display_name[0:29]
-    
+if object.partner_id and object.partner_id.display_name:
+    beneficiary_name = object.partner_id.display_name.upper()
+    # Replace special characters
     if 'Ñ' in beneficiary_name:
-        beneficiary_name = beneficiary_name.replace('Ñ', 'N').upper()
+        beneficiary_name = beneficiary_name.replace('Ñ', 'N')
+    # Truncate to 30 characters as per Bancolombia spec
+    if len(beneficiary_name) &gt; 30:
+        beneficiary_name = beneficiary_name[:30]
 result = beneficiary_name
             </field>
             <field name="company_id" ref="base.main_company"/>
@@ -71,10 +78,8 @@ result = type_transaction
             <field name="active" eval="True"/>
             <field name="sequence">5</field>
             <field name="value">
-bank_code = ' '
-if object.partner_bank_id and object.partner_bank_id.bank_id and object.partner_bank_id.bank_id.code:
-    bank_code = object.partner_bank_id.bank_id.code
-result = bank_code
+bank = object.partner_bank_id.bank_id if object.partner_bank_id else False
+result = bank.dispersal_code if bank and bank.dispersal_code else ' '
             </field>
             <field name="company_id" ref="base.main_company"/>
         </record>
@@ -86,6 +91,10 @@ result = bank_code
 acc_number = ' '
 if object.partner_bank_id and object.partner_bank_id.acc_number:
     acc_number = object.partner_bank_id.acc_number
+    # Remove non-numeric characters and truncate to 17 digits as per Bancolombia spec
+    acc_number = ''.join(filter(str.isdigit, str(acc_number)))
+    if len(acc_number) &gt; 17:
+        acc_number = acc_number[:17]
 result = acc_number
             </field>
             <field name="company_id" ref="base.main_company"/>
@@ -98,6 +107,9 @@ result = acc_number
 email = ' '
 if object.partner_id and object.partner_id.email:
     email = object.partner_id.email
+    # Truncate to 80 characters as per Bancolombia spec
+    if len(email) &gt; 80:
+        email = email[:80]
 result = email
             </field>
             <field name="company_id" ref="base.main_company"/>
@@ -108,9 +120,12 @@ result = email
             <field name="sequence">8</field>
             <field name="value">
 authorised_document = ' '
-if object.memo:
+# Only required for transaction type 36 (Manager's Check Payment)
+if object.bancolombia_type_of_transaction == '36' and object.memo:
     authorised_document = object.memo
-authorised_document = ' '
+    # Truncate to 15 digits as per Bancolombia spec
+    if len(authorised_document) &gt; 15:
+        authorised_document = authorised_document[:15]
 result = authorised_document
             </field>
             <field name="company_id" ref="base.main_company"/>
@@ -120,10 +135,12 @@ result = authorised_document
             <field name="active" eval="True"/>
             <field name="sequence">9</field>
             <field name="value">
-reference = ''
-if object.memo:
-    reference = (object.name or '/').split('/')[-1]
 reference = ' '
+if object.memo:
+    reference = object.memo
+    # Truncate to 21 characters as per Bancolombia spec
+    if len(reference) &gt; 21:
+        reference = reference[:21]
 result = reference
             </field>
             <field name="company_id" ref="base.main_company"/>
@@ -134,9 +151,15 @@ result = reference
             <field name="sequence">10</field>
             <field name="value">
 beneficiary_mobile = ' '
-if object.partner_id and object.partner_id.phone:
-    beneficiary_mobile = object.partner_id.phone
-beneficiary_mobile = ' '
+# Only for transaction type 25 (Cash Payment) and must be exactly 10 digits starting with 3
+if object.bancolombia_type_of_transaction == '25' and object.partner_id:
+    mobile = object.partner_id.phone
+    if mobile:
+        # Remove spaces, dashes, and other characters
+        mobile = ''.join(filter(str.isdigit, mobile))
+        # Must be 10 digits and start with 3
+        if len(mobile) &gt;= 10 and mobile.startswith('3'):
+            beneficiary_mobile = mobile
 result = beneficiary_mobile
             </field>
             <field name="company_id" ref="base.main_company"/>
@@ -148,8 +171,14 @@ result = beneficiary_mobile
             <field name="value">
 amount = 0
 if object.amount:
-    amount = object.amount
-result = amount
+    # Format: 15 integers + 2 decimals = 17 digits total
+    # Remove decimal point and format as string with leading zeros
+    amount_cents = int(round(object.amount * 100))
+    # Format to 17 digits (15 integer + 2 decimal positions)
+    amount_str = str(amount_cents).zfill(17)
+    result = amount_str
+else:
+    result = '0' * 17
             </field>
             <field name="company_id" ref="base.main_company"/>
         </record>
@@ -165,5 +194,4 @@ result = date_of_application
             </field>
             <field name="company_id" ref="base.main_company"/>
         </record>
-    </data>
 </odoo>

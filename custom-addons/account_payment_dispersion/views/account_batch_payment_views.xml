@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =============================================== -->
+    <!-- Account Batch Payment Tree View               -->
+    <!-- =============================================== -->
+
+    <record id="view_batch_payment_tree_colombia" model="ir.ui.view">
+        <field name="name">account.batch.payment.tree.colombia</field>
+        <field name="model">account.batch.payment</field>
+        <field name="inherit_id" ref="account_batch_payment.view_batch_payment_tree"/>
+        <field name="arch" type="xml">
+
+            <!-- Add payment method column -->
+            <xpath expr="//field[@name='journal_id']" position="after">
+                <field name="payment_method_id" optional="show"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- =============================================== -->
+    <!-- Menu Items                                     -->
+    <!-- =============================================== -->
+
+    <!-- Add menu item for batch payments in Colombian context -->
+    <!--<menuitem id="menu_batch_payment_colombia"
+              name="Payment Dispersals"
+              parent="account.menu_finance_payables"
+              action="account_batch_payment.action_batch_payment_out"
+              sequence="15"
+              groups="account.group_account_invoice,account.group_account_manager"/>
+-->
+</odoo>

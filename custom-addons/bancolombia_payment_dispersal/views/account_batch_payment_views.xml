@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <!-- Bancolombia Batch Payment Form View -->
+        <record id="view_batch_payment_form_bancolombia" model="ir.ui.view">
+            <field name="name">account.batch.payment.form.bancolombia</field>
+            <field name="model">account.batch.payment</field>
+            <field name="inherit_id" ref="account_batch_payment.view_batch_payment_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Add Bancolombia-specific field after payment method -->
+                <xpath expr="//field[@name='payment_method_id']" position="after">
+                    <field name="bancolombia_payment_type"
+                           invisible="payment_method_code != 'bancolombia_dispersion'"/>
+                </xpath>
+
+                <!-- Add info message about file download -->
+                <xpath expr="//field[@name='payment_ids']" position="before">
+                    <div class="alert alert-info" role="alert"
+                         invisible="payment_method_code != 'bancolombia_dispersion' or state != 'draft'">
+                        <strong>Flujo de Dispersión Bancolombia:</strong>
+                        <ol>
+                            <li>El tipo de dispersión (220/225) se toma de los pagos; un lote solo admite un tipo</li>
+                            <li>Haga clic en <strong>"Validar"</strong> para generar el Excel</li>
+                            <li>Descargue el archivo Excel</li>
+                            <li>Suba el Excel al conversor de Bancolombia</li>
+                            <li>Descargue el TXT y súbalo al portal de Bancolombia</li>
+                        </ol>
+                    </div>
+                </xpath>
+
+            </field>
+        </record>
+
+</odoo>

@@ -1,1 +1,0 @@
-- Firefly Software Consulting S.A.S (juan.zuluaga@firefly-e.com)

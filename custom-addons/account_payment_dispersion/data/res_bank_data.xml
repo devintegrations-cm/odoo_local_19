@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <record id="res_bank_1001" model="res.bank">
+    <record id="res_bank_1001" model="res.bank">
             <field name="name">BANCO DE BOGOTA</field>
             <field name="code">1001</field>
             <field name="bic">BBOGCOBBBO1</field>
@@ -383,5 +383,76 @@
             <field name="code">1814</field>
             <field name="country" ref="base.co"/>
         </record>
+    </data>
+    <!-- Dispersal codes (ACH 6-digit) for bank flat file generation.
+         Each bank module truncates as needed (e.g., BBVA uses last 4 digits). -->
+    <data noupdate="0">
+        <record id="res_bank_1001" model="res.bank"><field name="dispersal_code">000001</field></record>
+        <record id="res_bank_1002" model="res.bank"><field name="dispersal_code">000002</field></record>
+        <record id="res_bank_1006" model="res.bank"><field name="dispersal_code">000006</field></record>
+        <record id="res_bank_1007" model="res.bank"><field name="dispersal_code">000007</field></record>
+        <record id="res_bank_1009" model="res.bank"><field name="dispersal_code">000009</field></record>
+        <record id="res_bank_1012" model="res.bank"><field name="dispersal_code">000012</field></record>
+        <record id="res_bank_1013" model="res.bank"><field name="dispersal_code">000013</field></record>
+        <record id="res_bank_1014" model="res.bank"><field name="dispersal_code">000014</field></record>
+        <record id="res_bank_1019" model="res.bank"><field name="dispersal_code">000019</field></record>
+        <record id="res_bank_1023" model="res.bank"><field name="dispersal_code">000023</field></record>
+        <record id="res_bank_1031" model="res.bank"><field name="dispersal_code">000031</field></record>
+        <record id="res_bank_1032" model="res.bank"><field name="dispersal_code">000032</field></record>
+        <record id="res_bank_1040" model="res.bank"><field name="dispersal_code">000040</field></record>
+        <record id="res_bank_1041" model="res.bank"><field name="dispersal_code">000041</field></record>
+        <record id="res_bank_1042" model="res.bank"><field name="dispersal_code">000042</field></record>
+        <record id="res_bank_1047" model="res.bank"><field name="dispersal_code">000047</field></record>
+        <record id="res_bank_1051" model="res.bank"><field name="dispersal_code">000051</field></record>
+        <record id="res_bank_1052" model="res.bank"><field name="dispersal_code">000052</field></record>
+        <record id="res_bank_1053" model="res.bank"><field name="dispersal_code">000053</field></record>
+        <record id="res_bank_1058" model="res.bank"><field name="dispersal_code">000058</field></record>
+        <record id="res_bank_1059" model="res.bank"><field name="dispersal_code">000059</field></record>
+        <record id="res_bank_1060" model="res.bank"><field name="dispersal_code">000060</field></record>
+        <record id="res_bank_1061" model="res.bank"><field name="dispersal_code">000061</field></record>
+        <record id="res_bank_1062" model="res.bank"><field name="dispersal_code">000062</field></record>
+        <record id="res_bank_1063" model="res.bank"><field name="dispersal_code">000063</field></record>
+        <record id="res_bank_1064" model="res.bank"><field name="dispersal_code">000064</field></record>
+        <record id="res_bank_1065" model="res.bank"><field name="dispersal_code">000065</field></record>
+        <record id="res_bank_1066" model="res.bank"><field name="dispersal_code">000066</field></record>
+        <record id="res_bank_1067" model="res.bank"><field name="dispersal_code">000067</field></record>
+        <record id="res_bank_1069" model="res.bank"><field name="dispersal_code">000069</field></record>
+        <record id="res_bank_1070" model="res.bank"><field name="dispersal_code">000070</field></record>
+        <record id="res_bank_1071" model="res.bank"><field name="dispersal_code">000071</field></record>
+        <record id="res_bank_1083" model="res.bank"><field name="dispersal_code">000083</field></record>
+        <record id="res_bank_1084" model="res.bank"><field name="dispersal_code">000084</field></record>
+        <record id="res_bank_1086" model="res.bank"><field name="dispersal_code">000086</field></record>
+        <record id="res_bank_1087" model="res.bank"><field name="dispersal_code">000087</field></record>
+        <record id="res_bank_1088" model="res.bank"><field name="dispersal_code">000088</field></record>
+        <record id="res_bank_1089" model="res.bank"><field name="dispersal_code">000089</field></record>
+        <record id="res_bank_1090" model="res.bank"><field name="dispersal_code">000090</field></record>
+        <record id="res_bank_1097" model="res.bank"><field name="dispersal_code">000097</field></record>
+        <record id="res_bank_1108" model="res.bank"><field name="dispersal_code">000108</field></record>
+        <record id="res_bank_1121" model="res.bank"><field name="dispersal_code">000121</field></record>
+        <record id="res_bank_1283" model="res.bank"><field name="dispersal_code">000283</field></record>
+        <record id="res_bank_1286" model="res.bank"><field name="dispersal_code">000286</field></record>
+        <record id="res_bank_1289" model="res.bank"><field name="dispersal_code">000289</field></record>
+        <record id="res_bank_1291" model="res.bank"><field name="dispersal_code">000291</field></record>
+        <record id="res_bank_1292" model="res.bank"><field name="dispersal_code">000292</field></record>
+        <record id="res_bank_1303" model="res.bank"><field name="dispersal_code">000303</field></record>
+        <record id="res_bank_1370" model="res.bank"><field name="dispersal_code">000370</field></record>
+        <record id="res_bank_1502" model="res.bank"><field name="dispersal_code">001502</field></record>
+        <record id="res_bank_1507" model="res.bank"><field name="dispersal_code">001507</field></record>
+        <record id="res_bank_1550" model="res.bank"><field name="dispersal_code">001550</field></record>
+        <record id="res_bank_1551" model="res.bank"><field name="dispersal_code">001551</field></record>
+        <record id="res_bank_1558" model="res.bank"><field name="dispersal_code">001558</field></record>
+        <record id="res_bank_1560" model="res.bank"><field name="dispersal_code">001560</field></record>
+        <record id="res_bank_1637" model="res.bank"><field name="dispersal_code">001637</field></record>
+        <record id="res_bank_1683" model="res.bank"><field name="dispersal_code">001683</field></record>
+        <record id="res_bank_1801" model="res.bank"><field name="dispersal_code">001801</field></record>
+        <record id="res_bank_1802" model="res.bank"><field name="dispersal_code">001802</field></record>
+        <record id="res_bank_1803" model="res.bank"><field name="dispersal_code">001803</field></record>
+        <record id="res_bank_1804" model="res.bank"><field name="dispersal_code">001804</field></record>
+        <record id="res_bank_1805" model="res.bank"><field name="dispersal_code">001805</field></record>
+        <record id="res_bank_1808" model="res.bank"><field name="dispersal_code">001808</field></record>
+        <record id="res_bank_1811" model="res.bank"><field name="dispersal_code">001811</field></record>
+        <record id="res_bank_1812" model="res.bank"><field name="dispersal_code">001812</field></record>
+        <record id="res_bank_1813" model="res.bank"><field name="dispersal_code">001813</field></record>
+        <record id="res_bank_1814" model="res.bank"><field name="dispersal_code">001814</field></record>
     </data>
 </odoo>

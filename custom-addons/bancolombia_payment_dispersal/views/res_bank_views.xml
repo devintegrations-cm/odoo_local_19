@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record id="bancolombia_payment_dispersal_inherit_view_res_bank_form" model="ir.ui.view">
-            <field name="name">bancolombia.payment.dispersal.inherit.view.res.bank.form</field>
-            <field name="model">res.bank</field>
-            <field name="inherit_id" ref="base.view_res_bank_form"/>
-            <field name="arch" type="xml">
-                <field name="bic" position="after">
-                    <field name="bancolombia_code"/>
-                </field>
+    <record id="bancolombia_payment_dispersal_inherit_view_res_bank_form" model="ir.ui.view">
+        <field name="name">bancolombia.payment.dispersal.inherit.view.res.bank.form</field>
+        <field name="model">res.bank</field>
+        <field name="inherit_id" ref="account_payment_dispersion.account_payment_dispersion_inherit_view_res_bank_form"/>
+        <field name="arch" type="xml">
+            <group name="dispersal_codes_right" position="inside">
+                <field name="bancolombia_code" placeholder="p. ej. 5895142"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="bancolombia_payment_dispersal_inherit_view_res_bank_tree" model="ir.ui.view">
+        <field name="name">bancolombia.payment.dispersal.inherit.view.res.bank.list</field>
+        <field name="model">res.bank</field>
+        <field name="inherit_id" ref="account_payment_dispersion.account_payment_dispersion_inherit_view_res_bank_tree"/>
+        <field name="arch" type="xml">
+            <field name="dispersal_code" position="after">
+                <field name="bancolombia_code" optional="hide"/>
             </field>
-        </record>
-	</data>
+        </field>
+    </record>
 </odoo>

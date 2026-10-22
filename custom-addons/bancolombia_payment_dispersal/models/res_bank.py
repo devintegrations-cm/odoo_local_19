@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-import logging
+from odoo import fields, models
 
-from odoo import api, fields, models, _, exceptions
-
-_logger = logging.getLogger(__name__)
 
 class ResBank(models.Model):
 
     _inherit = 'res.bank'
-    
-    bancolombia_code = fields.Char(string='Bancolombia Code')
+
+    bancolombia_code = fields.Char(
+        string='Código Bancolombia',
+        help='Código del banco destino según la tabla de bancos de Bancolombia '
+             '(ej: 5895142 para Davivienda).',
+    )

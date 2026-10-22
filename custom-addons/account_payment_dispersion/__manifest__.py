@@ -1,40 +1,58 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
-    'name': 'Account Payment Dispersal',
-    'version': '19.0.1.0.0',
-    'category': 'Localization/Accounting & Finance',
-    'description': 'This module allows to visualise the different dispersions that have been carried out over time..',
+    'name': 'Account Payment Dispersal - Colombia',
+    'version': '19.0.1.0.3',
+    'category': 'Accounting/Localizations',
+    'summary': 'Base module for Colombian bank payment dispersal files',
+    'description': """
+        Base module for Colombian Bank Payment Dispersal
+        ==================================================
+
+        This module provides the base infrastructure for generating bank payment
+        dispersal files for Colombian banks. It integrates with Odoo's standard
+        account.batch.payment module to provide:
+
+        * Colombian-specific bank account types (Ahorros, Corriente)
+        * Bank configuration for Colombian entities
+        * Base framework for payment method implementations
+        * Standard validation and error handling
+
+        This module is designed to be extended by bank-specific modules like:
+        * bancolombia_payment_dispersal
+        * banco_de_occidente_payment_dispersal
+        * And others...
+    """,
     'author': 'Firefly Software Consulting S.A.S',
     'maintainer': 'Firefly Software Consulting S.A.S',
     'website': 'https://firefly-e.com/',
     'depends': [
         'account',
-        'l10n_co'
+        'account_batch_payment',  # Enterprise module required
+        'l10n_co',
     ],
     'data': [
+        # Security
         'security/ir.model.access.csv',
+
+        # Data
         'data/res_bank_data.xml',
-        'views/account_payment_views.xml',
-        'views/res_bank_views.xml',
+
+        # Views
+        'views/account_batch_payment_views.xml',
         'views/account_payment_dispersal_views.xml',
+        'views/account_payment_views.xml',
+        'views/account_payment_register_views.xml',
+        'views/res_bank_views.xml',
         'views/res_partner_bank_views.xml',
-        'views/res_partner_views.xml',
-        'views/menus.xml'
+        'views/menus.xml',
     ],
-    'images': [
-        'static/description/01_banco_codigo.png',
-        'static/description/02_cuenta_bancaria_tipo.png',
-        'static/description/03_lista_cuentas_bancarias.png',
-        'static/description/04_pago_proveedor_tipo_cuenta.png',
-        'static/description/05_menu_dispersiones.png',
-        'static/description/06_menu_configuracion.png',
-        'static/description/07_formulario_dispersion.png',
-    ],
+    'images': ['static/description/icon.png'],
     'license': 'OPL-1',
+    'countries': ['CO'],
     'application': False,
     'installable': True,
+    'auto_install': False,
     'currency': 'USD',
     'price': 20.00,
-
 }

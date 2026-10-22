@@ -1,7 +1,17 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from . import account_payment_dispersal_field
-from . import account_payment_dispersal
+
+# Core models
+from . import account_batch_payment
+from . import account_payment_method
+from . import account_journal
+
+# Extensions
 from . import res_bank
 from . import res_partner_bank
 from . import account_payment
+from . import account_payment_register
+
+# Field configuration models
+from . import account_payment_dispersal_field
+from . import account_payment_dispersal
