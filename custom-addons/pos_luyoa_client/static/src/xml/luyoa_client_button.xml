@@ -2,10 +2,10 @@
 <templates xml:space="preserve">
 
     <!-- Escritorio, fila principal: botón SOLO-LOGO junto al botón "Nota".
-         La imagen llena todo el botón (cuadrado, object-fit: contain para
-         no deformarla). En pruebas: convive con el del submenú de los 3
-         puntos para decidir cuál queda. -->
+         DESACTIVADO: se decidió dejar solo el del submenú de los 3 puntos y
+         el de la pantalla de pago. Para reactivarlo, descomentar el xpath. -->
     <t t-name="pos_luyoa_client.ControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <!--
         <xpath expr="//InternalNoteButton" position="before">
             <button t-if="pos.config.luyoa_client_enabled and !props.showRemainingButtons"
                     class="btn btn-secondary btn-lg lh-lg flex-shrink-0 p-0 d-flex align-items-center justify-content-center"
@@ -17,6 +17,7 @@
                      alt="Luyoa"/>
             </button>
         </xpath>
+        -->
         <xpath expr="//t[@t-if='props.showRemainingButtons']/div[hasclass('control-buttons-modal')]" position="inside">
             <button t-if="pos.config.luyoa_client_enabled"
                     class="control-button btn btn-secondary btn-lg lh-lg text-truncate"

@@ -34,7 +34,9 @@
         <record id="res_bank_1010" model="res.bank">
             <field name="name">HSBC</field>
             <field name="code">1010</field>
-            <field name="bic">BCMRMXMMPYM</field>
+            <!-- El BIC anterior (BCMRMXMMPYM) era de HSBC México, no de
+                 Colombia. Se vacía; el match de bancos usa el código 1010 y
+                 tesorería puede cargar el BIC correcto a mano. -->
             <field name="country" ref="base.co"/>
         </record>
         <record id="res_bank_1012" model="res.bank">

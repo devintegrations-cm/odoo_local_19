@@ -70,7 +70,11 @@
         </field>
     </record>
 
-    <!--<record id="account_payment_dispersal_action" model="ir.actions.act_window">
+    <!-- Consulta de las dispersiones históricas: respaldo de qué archivo se
+         envió a cada banco y con qué pagos (auditoría y conciliación). Solo
+         lectura: las vistas bloquean crear/editar/borrar; los módulos de
+         banco ya no escriben en este modelo. -->
+    <record id="account_payment_dispersal_action" model="ir.actions.act_window">
         <field name="name">Bank Dispersals</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">account.payment_dispersal</field>
@@ -80,6 +84,6 @@
                 Check the different dispersals that have been made to banks for payment.
             </p>
         </field>
-    </record>-->
+    </record>
 
 </odoo>

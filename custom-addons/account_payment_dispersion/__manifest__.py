@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Account Payment Dispersal - Colombia',
-    'version': '19.0.1.0.3',
+    'version': '19.0.1.0.4',
     'category': 'Accounting/Localizations',
     'summary': 'Base module for Colombian bank payment dispersal files',
     'description': """

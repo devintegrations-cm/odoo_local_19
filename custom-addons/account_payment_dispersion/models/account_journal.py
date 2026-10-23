@@ -20,9 +20,13 @@ class AccountJournal(models.Model):
                     res |= method
         return res
 
-    @api.depends('bank_id', 'bank_id.code', 'bank_id.bic')
-    def _compute_outbound_payment_method_line_ids(self):
-        super()._compute_outbound_payment_method_line_ids()
+    # NOTA: no se sobreescribe _compute_outbound_payment_method_line_ids. El
+    # compute del core empieza con Command.clear() y recrea solo los métodos
+    # por defecto; hacerlo depender del banco (bank_id.code/bic) significaría
+    # que EDITAR un banco en Contactos borrara las líneas de pago manuales de
+    # todos los diarios de ese banco (p.ej. las 22 del diario 294 "Pago
+    # Tarjetas Crédito Clara"). Los hooks create/write de este archivo ya
+    # cubren el caso de cambiar el banco del diario.
 
     @api.model_create_multi
     def create(self, vals_list):

@@ -63,6 +63,10 @@ class AccountPayment(models.Model):
             if action.get('res_id') and action.get('res_model') == 'account.batch.payment':
                 batches |= self.env['account.batch.payment'].browse(action['res_id'])
             elif action.get('res_model') == 'account.create.batch.error.wizard':
+                # No dejar lotes huérfanos: si un grupo posterior falla, los
+                # lotes ya creados se revierten antes de mostrar el error, y
+                # el usuario reintenta con todos los grupos una vez corregido.
+                batches.unlink()
                 return action
 
         return {

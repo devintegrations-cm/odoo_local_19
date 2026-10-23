@@ -48,8 +48,12 @@ class ResPartnerBank(models.Model):
                 bank_account.bank_id.country.code == 'CO' and
                 bank_account.acc_number):
 
-                # Remove spaces and dashes
-                acc_clean = bank_account.acc_number.replace(' ', '').replace('-', '')
+                # sanitized_acc_number (campo nativo de Odoo) quita espacios,
+                # guiones y cualquier carácter no alfanumérico, incluidos
+                # espacios invisibles como el NBSP (\xa0) que terminaron 38
+                # cuentas reales: con replace(' ','') esas cuentas no se
+                # volvían a guardar.
+                acc_clean = bank_account.sanitized_acc_number or ''
 
                 # Check if it's numeric
                 if not acc_clean.isdigit():
@@ -59,51 +63,18 @@ class ResPartnerBank(models.Model):
                         bank_account.acc_number,
                     ))
 
-                # Check length (typical range 10-16 digits)
+                # Check length (typical range 10-16 digits). En el log nunca
+                # el número completo: es un dato sensible.
                 if not (10 <= len(acc_clean) <= 16):
                     _logger.warning(
-                        "Bank account %s has unusual length %d (expected 10-16 digits)",
-                        bank_account.acc_number,
+                        "Bank account ...%s has unusual length %d (expected 10-16 digits)",
+                        acc_clean[-4:],
                         len(acc_clean)
                     )
 
     # -------------------------------------------------------------------------
     # HELPERS
     # -------------------------------------------------------------------------
-
-    def get_account_type_code(self, bank_code='generic'):
-        """
-        Get the account type code for a specific bank format.
-
-        Args:
-            bank_code (str): Bank code (e.g., 'bancolombia', 'banco_occidente')
-
-        Returns:
-            str: Account type code for the specified bank
-        """
-        self.ensure_one()
-
-        if not self.co_account_type:
-            return ''
-
-        # Mapping for different banks
-        mappings = {
-            'bancolombia': {
-                'savings_account': 'S',
-                'current_account': 'D',  # "D" for "Depósito"
-            },
-            'banco_occidente': {
-                'savings_account': 'A',
-                'current_account': 'C',
-            },
-            'generic': {
-                'savings_account': 'S',
-                'current_account': 'C',
-            },
-        }
-
-        bank_mapping = mappings.get(bank_code, mappings['generic'])
-        return bank_mapping.get(self.co_account_type, '')
 
     def get_account_type_display(self):
         """

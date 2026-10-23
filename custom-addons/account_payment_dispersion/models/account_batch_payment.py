@@ -153,8 +153,10 @@ class AccountBatchPayment(models.Model):
             })
 
         # 2. Validate VAT/ID numbers
+        # El NIT de un contacto ligado a una empresas está en la empresa
+        # comercial (commercial_partner_id), no en el contacto de entrega.
         no_vat = self.payment_ids.filtered(
-            lambda p: p.state in valid_states and not p.partner_id.vat
+            lambda p: p.state in valid_states and not p.partner_id.commercial_partner_id.vat
         )
         if no_vat:
             errors.append({
@@ -174,20 +176,23 @@ class AccountBatchPayment(models.Model):
                 'help': _("Seleccione el tipo de cuenta (Ahorros/Corriente) en la configuración de la cuenta bancaria."),
             })
 
-        # 4. Validate bank dispersal codes (used in the flat files)
+        # 4. Validate bank dispersal codes (used in the flat files).
+        # Una cuenta sin banco tampoco puede salir en el archivo: el código de
+        # dispersión se toma del banco y el banco del archivo lo rechazaría
+        # (no Odoo). Se valida igual que el resto.
         no_bank_code = self.payment_ids.filtered(
             lambda p: (
                 p.state in valid_states and
                 p.partner_bank_id and
-                p.partner_bank_id.bank_id and
-                not p.partner_bank_id.bank_id.dispersal_code
+                (not p.partner_bank_id.bank_id or not p.partner_bank_id.bank_id.dispersal_code)
             )
         )
         if no_bank_code:
             errors.append({
-                'title': _("Bancos sin Código de Dispersión"),
+                'title': _("Cuentas sin Banco o sin Código de Dispersión"),
                 'records': no_bank_code,
-                'help': _("Configure el código de dispersión del banco en los datos maestros del banco."),
+                'help': _("Asocie el banco a la cuenta bancaria del beneficiario y verifique "
+                          "que el banco tenga código de dispersión en los datos maestros."),
             })
 
         return errors
@@ -231,27 +236,4 @@ class AccountBatchPayment(models.Model):
         self.ensure_one()
 
         return self.payment_method_code in self.env['account.payment.method']._get_colombian_dispersion_bank_codes()
-
-    @api.model
-    def _get_colombian_account_type_mapping(self):
-        """
-        Get mapping of Colombian account types to bank-specific codes.
-
-        Returns:
-            dict: Mapping of account types
-        """
-        return {
-            'savings_account': {
-                'code': 'S',
-                'name': _('Cuenta de Ahorros'),
-                'bancolombia_code': 'S',
-                'occidente_code': 'A',
-            },
-            'current_account': {
-                'code': 'C',
-                'name': _('Cuenta Corriente'),
-                'bancolombia_code': 'D',
-                'occidente_code': 'C',
-            },
-        }
 

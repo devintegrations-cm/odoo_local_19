@@ -15,6 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
+
 #. module: account_payment_dispersion
 #: model:ir.model.fields,field_description:account_payment_dispersion.field_account_payment_dispersal__message_needaction
 #: model:ir.model.fields,field_description:account_payment_dispersion.field_account_payment_dispersal_field__message_needaction
@@ -234,7 +235,7 @@ msgstr ""
 #. module: account_payment_dispersion
 #: model:ir.model,name:account_payment_dispersion.model_account_payment_dispersal
 msgid "It shows the dispersions that have taken place over time."
-msgstr ""
+msgstr "Muestra las dispersiones que se han realizado con el tiempo."
 
 #. module: account_payment_dispersion
 #: model:ir.model.fields,field_description:account_payment_dispersion.field_account_payment_dispersal__journal_id
@@ -390,13 +391,6 @@ msgid "Type"
 msgstr "Tipo"
 
 #. module: account_payment_dispersion
-#: model:ir.model.fields,field_description:account_payment_dispersion.field_account_setup_bank_manual_config__type_of_account
-#: model:ir.model.fields,field_description:account_payment_dispersion.field_res_partner_bank__type_of_account
-#: model:ir.model.fields,field_description:account_payment_dispersion.field_account_payment__type_of_account
-msgid "Type of account"
-msgstr "Tipo de cuenta"
-
-#. module: account_payment_dispersion
 #: model:ir.model.fields,help:account_payment_dispersion.field_account_payment_dispersal__activity_exception_decoration
 #: model:ir.model.fields,help:account_payment_dispersion.field_account_payment_dispersal_field__activity_exception_decoration
 msgid "Type of the exception activity on record."
@@ -422,48 +416,6 @@ msgid ""
 msgstr ""
 "configuración de los campos para exportar la información de "
 "los ficheros de dispersión"
-
-#. module: account_payment_dispersion
-#. odoo-python
-#: code:addons/account_payment_dispersion/models/res_partner_bank.py:0
-#, python-format
-msgid "No Account"
-msgstr "Sin Cuenta"
-
-#. module: account_payment_dispersion
-#. odoo-python
-#: code:addons/account_payment_dispersion/models/res_partner_bank.py:0
-#, python-format
-msgid "Checking Account"
-msgstr "Cuenta corriente"
-
-#. module: account_payment_dispersion
-#. odoo-python
-#: code:addons/account_payment_dispersion/models/res_partner_bank.py:0
-#, python-format
-msgid "Savings Account"
-msgstr "Cuenta de ahorro"
-
-#. module: account_payment_dispersion
-#. odoo-python
-#: code:addons/account_payment_dispersion/models/res_partner_bank.py:0
-#, python-format
-msgid "Payroll Account"
-msgstr "Cuenta nómina"
-
-#. module: account_payment_dispersion
-#. odoo-python
-#: code:addons/account_payment_dispersion/models/account_journal.py:0
-#, python-format
-msgid "Checking"
-msgstr "Corriente"
-
-#. module: account_payment_dispersion
-#. odoo-python
-#: code:addons/account_payment_dispersion/models/account_journal.py:0
-#, python-format
-msgid "Savings"
-msgstr "Ahorros"
 
 #. module: account_payment_dispersion
 #: model:ir.model.fields,help:account_payment_dispersion.field_account_journal_account_number
