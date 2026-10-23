@@ -97,8 +97,14 @@ class AccountPayment(models.Model):
         """
         for payment in self:
             if payment.payment_method_code != 'banco_occidente_dispersion':
-                payment.bancodeoccidente_form_of_payment = False
-                payment.bancodeoccidente_type_of_service = False
+                # O5: solo se limpia en borrador. Los pagos históricos (con
+                # método Manual de la v17) conservan su forma de pago y tipo
+                # de servicio: si alguien edita la cuenta bancaria, el
+                # depends recalcula sus pagos y NO debe borrar el dato con el
+                # que se generó el archivo que el banco ya aceptó.
+                if payment.state == 'draft':
+                    payment.bancodeoccidente_form_of_payment = False
+                    payment.bancodeoccidente_type_of_service = False
                 continue
 
             # Only compute for outbound bank payments

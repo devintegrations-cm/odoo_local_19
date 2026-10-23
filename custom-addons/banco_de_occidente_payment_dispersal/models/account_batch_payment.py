@@ -11,6 +11,20 @@ from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
 
+# Campo de la cuenta destino en la configuración del archivo. Sus valores son
+# identificadores (números de cuenta): un corte silencioso haría que el banco
+# recibiera OTRA cuenta en una línea bien formada, así que el desborde es
+# error, no truncado (los xmlids son estables: la configuración es noupdate).
+TARGET_ACCOUNT_FIELD_XMLID = (
+    'banco_de_occidente_payment_dispersal.'
+    'bancodeoccidente_payment_dispersal_field_target_financial_institution'
+)
+
+# Ancho de línea del formato del banco: el mismo que genera el código de la
+# v17 (199 posiciones). La comparación contra un archivo histórico real se
+# hace en STG (golden file).
+LINE_WIDTH = 199
+
 
 class AccountBatchPayment(models.Model):
     """
@@ -117,7 +131,9 @@ class AccountBatchPayment(models.Model):
         - Last line: Footer (type 3)
 
         Returns:
-            str: TXT file content with CRLF line endings
+            str: TXT file content con LF y terminando en LF después del pie
+            (mismo formato que el generador de la v17: cada línea terminaba
+            en LF)
         """
         self.ensure_one()
 
@@ -136,6 +152,11 @@ class AccountBatchPayment(models.Model):
 
         payments = self.payment_ids.sorted(key=lambda r: r.id)
 
+        # Campo de cuenta destino: se resuelve una sola vez (no por pago).
+        target_account_field = self.env.ref(
+            TARGET_ACCOUNT_FIELD_XMLID, raise_if_not_found=False
+        )
+
         # Calculate totals
         total_records = len(payments)
         total_amount = sum(payments.mapped('amount'))
@@ -147,7 +168,9 @@ class AccountBatchPayment(models.Model):
         # Build detail lines
         errors = []
         for idx, payment in enumerate(payments, start=1):
-            detail = self._build_occidente_detail(payment, idx, field_configs, errors)
+            detail = self._build_occidente_detail(
+                payment, idx, field_configs, errors, target_account_field,
+            )
             lines.append(detail)
 
         if errors:
@@ -160,21 +183,24 @@ class AccountBatchPayment(models.Model):
         footer = self._build_occidente_footer(total_records, total_amount)
         lines.append(footer)
 
-        # Join with CRLF (Windows line endings as per bank spec)
-        return '\r\n'.join(lines)
+        # Paridad con la v17: LF, no CRLF. La v17 escribía cada línea con
+        # '\n', así que el archivo terminaba en LF también después del pie:
+        # hay portales bancarios que rechazan el archivo o pierden la última
+        # línea si falta ese byte final.
+        return '\n'.join(lines) + '\n'
 
     def _build_occidente_header(self, num_records, total_amount):
         """
         Build header record (type 1).
 
-        Format (200 chars total):
+        Format (199 chars total, como la v17):
         - Position 1: Record type ('1')
         - Position 2-5: Sequence (4 digits, zero-filled)
         - Position 6-13: Date (YYYYMMDD)
         - Position 14-17: Number of records (4 digits)
         - Position 18-35: Total value (18 digits, zero-filled, no decimals)
         - Position 36-51: Source account (16 digits, zero-filled)
-        - Position 52-200: Spaces (149 chars)
+        - Position 52-199: Zeros (148 chars)
 
         Args:
             num_records (int): Number of detail records
@@ -211,16 +237,26 @@ class AccountBatchPayment(models.Model):
         amount_int = int(round(total_amount * 100))
         parts.append(self._fill_left_zero(amount_int, 18))
 
-        # Source account (16 digits)
-        acc_number = ''.join(filter(str.isdigit, source_account.acc_number or ''))
-        parts.append(self._fill_left_zero(acc_number, 16))
+        # Source account (16 digits). Como en la v17: zfill sin limpiar y sin
+        # cortar — una cuenta más larga genera error explícito en vez de una
+        # línea alargada que el banco rechazaría sin explicación.
+        acc_number = source_account.acc_number or ''
+        if len(acc_number) > 16:
+            raise UserError(_(
+                "The source account number '%(account)s' of journal '%(journal)s' "
+                "exceeds 16 characters and cannot be included in the dispersal "
+                "file.",
+                account=acc_number, journal=self.journal_id.name,
+            ))
+        parts.append(str(acc_number).zfill(16))
 
-        # Spaces (149 chars to complete 200)
-        parts.append(self._fill_right_space('', 149))
+        # Zeros (148 chars to complete 199)
+        parts.append(self._fill_left_zero('', 148))
 
         return ''.join(parts)
 
-    def _build_occidente_detail(self, payment, row_number, field_configs, errors):
+    def _build_occidente_detail(self, payment, row_number, field_configs, errors,
+                                target_account_field):
         """
         Build detail record (type 2).
 
@@ -234,6 +270,8 @@ class AccountBatchPayment(models.Model):
             row_number (int): Sequential row number
             field_configs (recordset): Field configuration records
             errors (list): Accumulator for field evaluation errors
+            target_account_field: registro de la cuenta destino (resuelto
+                una vez en _build_banco_occidente_txt); None si no existe
 
         Returns:
             str: Detail line
@@ -270,27 +308,58 @@ class AccountBatchPayment(models.Model):
                 result = int(round(result * 100))
             result_str = '' if result is None or result is False else str(result)
 
-            # Apply formatting (spaces by default to keep positions fixed)
             max_length = field_config.max_length or len(result_str)
+            # O4: los campos identificadores NO se cortan en silencio. Un
+            # número de cuenta o un documento truncado entregaría OTRO dato en
+            # una línea bien formada (el banco lo pagaría sin rechazar nada);
+            # en la v17 el valor alargaba la línea y el archivo se caía entero.
+            # El desborde es error y sale con todos los demás en el UserError.
+            is_identifier = (
+                field_config.fill_with_zeros
+                or (target_account_field and field_config == target_account_field)
+            )
+            if is_identifier and len(result_str) > max_length:
+                errors.append(_(
+                    "- %(field)s / %(payment)s: the value '%(value)s' has "
+                    "%(actual)d characters but the field allows %(max)d; "
+                    "identifier fields are not truncated to avoid altering "
+                    "the data",
+                    field=field_config.name, payment=payment.name,
+                    value=result_str, actual=len(result_str), max=max_length,
+                ))
+
+            # Apply formatting (spaces by default to keep positions fixed)
             if field_config.fill_with_zeros:
                 parts.append(self._fill_left_zero(result_str, max_length))
             else:
                 parts.append(self._fill_right_space(result_str, max_length))
 
-        # TODO: validar con manual del banco. The default configuration sums
-        # 199 positions (5 fixed + 194 configured); pad to the 200 of the spec.
-        return ''.join(parts).ljust(200)
+        line = ''.join(parts)
+        # El formato del banco es fijo: 5 posiciones fijas + las configuradas
+        # = 199 (mismo ancho que el generador de la v17; la comparación con un
+        # archivo histórico real se hace en STG). El control cuenta CARACTERES,
+        # igual que la v17: un acento agrega bytes al codificar en UTF-8 pero
+        # no posiciones, y los archivos con tildes fueron aceptados.
+        # Si la configuración produce otro ancho, falla explícito antes de
+        # entregar un archivo que el banco rechazaría.
+        if len(line) != LINE_WIDTH:
+            errors.append(_(
+                "- %(payment)s: the detail line has %(actual)d positions and "
+                "the bank format requires %(expected)d",
+                payment=payment.name, actual=len(line), expected=LINE_WIDTH,
+            ))
+        return line
 
     def _build_occidente_footer(self, num_records, total_amount):
         """
         Build footer record (type 3).
 
-        Format (200 chars total):
+        Format (199 chars total, como la v17):
         - Position 1: Record type ('3')
         - Position 2-5: Code '9999'
         - Position 6-9: Number of records (4 digits)
         - Position 10-27: Total value (18 digits)
-        - Position 28-200: Spaces (173 chars)
+        - Position 28-199: Zeros (172 chars)
 
         Args:
             num_records (int): Number of detail records
@@ -314,8 +383,8 @@ class AccountBatchPayment(models.Model):
         amount_int = int(round(total_amount * 100))
         parts.append(self._fill_left_zero(amount_int, 18))
 
-        # Spaces (173 chars to complete 200)
-        parts.append(self._fill_right_space('', 173))
+        # Zeros (172 chars to complete 199)
+        parts.append(self._fill_left_zero('', 172))
 
         return ''.join(parts)
 

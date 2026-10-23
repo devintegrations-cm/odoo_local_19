@@ -478,3 +478,24 @@ msgid ""
 "No account type configured: %s"
 msgstr ""
 "No se ha configurado ningún tipo de cuenta: %s"
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_batch_payment.py:0
+#, python-format
+msgid "The source account number '%(account)s' of journal '%(journal)s' exceeds 16 characters and cannot be included in the dispersal file."
+msgstr "El número de cuenta de origen '%(account)s' del diario '%(journal)s' supera los 16 caracteres y no puede incluirse en el archivo de dispersión."
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_batch_payment.py:0
+#, python-format
+msgid "- %(field)s / %(payment)s: the value '%(value)s' has %(actual)d characters but the field allows %(max)d; identifier fields are not truncated to avoid altering the data"
+msgstr "- %(field)s / %(payment)s: el valor '%(value)s' tiene %(actual)d caracteres y el campo permite %(max)d; los campos identificadores no se cortan para no alterar el dato"
+
+#. module: banco_de_occidente_payment_dispersal
+#. odoo-python
+#: code:addons/banco_de_occidente_payment_dispersal/models/account_batch_payment.py:0
+#, python-format
+msgid "- %(payment)s: the detail line has %(actual)d positions and the bank format requires %(expected)d"
+msgstr "- %(payment)s: la línea del detalle tiene %(actual)d posiciones y el formato del banco exige %(expected)d"
