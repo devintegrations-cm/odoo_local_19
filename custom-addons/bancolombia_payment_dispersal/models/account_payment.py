@@ -84,7 +84,9 @@ class AccountPayment(models.Model):
     def _compute_bancolombia_payment_type(self):
         for payment in self:
             if payment.payment_method_code != 'bancolombia_dispersion':
-                payment.bancolombia_payment_type = False
+                # Solo se limpia en borrador: no se toca el histórico.
+                if payment.state == 'draft':
+                    payment.bancolombia_payment_type = False
                 continue
             if payment.bancolombia_payment_type:
                 continue
@@ -111,13 +113,20 @@ class AccountPayment(models.Model):
         Priority order:
         1. Bank account's configured transaction type
         2. Infer from account type (savings=37, current=27)
-        3. Default to 37 (most common)
+
+        Sin tipo de cuenta queda vacío: la validación del lote ("Falta Tipo de
+        Transacción") lo detecta en vez de enviar un tipo inventado.
 
         This provides a smart default but allows manual override.
         """
         for payment in self:
             if payment.payment_method_code != 'bancolombia_dispersion':
-                payment.bancolombia_type_of_transaction = False
+                # Solo se limpia en borrador. Los pagos históricos (método
+                # Manual de la v17) conservan el tipo con el que se generó el
+                # archivo: editar la cuenta del tercero dispara este cálculo
+                # y no debe borrar ese dato.
+                if payment.state == 'draft':
+                    payment.bancolombia_type_of_transaction = False
                 continue
 
             # Skip if already has a value (manual override)
@@ -142,8 +151,3 @@ class AccountPayment(models.Model):
                     payment.bancolombia_type_of_transaction = '37'  # Depósito a Cuenta de Ahorros
                 elif payment.partner_bank_id.co_account_type == 'current_account':
                     payment.bancolombia_type_of_transaction = '27'  # Depósito a Cuenta Corriente
-                continue
-
-            # Priority 3: Default to most common (Depósito a Cuenta de Ahorros)
-            if payment.partner_bank_id:
-                payment.bancolombia_type_of_transaction = '37'

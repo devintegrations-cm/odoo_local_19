@@ -58,6 +58,18 @@ class BancolombiaSetTransactionTypeWizard(models.TransientModel):
                 ', '.join(invalid_payments.mapped('name')),
             ))
 
+        # Solo pagos aún no pagados: en los pagados el tipo de transacción es
+        # el dato con el que se generó un archivo que el banco ya procesó.
+        closed_payments = payments.filtered(
+            lambda p: p.state not in ('draft', 'in_process')
+        )
+        if closed_payments:
+            raise UserError(_(
+                'Solo se puede cambiar el tipo de transacción en pagos en borrador o en proceso. '
+                'Los siguientes pagos ya están cerrados: %s',
+                ', '.join(closed_payments.mapped('name')),
+            ))
+
         # Actualizar tipo de transacción en pagos
         payments.write({
             'bancolombia_type_of_transaction': self.bancolombia_type_of_transaction
@@ -78,7 +90,9 @@ class BancolombiaSetTransactionTypeWizard(models.TransientModel):
                 'title': _('Tipo de Transacción Configurado'),
                 'message': _(
                     'Se ha configurado el tipo de transacción %(type)s en %(count)d pago(s).',
-                    type=dict(self._fields['bancolombia_type_of_transaction'].selection).get(self.bancolombia_type_of_transaction),
+                    # La selection se declara con nombre de método: en 19
+                    # Field.selection guarda ese texto, no la lista.
+                    type=dict(self._fields['bancolombia_type_of_transaction']._description_selection(self.env)).get(self.bancolombia_type_of_transaction),
                     count=len(payments),
                 ),
                 'type': 'success',

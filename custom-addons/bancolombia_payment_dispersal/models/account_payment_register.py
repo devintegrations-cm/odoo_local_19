@@ -54,8 +54,9 @@ class AccountPaymentRegister(models.TransientModel):
                 wizard.bancolombia_type_of_transaction = bank.bancolombia_type_of_transaction
             elif bank and bank.co_account_type == 'current_account':
                 wizard.bancolombia_type_of_transaction = '27'
-            elif bank:
+            elif bank and bank.co_account_type == 'savings_account':
                 wizard.bancolombia_type_of_transaction = '37'
+            # Sin tipo de cuenta queda vacío: no se inventa el tipo.
 
     def _get_dispersion_payment_vals(self, batch_result=None):
         vals = super()._get_dispersion_payment_vals(batch_result)

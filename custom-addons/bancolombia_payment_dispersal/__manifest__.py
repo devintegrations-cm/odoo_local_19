@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Bancolombia Payment Dispersal',
-    'version': '19.0.1.0.2',
+    'version': '19.0.1.0.3',
     'category': 'Accounting/Localizations',
     'summary': 'Generate Bancolombia payment dispersal Excel files',
     'description': """

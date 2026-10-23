@@ -4,6 +4,7 @@
 import base64
 import io
 import logging
+import re
 from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
@@ -328,36 +329,39 @@ class AccountBatchPayment(models.Model):
 
         worksheet['B2'] = payment_type
         worksheet['C2'] = 'I'  # Application type (I: Inmediata, M: Medio día, N: Noche)
-        # Secuencia de envío: obligatorio, 2 caracteres alfanuméricos
-        # Default to '01' if not configured
-        worksheet['D2'] = '01'  # Can be configured later if needed
-        # Número de cuenta a debitar (máximo 11 dígitos)
+        # Secuencia de envío: 2 caracteres alfanuméricos. Paridad con la v17,
+        # que siempre envió 'A1' en los archivos aceptados por el conversor.
+        worksheet['D2'] = 'A1'
+        # Número de cuenta a debitar (máximo 11 dígitos). Sin cortes
+        # silenciosos: una cuenta recortada debitaría OTRA cuenta.
         acc_number = ''.join(filter(str.isdigit, source_account.acc_number or ''))
-        if len(acc_number) > 11:
-            acc_number = acc_number[:11]
+        if not acc_number or len(acc_number) > 11:
+            raise UserError(_(
+                "La cuenta a debitar '%(account)s' del diario '%(journal)s' debe "
+                "tener entre 1 y 11 dígitos para el archivo de Bancolombia.",
+                account=source_account.acc_number or '',
+                journal=self.journal_id.name,
+            ))
         worksheet['E2'] = acc_number
 
-        # Tipo de Cuenta a Debitar (S: Ahorros, D: Corriente)
+        # Tipo de Cuenta a Debitar (S: Ahorros, D: Corriente). Sin valor por
+        # defecto: un tipo inventado haría que el banco rechace el archivo.
         account_type_map = {
             'savings_account': 'S',
             'current_account': 'D',
         }
-        account_type = account_type_map.get(source_account.co_account_type, 'D')
+        account_type = account_type_map.get(source_account.co_account_type)
+        if not account_type:
+            raise UserError(_(
+                "Configure el tipo de cuenta (Ahorros/Corriente) de la cuenta "
+                "bancaria del diario '%s'.",
+                self.journal_id.name,
+            ))
         worksheet['F2'] = account_type
 
-        # Descripción del Pago (máximo 10 caracteres)
-        # Generar referencia basada en fecha si no hay nombre
-        if self.name:
-            description = self.name[:10]  # Truncar a 10 caracteres
-        else:
-            # Formato: DDMMYY (6 dígitos) + secuencia (4 dígitos si hay ID)
-            date_part = datetime.now().strftime('%d%m%y')
-            if self.id:
-                seq_part = str(self.id).zfill(4)[-4:]  # Últimos 4 dígitos del ID
-                description = f'{date_part}{seq_part}'
-            else:
-                description = date_part
-        worksheet['G2'] = description
+        # Descripción del Pago: vacía, igual que la v17 (el conversor la
+        # aceptó así; el nombre del lote lleva '/' y no es un valor válido).
+        worksheet['G2'] = ''
 
     def _build_bancolombia_column_headers(self, worksheet, field_configs):
         """
@@ -425,8 +429,38 @@ class AccountBatchPayment(models.Model):
             'datetime': datetime,
             'timedelta': timedelta,
             'time': time,
+            'document_number': self._bancolombia_document_number,
             # 'object' will be set per payment
         }
+
+    @api.model
+    def _bancolombia_document_number(self, partner):
+        """Número de documento del beneficiario sin dígito de verificación.
+
+        Lo usa la fórmula del campo "Nit Beneficiario". Con guion se conserva
+        el criterio de producción (lo que va antes del '-'). Sin guion (en la
+        v17 iba en blanco), para NIT el último dígito se quita solo si ES el
+        dígito de verificación de la DIAN: así un NIT guardado sin DV no
+        pierde un dígito. En todos los casos se quitan puntos y espacios.
+        """
+        vat = partner.vat or ''
+        if '-' in vat:
+            return re.sub(r'\W+', '', vat.split('-')[0]).upper()
+        clean = re.sub(r'\W+', '', vat).upper()
+        nit_type = self.env.ref('l10n_co.rut', raise_if_not_found=False)
+        if (nit_type and partner.l10n_latam_identification_type_id == nit_type
+                and clean.isdigit() and len(clean) > 1
+                and self._dian_check_digit(clean[:-1]) == clean[-1]):
+            return clean[:-1]
+        return clean
+
+    @api.model
+    def _dian_check_digit(self, number):
+        """Dígito de verificación de la DIAN (módulo 11) para un NIT."""
+        weights = (3, 7, 13, 17, 19, 23, 29, 37, 41, 43, 47, 53, 59, 67, 71)
+        total = sum(int(digit) * weight for digit, weight in zip(reversed(number), weights))
+        remainder = total % 11
+        return str(11 - remainder if remainder > 1 else remainder)
 
     # -------------------------------------------------------------------------
     # NOTE: TXT generation removed - use Bancolombia's official converter
