@@ -108,16 +108,22 @@ class AccountPayment(models.Model):
                  'payment_method_code')
     def _compute_bancolombia_type_of_transaction(self):
         """
-        Auto-populate transaction type from partner bank account.
+        Tipo de transacción tomado de la cuenta destino.
 
-        Priority order:
-        1. Bank account's configured transaction type
-        2. Infer from account type (savings=37, current=27)
+        Prioridad:
+        1. Tipo configurado en la cuenta bancaria del beneficiario.
+        2. Deducido del tipo de cuenta (ahorros=37, corriente=27).
 
-        Sin tipo de cuenta queda vacío: la validación del lote ("Falta Tipo de
-        Transacción") lo detecta en vez de enviar un tipo inventado.
+        En borrador se recalcula siempre que cambia una dependencia (tercero,
+        cuenta, datos de la cuenta, método), como en la v17: si la cuenta pasa
+        de ahorros a corriente, el tipo no puede quedarse en 37. Un tipo
+        elegido a mano se respeta mientras no cambien esas dependencias. Si la
+        cuenta nueva no permite deducirlo queda vacío y la validación del lote
+        ("Falta Tipo de Transacción") lo detecta, en vez de arrastrar el
+        anterior o inventar uno.
 
-        This provides a smart default but allows manual override.
+        Fuera de borrador nunca se pisa un valor: es el dato con el que se
+        generó (o se va a generar) el archivo. Solo se completa si está vacío.
         """
         for payment in self:
             if payment.payment_method_code != 'bancolombia_dispersion':
@@ -129,25 +135,13 @@ class AccountPayment(models.Model):
                     payment.bancolombia_type_of_transaction = False
                 continue
 
-            # Skip if already has a value (manual override)
-            if payment.bancolombia_type_of_transaction:
+            if payment.state != 'draft' and payment.bancolombia_type_of_transaction:
                 continue
 
             # Only compute for outbound bank payments
             if payment.payment_type != 'outbound' or payment.journal_id.type != 'bank':
                 continue
 
-            # Priority 1: Get from bank account configuration
-            if (payment.partner_bank_id and
-                payment.partner_bank_id.bancolombia_type_of_transaction):
-                payment.bancolombia_type_of_transaction = (
-                    payment.partner_bank_id.bancolombia_type_of_transaction
-                )
-                continue
-
-            # Priority 2: Infer from account type
-            if payment.partner_bank_id and payment.partner_bank_id.co_account_type:
-                if payment.partner_bank_id.co_account_type == 'savings_account':
-                    payment.bancolombia_type_of_transaction = '37'  # Depósito a Cuenta de Ahorros
-                elif payment.partner_bank_id.co_account_type == 'current_account':
-                    payment.bancolombia_type_of_transaction = '27'  # Depósito a Cuenta Corriente
+            transaction_type = payment.partner_bank_id._get_bancolombia_default_transaction_type()
+            if transaction_type or payment.state == 'draft':
+                payment.bancolombia_type_of_transaction = transaction_type

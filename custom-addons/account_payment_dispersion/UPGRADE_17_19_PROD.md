@@ -95,6 +95,79 @@ SELECT id, name, code, dispersal_code FROM res_bank WHERE id = 72;
 UPDATE res_bank SET dispersal_code = '001809' WHERE id = 72;
 ```
 
+### 1.6 Cuentas de confianza para pagar con dispersión (D1 del análisis)
+
+En 19 los métodos de dispersión (Occidente y Bancolombia) exigen que la cuenta
+del beneficiario esté validada (`allow_out_payment`, "Confiable" / "Enviar
+dinero"). Si no lo está, el pago no se confirma ("deberá validar la cuenta
+bancaria del beneficiario de forma manual"). El método **Manual** no lo exige.
+Decisión (2026-10-23): se mantiene el control.
+
+1. Asignar a tesorería el grupo **"Validar cuenta bancaria"**
+   (`account.group_validate_bank_account`).
+2. Antes del corte, validar las cuentas de los proveedores que se pagan por
+   dispersión. Hoy solo dispersa con archivo **Occidente Bogotá (diario 9)**
+   (ver §1.7): son esas cuentas. Medir en STG (SOLO CONSULTA):
+
+```sql
+BEGIN READ ONLY;
+SELECT coalesce(pb.allow_out_payment, false) AS validada, count(DISTINCT pb.id) AS cuentas
+  FROM bancolombia_payment_dispersal_account_payment_rel r
+  JOIN account_payment p ON p.id = r.account_payment_id
+  JOIN account_move m ON m.id = p.move_id
+  JOIN res_partner_bank pb ON pb.id = p.partner_bank_id
+ WHERE m.journal_id = 9 AND m.date >= now() - interval '12 months'
+ GROUP BY 1;
+ROLLBACK;
+```
+
+### 1.7 Pagos pendientes de dispersar (día del corte)
+
+Uso real en STG (copia de septiembre 2026, últimos 6 meses):
+
+| Diario | Archivos de dispersión | Pagos sin archivo | Cómo se pagan |
+|---|---|---|---|
+| 9 Occidente Bogotá | ~100 pagos/mes en ~15 archivos/mes | ~20/mes | Servicios públicos (débito/PSE) |
+| 16 Occidente Cartagena | 1 pago en 6 meses | ~13/mes | Por otro medio |
+| 17 Bancolombia | 0 | 33–100/mes | Portal del banco, método Manual |
+
+En 17 los pagos se registran con el método Manual y el archivo se genera desde
+los pagos; en 19 el archivo solo sale de un **lote** con el método de
+dispersión. Un pago Manual que no se dispersó en 17 no entra directo en un lote
+de 19. Por eso el ciclo se cierra en 17:
+
+1. **El día antes del corte**, en producción (SOLO CONSULTA): pagos de
+   Occidente Bogotá registrados después del último archivo.
+
+```sql
+BEGIN READ ONLY;
+SELECT count(*) AS pendientes, sum(p.amount) AS valor
+  FROM account_payment p
+  JOIN account_move m ON m.id = p.move_id
+ WHERE p.payment_type = 'outbound'
+   AND m.state = 'posted'
+   AND NOT coalesce(p.is_internal_transfer, false)
+   AND m.journal_id = 9
+   AND m.create_date > (SELECT max(create_date) FROM account_payment_dispersal
+                         WHERE journal_id = 9)
+   AND NOT EXISTS (SELECT 1 FROM bancolombia_payment_dispersal_account_payment_rel r
+                    WHERE r.account_payment_id = p.id);
+ROLLBACK;
+```
+
+2. **Último día en 17**: si da más de 0, tesorería genera un último archivo con
+   esos pagos (salvo los servicios públicos, que no van por archivo) y lo sube
+   al banco. Desde ahí no se registran más pagos en 17.
+3. **En 19**:
+   - Occidente Bogotá: método "Banco Occidente Dispersión" → lote → Validar →
+     descargar el TXT.
+   - Bancolombia, Occidente Cartagena y servicios públicos: siguen con el
+     método **Manual**, como hoy (la línea Manual de los diarios se conserva).
+4. **Si aparece un pago olvidado** en 19: Restablecer a borrador → cambiar el
+   método a la dispersión → Confirmar → agregar a un lote. Solo si el pago no
+   está conciliado con el extracto. La línea de dispersión usa la misma cuenta
+   de pagos pendientes que Manual, así que no cambia la contabilidad.
+
 ## 2. Upgrade del módulo
 
 En la plataforma (STG primero, producción después):

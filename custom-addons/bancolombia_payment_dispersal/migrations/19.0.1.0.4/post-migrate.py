@@ -23,7 +23,9 @@ no existe y conservar el resto del código de producción.
    y queda un aviso en el log.
 4. Método de pago en los diarios: solo en los que ya generaron dispersiones de
    Bancolombia en la v17 (en STG, el diario 17). Los diarios de tarjeta débito
-   con banco Bancolombia (67, 69, 70, 71) no lo reciben: hoy no dispersan.
+   con banco Bancolombia (67, 69, 70, 71) hoy no dispersan: el `create` del
+   método los enlaza igual durante la carga de datos, así que aquí se quitan
+   esas líneas si no tienen pagos (ver _remove_method_from_other_journals).
 
 Idempotente: un segundo pase no encuentra nada que reemplazar. Conteos en el
 log con _logger.
@@ -34,7 +36,7 @@ from odoo import SUPERUSER_ID, api
 
 _logger = logging.getLogger(__name__)
 
-PREFIX = 'bancolombia_payment_dispersal 19.0.1.0.3 post-migrate'
+PREFIX = 'bancolombia_payment_dispersal 19.0.1.0.4 post-migrate'
 METHOD_CODE = 'bancolombia_dispersion'
 OLD_MOBILE = 'object.partner_id.mobile or object.partner_id.phone'
 NEW_MOBILE = 'object.partner_id.phone'
@@ -134,6 +136,7 @@ def _add_method_to_journals(env):
         return
     journals._ensure_dispersion_method_lines()
     journals._assign_dispersion_outstanding_accounts()
+    _remove_method_from_other_journals(env, journals)
     lines = env['account.payment.method.line'].search([
         ('payment_method_id.code', '=', METHOD_CODE),
     ])
@@ -143,6 +146,51 @@ def _add_method_to_journals(env):
             PREFIX, METHOD_CODE, line.journal_id.name, line.journal_id.id,
             '' if line.journal_id in journals else ' — SIN dispersiones previas, revisar',
         )
+
+
+def _remove_method_from_other_journals(env, journals):
+    """Quita el método de los diarios que nunca dispersaron con Bancolombia.
+
+    En la v17 el método no existía: el registro se crea en este upgrade y el
+    `create` del core (`_auto_link_payment_methods`, modo `multi`) lo enlaza a
+    todos los diarios del banco 1007 antes de este script, incluidos los de
+    tarjeta débito (en STG 67, 69, 70, 71). Solo se quitan líneas sin pagos:
+    son las que acaba de crear el upgrade. Las que tengan pagos se dejan y se
+    avisa. Reversible: el método se vuelve a agregar a mano en el diario.
+    """
+    others = env['account.payment.method.line'].search([
+        ('payment_method_id.code', '=', METHOD_CODE),
+        ('journal_id', 'not in', journals.ids),
+    ])
+    if not others:
+        return
+    env.cr.execute(
+        "SELECT DISTINCT payment_method_line_id FROM account_payment "
+        "WHERE payment_method_line_id IN %s",
+        (tuple(others.ids),),
+    )
+    used_ids = {row[0] for row in env.cr.fetchall()}
+    used = others.filtered(lambda line: line.id in used_ids)
+    unused = others - used
+    for line in used:
+        _logger.warning(
+            "%s: el diario %s (id %s) no tiene dispersiones previas pero su "
+            "línea del método ya tiene pagos; se deja. Revisar.",
+            PREFIX, line.journal_id.name, line.journal_id.id,
+        )
+    removed = [(line.journal_id.name, line.journal_id.id) for line in unused]
+    unused.unlink()
+    for name, journal_id in removed:
+        _logger.info(
+            "%s: método %s quitado del diario %s (id %s): sin dispersiones "
+            "de Bancolombia en la v17",
+            PREFIX, METHOD_CODE, name, journal_id,
+        )
+    _logger.info(
+        "%s: %s líneas del método quitadas de diarios sin dispersiones, %s "
+        "conservadas por tener pagos",
+        PREFIX, len(removed), len(used),
+    )
 
 
 def migrate(cr, version):

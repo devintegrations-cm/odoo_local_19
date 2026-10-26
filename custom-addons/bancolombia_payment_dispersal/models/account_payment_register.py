@@ -47,16 +47,12 @@ class AccountPaymentRegister(models.TransientModel):
                         '220' if wizard.partner_type == 'supplier' else '225'
                     )
 
-            if wizard.bancolombia_type_of_transaction:
-                continue
-            bank = wizard.partner_bank_id
-            if bank and bank.bancolombia_type_of_transaction:
-                wizard.bancolombia_type_of_transaction = bank.bancolombia_type_of_transaction
-            elif bank and bank.co_account_type == 'current_account':
-                wizard.bancolombia_type_of_transaction = '27'
-            elif bank and bank.co_account_type == 'savings_account':
-                wizard.bancolombia_type_of_transaction = '37'
-            # Sin tipo de cuenta queda vacío: no se inventa el tipo.
+            # Se recalcula al cambiar la cuenta destino (ver el compute de
+            # account.payment). Sin tipo deducible queda vacío: no se arrastra
+            # el de la cuenta anterior ni se inventa uno.
+            wizard.bancolombia_type_of_transaction = (
+                wizard.partner_bank_id._get_bancolombia_default_transaction_type()
+            )
 
     def _get_dispersion_payment_vals(self, batch_result=None):
         vals = super()._get_dispersion_payment_vals(batch_result)

@@ -22,3 +22,18 @@ class ResPartnerBank(models.Model):
         string='Tipo de Transacción Bancolombia',
         help='Tipo de transacción predeterminado para pagos Bancolombia con esta cuenta'
     )
+
+    def _get_bancolombia_default_transaction_type(self):
+        """Tipo de transacción que corresponde a la cuenta, o False.
+
+        Lo usan el pago y el asistente de registro. Acepta un recordset vacío
+        (pago sin cuenta destino) y devuelve False.
+        """
+        bank = self[:1]
+        if bank.bancolombia_type_of_transaction:
+            return bank.bancolombia_type_of_transaction
+        if bank.co_account_type == 'savings_account':
+            return '37'  # Depósito a Cuenta de Ahorros
+        if bank.co_account_type == 'current_account':
+            return '27'  # Depósito a Cuenta Corriente
+        return False
