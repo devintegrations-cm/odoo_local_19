@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import _, api, fields, models
 
-from ..services import ai_adapter
+from ..services import ai_adapter, validation_rules
 
 
 class ResConfigSettings(models.TransientModel):
@@ -58,6 +58,16 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="spr.freight_product_id",
         help="Producto (normalmente un servicio) con el que se registran en la factura "
              "los fletes y cargos de envio que no estan en la orden de compra.",
+    )
+    # Tope del flete (DECISIONS.md #73). Sin config_parameter: Odoo borra el
+    # parametro cuando el Float queda en 0 y vuelve el default, y "0 = sin
+    # tope" no se podria guardar. Va en get_values/set_values.
+    spr_freight_max_pct = fields.Float(
+        string="Tope del flete (%)",
+        default=validation_rules.DEFAULT_FREIGHT_MAX_PCT,
+        help="Porcentaje maximo del flete sobre el subtotal de la mercancia de la "
+             "factura, los dos sin IVA. Si lo supera, la solicitud queda con observaciones aunque "
+             "haya producto de flete. 0 = sin tope.",
     )
     # IVA como producto (DECISIONS.md #43): las lineas van con impuesto 0 % y el
     # IVA de la factura entra como una linea del producto de mayor valor IVA.
@@ -212,6 +222,7 @@ class ResConfigSettings(models.TransientModel):
         params = self.env["ir.config_parameter"].sudo()
         for field_name, key, default in self._SPR_MANUAL_BOOLEANS:
             res[field_name] = str(params.get_param(key, default)).lower() in ("true", "1")
+        res["spr_freight_max_pct"] = validation_rules.freight_max_pct(self.env)
         return res
 
     def set_values(self):
@@ -219,6 +230,8 @@ class ResConfigSettings(models.TransientModel):
         params = self.env["ir.config_parameter"].sudo()
         for field_name, key, _default in self._SPR_MANUAL_BOOLEANS:
             params.set_param(key, "True" if self[field_name] else "False")
+        params.set_param(validation_rules.FREIGHT_MAX_PCT_PARAM,
+                         repr(max(self.spr_freight_max_pct or 0.0, 0.0)))
 
     def action_spr_ai_cli_test(self):
         """Llama al puente con una linea de ejemplo y muestra el resultado."""

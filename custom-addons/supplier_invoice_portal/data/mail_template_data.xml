@@ -155,6 +155,11 @@
         <field name="use_default_to" eval="False"/>
         <field name="lang">{{ object.lang }}</field>
         <field name="auto_delete" eval="True"/>
+        <!-- El instructivo QWeb se genera y adjunta al abrir el asistente
+             (DECISIONS.md #69, port de la v17 #52): action_spr_send_instructions
+             crea el asistente para que el compute de adjuntos genere este
+             reporte y le suma la guia estatica de #61 (DECISIONS.md #74). -->
+        <field name="report_template_ids" eval="[(6, 0, [ref('supplier_invoice_portal.report_spr_instructions')])]"/>
         <field name="body_html" type="html">
 <div style="margin: 0px; padding: 0px; font-size: 13px;">
     <p>Estimado proveedor <t t-out="object.name"/>,</p>

@@ -6,10 +6,11 @@ import logging
 from markupsafe import Markup
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.tools import html_escape
 
 from ..services import (
+    ai_adapter,
     cutoff,
     dian_catalog,
     dian_xml_parser,
@@ -60,7 +61,10 @@ LEVEL_LABELS = {
 class SupplierPaymentRequest(models.Model):
     _name = "supplier.payment.request"
     _description = "Solicitud de pago de proveedor"
-    _inherit = ["mail.thread", "mail.activity.mixin", "portal.mixin"]
+    # mail.thread.main.attachment (DECISIONS.md #67): el PDF de la factura
+    # queda como adjunto principal y se ve al lado del formulario. Ya hereda
+    # de mail.thread, como en account.move.
+    _inherit = ["mail.thread.main.attachment", "mail.activity.mixin", "portal.mixin"]
     _order = "create_date desc, id desc"
 
     name = fields.Char(
@@ -100,6 +104,17 @@ class SupplierPaymentRequest(models.Model):
         string="Ordenes", compute="_compute_purchase_names",
         help="Nombres de las ordenes de compra, para listas y correos.",
     )
+    purchase_count = fields.Integer(string="Numero de ordenes", compute="_compute_purchase_names")
+    # Pestana "Orden de compra": la orden al lado de la factura para validar
+    # sin salir de la solicitud (DECISIONS.md #68, port de la v17 #56).
+    purchase_line_ids = fields.Many2many(
+        "purchase.order.line", string="Lineas de la orden de compra",
+        compute="_compute_purchase_lines",
+    )
+    purchase_amount_untaxed = fields.Monetary(
+        string="Subtotal de las ordenes", compute="_compute_purchase_lines")
+    purchase_amount_total = fields.Monetary(
+        string="Total de las ordenes", compute="_compute_purchase_lines")
     origin_move_id = fields.Many2one(
         "account.move",
         string="Factura que afecta",
@@ -114,6 +129,13 @@ class SupplierPaymentRequest(models.Model):
     )
     note_accepted_date = fields.Datetime(
         string="Fecha de aceptacion", readonly=True, copy=False
+    )
+    # Aprobacion manual pese a las observaciones (DECISIONS.md #71).
+    approved_by_id = fields.Many2one(
+        "res.users", string="Aprobada por", readonly=True, copy=False, tracking=True
+    )
+    approved_date = fields.Datetime(
+        string="Fecha de aprobacion", readonly=True, copy=False, tracking=True
     )
     # Quien esta trabajando la solicitud, para que dos validadores no la
     # revisen a la vez (DECISIONS.md #49). Informativo: no bloquea a nadie.
@@ -248,6 +270,29 @@ class SupplierPaymentRequest(models.Model):
         # sudo: el usuario portal no lee purchase.order.
         for request in self:
             request.purchase_names = ", ".join(request.sudo().purchase_ids.mapped("name"))
+            request.purchase_count = len(request.sudo().purchase_ids)
+
+    @api.depends("purchase_ids")
+    def _compute_purchase_lines(self):
+        # Con el IVA como producto (#43) la linea de mayor valor IVA es IVA, no
+        # mercancia: no va en el subtotal, si en el total.
+        tax_product, _exempt = self._tax_as_product()
+        for request in self:
+            lines = request.purchase_ids.order_line.filtered(lambda line: not line.display_type)
+            request.purchase_line_ids = lines
+            request.purchase_amount_untaxed = sum(
+                lines.filtered(lambda line: line.product_id != tax_product).mapped("price_subtotal"))
+            request.purchase_amount_total = sum(request.purchase_ids.mapped("amount_total"))
+
+    def spr_xml_preview(self):
+        """XML con sangria para el boton de vista previa (DECISIONS.md #66)."""
+        self.ensure_one()
+        if not self.xml_file:
+            return ""
+        try:
+            return dian_xml_parser.pretty_xml(base64_decode(self.with_context(bin_size=False).xml_file))
+        except dian_xml_parser.DianXmlError as exc:
+            return _("No se pudo leer el XML: %s") % exc
 
     def _compute_access_url(self):
         super()._compute_access_url()
@@ -346,13 +391,37 @@ class SupplierPaymentRequest(models.Model):
                 )
             if vals.get("cufe"):
                 vals["cufe"] = dian_xml_parser.normalize_cufe(vals["cufe"])
-        return super().create(vals_list)
+        requests = super().create(vals_list)
+        requests.filtered("pdf_file")._spr_post_pdf()
+        return requests
 
     def write(self, vals):
         self._normalize_partner_vals(vals)
         if vals.get("cufe"):
             vals["cufe"] = dian_xml_parser.normalize_cufe(vals["cufe"])
-        return super().write(vals)
+        res = super().write(vals)
+        if vals.get("pdf_file"):
+            self._spr_post_pdf()
+        return res
+
+    def _spr_post_pdf(self):
+        """Copia el PDF como adjunto del chatter, para verlo al lado del
+        formulario sin abrir la pestana Adjuntos (DECISIONS.md #67)."""
+        for request in self:
+            attachment = self.env["ir.attachment"].create({
+                "name": request.pdf_filename or "%s.pdf" % request.name.replace("/", "_"),
+                "datas": request.with_context(bin_size=False).pdf_file,
+                "mimetype": "application/pdf",
+                "res_model": request._name,
+                "res_id": request.id,
+            })
+            # Un PDF nuevo pasa a ser el que se muestra, aunque ya hubiera otro.
+            request.with_context(tracking_disable=True).message_main_attachment_id = attachment
+            request.message_post(
+                body=_("PDF de la factura"),
+                attachment_ids=attachment.ids,
+                subtype_xmlid="mail.mt_note",
+            )
 
     def _normalize_partner_vals(self, vals):
         """El proveedor de la solicitud es siempre el contacto comercial.
@@ -425,6 +494,58 @@ class SupplierPaymentRequest(models.Model):
             request._run_pipeline()
         return True
 
+    def action_validate_ai(self):
+        """Validar con IA: boton y accion de servidor (DECISIONS.md #65, port de
+        la v17 #51).
+
+        Es la misma validacion de *Validar* (que ya usa la IA para emparejar y
+        revisar unidades), pero exige la IA configurada y sirve para varias
+        solicitudes a la vez desde la lista.
+        """
+        if isinstance(ai_adapter.get_ai_adapter(self.env), ai_adapter.NoopAiAdapter):
+            raise UserError(_("La IA no esta configurada. Activela en Ajustes > Compras > "
+                              "Portal de facturas de proveedor."))
+        to_validate = self.filtered(
+            lambda req: req.state not in ("invoiced", "cancelled")
+            and not (req.state == "rejected" and req.rejection_reason)
+        )
+        if not to_validate:
+            raise UserError(_("Ninguna de las solicitudes elegidas se puede validar: estan "
+                              "facturadas, canceladas o rechazadas por contabilidad."))
+        to_validate._auto_take_review()
+        for request in to_validate:
+            request._run_pipeline()
+        return True
+
+    def action_approve(self):
+        """Aprobar a mano una solicitud con observaciones (DECISIONS.md #71).
+
+        Solo el Responsable y solo desde ``warning``: en validacion no hay
+        hallazgos que aprobar, el borrador se valida y la rechazada se reabre
+        con *Volver a borrador*. Revalidar descarta la aprobacion.
+        """
+        if not self.env.user.has_group("supplier_invoice_portal.group_spr_manager"):
+            raise AccessError(_("Solo el Responsable del portal puede aprobar a mano "
+                                "una solicitud con observaciones."))
+        for request in self:
+            if request.state != "warning":
+                raise UserError(
+                    _("Solo se puede aprobar a mano una solicitud con observaciones "
+                      "(estado actual: %s).")
+                    % dict(STATE_SELECTION)[request.state]
+                )
+            request._auto_take_review()
+            request.write({
+                "state": "approved",
+                "approved_by_id": self.env.user.id,
+                "approved_date": fields.Datetime.now(),
+            })
+            request.message_post(body=Markup("<p>%s</p>") % _(
+                "Aprobada a mano por %s pese a las observaciones. Revise el "
+                "resultado de la validacion antes de crear la factura."
+            ) % self.env.user.name)
+        return True
+
     def _run_pipeline(self):
         self.ensure_one()
         if self.state in ("invoiced", "cancelled"):
@@ -442,7 +563,9 @@ class SupplierPaymentRequest(models.Model):
         if not self.pdf_file:
             raise UserError(_("El PDF de la factura es obligatorio."))
 
-        self.write({"state": "validating"})
+        # Revalidar descarta la aprobacion manual (DECISIONS.md #71): si las reglas
+        # vuelven a dejar observaciones, el Responsable tiene que aprobar otra vez.
+        self.write({"state": "validating", "approved_by_id": False, "approved_date": False})
         _logger.info("[SPR] %s: iniciando validacion", self.name)
 
         parsed = self._extract_data()
@@ -455,10 +578,91 @@ class SupplierPaymentRequest(models.Model):
             self._apply_line_matching(parsed)
 
         findings = validation_rules.run_rules(self, parsed)
+        # Antes de dejarla con observaciones por cantidad o precio, la IA
+        # revisa si es cuestion de unidades (DECISIONS.md #65).
+        if self._ai_review_units():
+            findings = validation_rules.run_rules(self, parsed)
         verdict = validation_rules.verdict_from_findings(findings)
         self._apply_findings(findings, verdict)
         _logger.info("[SPR] %s: veredicto %s", self.name, verdict)
         return verdict
+
+    def _ai_review_units(self):
+        """Pide a la IA el factor de unidad de las lineas cuyo precio no cuadra.
+
+        Caso tipico: la factura cobra 2 bultos a 980.000 y la orden pide 140 kg
+        a 14.000; el total coincide pero cantidad y precio no. La IA propone el
+        factor (70) y solo se aplica si, convertido, el precio queda dentro de
+        la tolerancia del de la orden: la IA sugiere, la regla decide. Devuelve
+        True si cambio algun factor.
+        """
+        self.ensure_one()
+        adapter = ai_adapter.get_ai_adapter(self.env)
+        if isinstance(adapter, ai_adapter.NoopAiAdapter):
+            return False
+        tolerance = validation_rules.Tolerance.from_env(self.env, self.currency_id)
+        candidates = self.line_ids.sorted(lambda line: (line.sequence, line.id)).filtered(
+            lambda line: line.po_line_id
+            # Lo emparejado o convertido a mano manda (#65): la IA no lo revisa.
+            and line.match_method != line_matcher.MATCH_MANUAL
+            and not tolerance.within_pct(line.po_price_unit, line.po_line_id.price_unit)
+        )
+        if not candidates:
+            return False
+        payload = [
+            {
+                "idx": idx,
+                "description": line.description or "",
+                "code": line.product_code or "",
+                "unit_code": line.unit_code or "",
+                "quantity": line.quantity,
+                "price_unit": line.price_unit,
+                "subtotal": line.subtotal,
+                "po_description": line.po_line_id.name or "",
+                "po_uom": line.po_line_id.product_uom_id.name or "",
+                "po_quantity": line.po_line_id.product_qty - line.po_line_id.qty_invoiced,
+                "po_price_unit": line.po_line_id.price_unit,
+            }
+            for idx, line in enumerate(candidates)
+        ]
+        try:
+            answer = adapter.reconcile_units(payload, {"currency": self.currency_id.name}) or {}
+        except Exception:  # noqa: BLE001 - la IA nunca tumba la validacion
+            _logger.exception("[SPR] %s: la revision de unidades fallo", self.name)
+            return False
+
+        changed = False
+        notes = []
+        for item in answer.get("lines") or []:
+            line = candidates[item["idx"]]
+            factor = item["factor"]
+            label = "%s: x %g (%.0f%%) %s" % (
+                line.description, factor, item["confidence"] * 100, item["note"])
+            if abs(factor - 1.0) < 1e-6:
+                notes.append(_("%s - sin conversion") % label)
+                continue
+            if item["confidence"] < line_matcher.MIN_CONFIDENCE:
+                notes.append(_("%s - confianza baja, no se aplico") % label)
+                continue
+            if not tolerance.within_pct(line.price_unit / factor, line.po_line_id.price_unit):
+                notes.append(_("%s - el precio convertido no cuadra con la orden, no se aplico")
+                             % label)
+                continue
+            # spr_pipeline: es la IA sugiriendo, no el validador a mano (write).
+            line.with_context(spr_pipeline=True).write({
+                "uom_factor": factor,
+                "uom_note": (_("IA (%.0f%%): %s") % (item["confidence"] * 100, item["note"]))[:250],
+            })
+            notes.append(_("%s - aplicado") % label)
+            changed = True
+        summary = answer.get("summary_es") or ""
+        self.message_post(body=Markup("<p>%s</p><ul>%s</ul>") % (
+            _("Revision de unidades con IA: %s") % (summary or _("sin respuesta")),
+            Markup("").join(Markup("<li>%s</li>") % note for note in notes),
+        ))
+        _logger.info("[SPR] %s: revision de unidades, %d lineas, cambio=%s",
+                     self.name, len(candidates), changed)
+        return changed
 
     def _extract_data(self):
         """Devuelve el dict normalizado de la factura. El XML manda sobre el OCR."""
@@ -672,6 +876,8 @@ class SupplierPaymentRequest(models.Model):
                     line_values.update({
                         "po_line_id": manual_line.po_line_id.id,
                         "is_extra_charge": manual_line.is_extra_charge,
+                        "uom_factor": manual_line.uom_factor,
+                        "uom_note": manual_line.uom_note,
                         "match_method": line_matcher.MATCH_MANUAL,
                         "match_confidence": 1.0,
                         "match_note": manual_line.match_note or _("Emparejada manualmente"),
@@ -702,6 +908,7 @@ class SupplierPaymentRequest(models.Model):
             "price_unit": line.get("price_unit") or 0.0,
             "tax_rate": line.get("tax_rate") or 0.0,
             "subtotal": line.get("subtotal") or 0.0,
+            "unit_code": line.get("unit") or False,
             "match_method": "none",
         }
         if line.get("po_line_id"):
@@ -726,6 +933,8 @@ class SupplierPaymentRequest(models.Model):
         lines.filtered(lambda line: line.match_method != line_matcher.MATCH_MANUAL).write({
             "po_line_id": False,
             "is_extra_charge": False,
+            "uom_factor": 1.0,
+            "uom_note": False,
             "match_method": line_matcher.MATCH_NONE,
             "match_confidence": 0.0,
             "match_note": False,
@@ -1007,6 +1216,8 @@ class SupplierPaymentRequest(models.Model):
             "rejection_reason": False,
             "note_accepted_by_id": False,
             "note_accepted_date": False,
+            "approved_by_id": False,
+            "approved_date": False,
         })
         return True
 
@@ -1207,6 +1418,14 @@ class SupplierPaymentRequest(models.Model):
             used |= free[:1]
             return free[:1], used
         order = self.purchase_ids.sorted("id")[:1]
+        # El flete va al mismo centro de costo que la mercancia (DECISIONS.md
+        # #70): la linea nueva no tiene modelo de distribucion y
+        # _related_analytic_distribution de purchase la dejaria vacia.
+        analytic = next(
+            (po_line.analytic_distribution for po_line in order.order_line
+             if not po_line.display_type and po_line.analytic_distribution),
+            False,
+        )
         po_line = self.env["purchase.order.line"].create({
             "order_id": order.id,
             "product_id": product.id,
@@ -1216,6 +1435,7 @@ class SupplierPaymentRequest(models.Model):
             "price_unit": price_unit,
             "tax_ids": [fields.Command.set(taxes.ids)],
             "date_planned": fields.Datetime.now(),
+            "analytic_distribution": analytic,
         })
         order.message_post(body=Markup("<p>%s</p>") % (
             _("Linea agregada desde la solicitud %s: %s por %s.")
@@ -1269,8 +1489,9 @@ class SupplierPaymentRequest(models.Model):
                     values["analytic_distribution"] = line.po_line_id.analytic_distribution
                 values.pop("purchase_line_id", None)
             values.update({
-                "quantity": line.quantity,
-                "price_unit": line.price_unit,
+                # En la unidad de la orden, con el factor de la linea (DECISIONS.md #65).
+                "quantity": line.po_quantity,
+                "price_unit": line.po_price_unit,
                 # El descuento de la OC no aplica: manda lo que dice la factura.
                 # Si el subtotal facturado es menor que cantidad x precio, la
                 # diferencia es un descuento de linea del proveedor.
@@ -1291,8 +1512,11 @@ class SupplierPaymentRequest(models.Model):
             "company_id": self.company_id.id,
             "currency_id": self.currency_id.id,
             "journal_id": journal.id,
+            # La fecha contable es la de la factura, no la de hoy (DECISIONS.md #70).
+            "date": self.invoice_date or fields.Date.context_today(self),
             "invoice_date": self.invoice_date or fields.Date.context_today(self),
             "ref": self.invoice_ref or False,
+            # account.move lo normaliza (DECISIONS.md #70).
             "cufe": self.cufe or False,
             "invoice_origin": self.purchase_names or False,
             "payment_reference": self.invoice_ref or False,
@@ -1412,6 +1636,19 @@ class SupplierPaymentRequest(models.Model):
                 "res_id": move.id,
             })
         return attachments
+
+    def action_view_purchases(self):
+        """Abre la orden de compra, o la lista si la solicitud tiene varias
+        (DECISIONS.md #66, port de la v17 #54)."""
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("purchase.purchase_form_action")
+        if len(self.purchase_ids) == 1:
+            action.update({"res_id": self.purchase_ids.id, "view_mode": "form",
+                           "views": [(False, "form")]})
+        else:
+            action["domain"] = [("id", "in", self.purchase_ids.ids)]
+        action["context"] = {"create": False}
+        return action
 
     def action_view_move(self):
         self.ensure_one()

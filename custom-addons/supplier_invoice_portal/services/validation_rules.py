@@ -26,6 +26,9 @@ LEVEL_ERROR = "error"
 # Valores por defecto de los ajustes cuando nunca se han guardado.
 DEFAULT_TOLERANCE_PCT = 0.5
 DEFAULT_TOLERANCE_ABS = 1000.0
+# Tope del flete sobre el subtotal de la mercancia (DECISIONS.md #73). 0 = sin tope.
+DEFAULT_FREIGHT_MAX_PCT = 10.0
+FREIGHT_MAX_PCT_PARAM = "spr.freight_max_pct"
 
 # Estados de orden de compra que aceptan facturas. En 19 no existe "done": una
 # orden bloqueada sigue en "purchase" con ``locked = True``.
@@ -96,6 +99,11 @@ def _param_float(env, key, default):
     except (TypeError, ValueError):
         _logger.warning("[SPR] El ajuste %s tiene un valor invalido (%r).", key, raw)
         return default
+
+
+def freight_max_pct(env):
+    """Tope del flete en porcentaje (DECISIONS.md #73); 0 = sin tope."""
+    return max(_param_float(env, FREIGHT_MAX_PCT_PARAM, DEFAULT_FREIGHT_MAX_PCT), 0.0)
 
 
 class Tolerance:
@@ -614,16 +622,43 @@ def _rule_po_pending(ctx):
 
 
 def _rule_extra_charges(ctx):
+    """Fletes y envios: con producto de flete en Ajustes no frenan la aprobacion
+    (DECISIONS.md #64, port de la v17 #53); sin el, la factura no se puede crear
+    y queda observacion."""
     request = ctx["request"]
     charges = request.line_ids.filtered("is_extra_charge")
     if not charges:
         return []
+    amount = _extra_charges_total(request)
+    descriptions = "; ".join(charges.mapped("description"))
+    freight = request._freight_product()
+    if freight:
+        # Tope del flete (DECISIONS.md #73): base contra base, sin IVA en
+        # ninguno de los dos lados.
+        max_pct = freight_max_pct(request.env)
+        base = sum(charges.mapped("subtotal"))
+        goods = sum(line.subtotal for line in request.line_ids if not line.is_extra_charge)
+        cap = goods * max_pct / 100.0
+        rounding = request.currency_id.rounding or 0.01
+        if max_pct and float_compare(base, cap, precision_rounding=rounding) > 0:
+            pct = base / goods * 100.0 if goods else 0.0
+            return [Finding(LEVEL_WARNING, "EXTRA_CHARGES",
+                            "El flete o envio (%s antes de IVA: %s) es el %s %% del "
+                            "subtotal de la mercancia (%s) y supera el tope de %s %% (%s). "
+                            "Reviselo antes de aprobar."
+                            % (_money(base, request), descriptions, _number(pct),
+                               _money(goods, request), _number(max_pct), _money(cap, request)),
+                            {"amount": amount, "base": base, "goods": goods,
+                             "max_pct": max_pct})]
+        return [Finding(LEVEL_OK, "EXTRA_CHARGES",
+                        "Flete o envio por %s (%s): se registra con el producto %s."
+                        % (_money(amount, request), descriptions, freight.display_name),
+                        {"amount": amount})]
     return [Finding(LEVEL_WARNING, "EXTRA_CHARGES",
-                    "La factura cobra %s que no esta en la orden de compra: %s. Contabilidad "
-                    "debe confirmarlo antes de registrar."
-                    % (_money(_extra_charges_total(request), request),
-                       "; ".join(charges.mapped("description"))),
-                    {"amount": _extra_charges_total(request)})]
+                    "La factura cobra %s de flete o envio (%s) y no hay producto de flete "
+                    "en Ajustes. Configurelo y revalide."
+                    % (_money(amount, request), descriptions),
+                    {"amount": amount})]
 
 
 def _rule_amount_tax(ctx):
@@ -706,10 +741,21 @@ def _rule_qty_and_price(ctx):
     if not matched:
         return []
     findings = []
+    # Cantidad y precio en la unidad de la orden: si la factura cobra en otra
+    # unidad, el factor de unidad las convierte (DECISIONS.md #65, port de la
+    # v17 #51).
+    converted = matched.filtered(lambda line: float_compare(line.uom_factor, 1.0, precision_digits=6) != 0)
+    if converted:
+        findings.append(Finding(LEVEL_OK, "UOM_CONVERTED",
+                                "Cantidades llevadas a la unidad de la orden: %s."
+                                % "; ".join("%s (x %g: %g a %g)"
+                                            % (line.description, line.uom_factor,
+                                               line.quantity, line.po_quantity)
+                                            for line in converted)))
     # Varias lineas de factura pueden apuntar a la misma linea de OC: se suman.
     qty_by_po_line = {}
     for line in matched:
-        qty_by_po_line[line.po_line_id] = qty_by_po_line.get(line.po_line_id, 0.0) + line.quantity
+        qty_by_po_line[line.po_line_id] = qty_by_po_line.get(line.po_line_id, 0.0) + line.po_quantity
 
     over = []
     for po_line, qty in qty_by_po_line.items():
@@ -727,14 +773,14 @@ def _rule_qty_and_price(ctx):
     price_diff = []
     for line in matched:
         po_price = line.po_line_id.price_unit
-        if not tol.within_pct(line.price_unit, po_price):
+        if not tol.within_pct(line.po_price_unit, po_price):
             price_diff.append("%s (factura %s, orden %s)"
-                              % (line.description, _money(line.price_unit, request), _money(po_price, request)))
+                              % (line.description, _money(line.po_price_unit, request), _money(po_price, request)))
     if price_diff:
         findings.append(Finding(LEVEL_WARNING, "PRICE_UNIT_MISMATCH",
                                 "El precio unitario difiere del de la orden en: %s."
                                 % "; ".join(price_diff)))
-    if not findings:
+    if not over and not price_diff:
         findings.append(Finding(LEVEL_OK, "QTY_OVER_PO",
                                 "Cantidades y precios coinciden con la orden."))
     return findings

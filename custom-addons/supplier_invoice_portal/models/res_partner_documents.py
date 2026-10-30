@@ -6,8 +6,9 @@ en el chatter (DECISIONS.md #48): lo que el proveedor sube desde el portal
 queda como adjunto del contacto, y en el backend se elige cualquier PDF ya
 adjunto. La vista previa sale del adjunto (campo ``*_preview``).
 
-Los campos son solo para usuarios internos: el portal los lee y escribe con
-sudo sobre el contacto comercial del usuario conectado
+Los campos son solo del grupo Responsable (DECISIONS.md #63): un "leer todos
+los campos" de otro modulo no debe traer los PDF. El portal los lee y escribe
+con sudo sobre el contacto comercial del usuario conectado
 (``controllers/portal_account.py``), nunca por ORM directo.
 """
 
@@ -36,27 +37,27 @@ class ResPartner(models.Model):
 
     spr_doc_chamber_id = fields.Many2one(
         "ir.attachment", string="Camara de comercio", domain=_ATTACHMENT_DOMAIN,
-        copy=False, groups="base.group_user", ondelete="set null",
+        copy=False, groups="supplier_invoice_portal.group_spr_manager", ondelete="set null",
     )
     spr_doc_chamber_preview = fields.Binary(
         related="spr_doc_chamber_id.datas", string="Vista previa de camara de comercio",
-        groups="base.group_user",
+        groups="supplier_invoice_portal.group_spr_manager",
     )
     spr_doc_rut_id = fields.Many2one(
         "ir.attachment", string="RUT", domain=_ATTACHMENT_DOMAIN,
-        copy=False, groups="base.group_user", ondelete="set null",
+        copy=False, groups="supplier_invoice_portal.group_spr_manager", ondelete="set null",
     )
     spr_doc_rut_preview = fields.Binary(
         related="spr_doc_rut_id.datas", string="Vista previa del RUT",
-        groups="base.group_user",
+        groups="supplier_invoice_portal.group_spr_manager",
     )
     spr_doc_bank_cert_id = fields.Many2one(
         "ir.attachment", string="Certificacion de cuenta bancaria", domain=_ATTACHMENT_DOMAIN,
-        copy=False, groups="base.group_user", ondelete="set null",
+        copy=False, groups="supplier_invoice_portal.group_spr_manager", ondelete="set null",
     )
     spr_doc_bank_cert_preview = fields.Binary(
         related="spr_doc_bank_cert_id.datas", string="Vista previa de certificacion bancaria",
-        groups="base.group_user",
+        groups="supplier_invoice_portal.group_spr_manager",
     )
 
     @api.constrains("spr_doc_chamber_id", "spr_doc_rut_id", "spr_doc_bank_cert_id")
@@ -79,7 +80,7 @@ class ResPartner(models.Model):
         """Etiquetas de los documentos que le faltan al contacto comercial.
 
         Sin los tres el portal no deja radicar (DECISIONS.md #50). Lee con
-        sudo: los campos son solo para usuarios internos y esto lo llama el
+        sudo: los campos son solo del grupo Responsable y esto lo llama el
         portal.
         """
         self.ensure_one()

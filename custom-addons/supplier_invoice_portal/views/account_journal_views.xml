@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Diario habilitado para "Generar eventos RADIAN" (DECISIONS.md #72),
+         junto a refund_sequence; solo en diarios de compras. -->
+    <record id="view_account_journal_form_spr_radian" model="ir.ui.view">
+        <field name="name">account.journal.form.spr.radian</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.view_account_journal_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='refund_sequence']" position="after">
+                <field name="spr_radian_enabled" invisible="type != 'purchase'"
+                       groups="account.group_account_manager"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.tools import float_is_zero
 
 
@@ -22,6 +22,28 @@ class SupplierPaymentRequestLine(models.Model):
     price_unit = fields.Monetary(string="Precio unitario")
     tax_rate = fields.Float(string="% impuesto", digits=(16, 2))
     subtotal = fields.Monetary(string="Subtotal")
+    unit_code = fields.Char(
+        string="Unidad del documento", help="Codigo de unidad DIAN del XML (NIU, KGM, BG...).")
+
+    # Conversion de unidades (DECISIONS.md #65): la factura puede cobrar en
+    # bultos lo que la orden pide en kilos. El subtotal no cambia; cantidad y
+    # precio se llevan a la unidad de la orden.
+    uom_factor = fields.Float(
+        string="Factor de unidad", default=1.0, digits=(16, 6),
+        help="Unidades de la orden de compra por cada unidad de la factura.",
+    )
+    uom_note = fields.Char(string="Nota de la conversion")
+    po_quantity = fields.Float(
+        string="Cantidad en unidad de la orden", compute="_compute_po_values",
+        digits="Product Unit",
+    )
+    # Float y no Monetary para no redondear a la moneda (DECISIONS.md #74):
+    # con factor 12 sobre 100.000 salia 8.333,33 y la factura sumaba
+    # 99.999,96. Como purchase.order.line.price_unit, los digitos son solo de
+    # visualizacion.
+    po_price_unit = fields.Float(
+        string="Precio en unidad de la orden", compute="_compute_po_values",
+        min_display_digits="Product Price")
 
     po_line_id = fields.Many2one(
         "purchase.order.line",
@@ -53,6 +75,13 @@ class SupplierPaymentRequestLine(models.Model):
     # No almacenado: solo lo necesitan los campos Monetary para saber su moneda.
     currency_id = fields.Many2one(related="request_id.currency_id", string="Moneda")
 
+    @api.depends("quantity", "price_unit", "uom_factor")
+    def _compute_po_values(self):
+        for line in self:
+            factor = line.uom_factor if line.uom_factor > 0 else 1.0
+            line.po_quantity = line.quantity * factor
+            line.po_price_unit = line.price_unit / factor
+
     def write(self, vals):
         # Emparejar a mano (cambiar la linea de la orden o marcar un cargo) es
         # revisar la solicitud: quien lo hace la toma si nadie la tenia
@@ -60,7 +89,7 @@ class SupplierPaymentRequestLine(models.Model):
         # spr_pipeline y no cuenta; _auto_take_review ignora portal y sudo.
         result = super().write(vals)
         manual = (
-            "po_line_id" in vals or "is_extra_charge" in vals
+            "po_line_id" in vals or "is_extra_charge" in vals or "uom_factor" in vals
             or vals.get("match_method") == "manual"
         )
         if manual and not self.env.context.get("spr_pipeline"):
@@ -81,6 +110,15 @@ class SupplierPaymentRequestLine(models.Model):
                 line.match_method = "none"
                 line.match_confidence = 0.0
                 line.match_note = False
+
+    @api.onchange("uom_factor")
+    def _onchange_uom_factor(self):
+        """Un factor puesto a mano tambien sobrevive a la revalidacion."""
+        for line in self:
+            if line.po_line_id:
+                line.match_method = "manual"
+                line.match_confidence = 1.0
+                line.uom_note = _("Factor puesto manualmente")
 
     @api.onchange("is_extra_charge")
     def _onchange_is_extra_charge(self):

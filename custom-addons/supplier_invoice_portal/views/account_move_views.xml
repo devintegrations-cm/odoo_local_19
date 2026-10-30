@@ -36,4 +36,22 @@
         </field>
     </record>
 
+    <!-- Eventos RADIAN de receptor, junto a "Nota credito" (DECISIONS.md #72).
+         La visibilidad la decide spr_radian_can_generate y el metodo vuelve a
+         validar en el servidor. -->
+    <record id="view_move_form_spr_radian" model="ir.ui.view">
+        <field name="name">account.move.form.spr.radian</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_reverse']" position="after">
+                <field name="spr_radian_can_generate" invisible="1"/>
+                <button name="action_spr_generate_radian_events" type="object"
+                        string="Generar eventos RADIAN"
+                        invisible="not spr_radian_can_generate"
+                        groups="account.group_account_invoice"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>

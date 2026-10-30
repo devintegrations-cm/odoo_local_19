@@ -1,3 +1,53 @@
+## 19.0.1.3.0 (2026-10-28)
+
+Funciones que la v17 tenía y la 19 no, más ajustes de producción (DECISIONS.md #62 a #74).
+
+Traídas de la v17:
+
+- **Órdenes de los últimos 12 meses.** El formulario de radicar solo ofrece órdenes con
+  `date_order` dentro de una ventana móvil de 12 meses (#62).
+- **Campos `spr_*` protegidos por grupo.** `spr_request_ids`/`count` en contacto, orden y factura,
+  y los documentos del proveedor, quedan solo para Validador y Responsable. Un "leer todos los
+  campos" desde el POS ya no da AccessError (#63).
+- **Flete aprobado.** Con producto de flete en Ajustes, `EXTRA_CHARGES` pasa a OK (antes siempre
+  era observación). Se reconocen más nombres de flete y también el código de barras o la
+  referencia del producto (#64).
+- **Unidades con IA.** La línea guarda `unit_code` y `uom_factor`, y cantidad y precio se comparan
+  en la unidad de la orden. Revisión de unidades con IA y botón/acción **Validar con IA** (#65).
+- **Vista previa del PDF y del XML, y PDF en el chatter.** Widget `spr_preview_binary` (el ojo en
+  *Adjuntos*). El modelo hereda `mail.thread.main.attachment`: el PDF queda como adjunto principal
+  y se ve al lado del formulario (#66, #67). La migración copia el PDF de las solicitudes que ya
+  existen.
+- **Pestaña "Orden de compra".** Las líneas de las órdenes al lado de la factura, con subtotal y
+  total comparados (#68).
+- **Instructivo QWeb.** Reporte dinámico (compañía, NIT, hora de corte, cuenta de cobro en vez de
+  XML) generado por el módulo y enlazado a la plantilla del correo, junto a la guía estática (#69).
+
+Ajustes de producción:
+
+- **Factura de proveedor.** El CUFE ya pasaba a la factura (ahora con test), la fecha contable es
+  la de la factura y la línea de flete hereda la analítica de la orden (#70).
+- **Botón Aprobar.** El Responsable deja en *Aprobada* una solicitud con observaciones ya
+  revisada; quién y cuándo quedan en el formulario. Solo desde *Con observaciones*; revalidar o
+  volver a borrador descarta la aprobación (#71).
+- **Eventos RADIAN de receptor.** Botón **Generar eventos RADIAN** en el encabezado de la factura
+  de proveedor: crea y valida en orden el acuse 030, el recibo del bien 032 y la aceptación
+  expresa 033, cada uno en su savepoint. Solo sale en facturas publicadas, con fecha y CUFE, sin
+  eventos previos y en un diario marcado como *Eventos RADIAN de receptor* (nunca de documento
+  soporte). Antes de numerar revisa token, TestSetId y datos del firmante. Si un evento falla, los
+  ya aceptados se conservan y el resultado queda en el chatter. Nada se genera solo al publicar.
+  Sin dependencia dura de Jorels; `cufe` se copia a `ei_uuid` (#72). Verificar en STG.
+- **Tope del flete.** Ajuste *Tope del flete (%)* (10 por defecto, 0 = sin tope): con producto de
+  flete, un flete que supera ese porcentaje del subtotal de la mercancía (base contra base, sin
+  IVA) queda como observación (#73).
+- **Instructivo con los dos PDF** (reporte QWeb y guía estática), y precio en la unidad de la
+  orden sin redondear a la moneda: con factor 12 la factura ya no suma 99.999,96 sobre 100.000.
+  La revisión de unidades con IA no toca líneas emparejadas a mano y la migración del PDF no deja
+  nota en el chatter (#74).
+
+Tests: 209 (193 del módulo). Escáner: 0 BLOQUEA / 0 ROMPE / 1 REVISAR (falso positivo
+documentado).
+
 ## 19.0.1.2.0 (2026-10-02)
 
 Migración de Odoo 17 a Odoo 19 Community, con cambios de comportamiento pedidos durante la

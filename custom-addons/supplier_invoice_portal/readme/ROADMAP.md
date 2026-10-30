@@ -17,15 +17,31 @@
   rechazó igual, por la marca `/Encrypt`.
 - **Analítica en notas**: la orden de la prueba no tenía analítica. Falta ver un reembolso cuya
   orden sí la tenga.
+- **Eventos RADIAN ante la DIAN real**: generar los eventos de una factura de proveedor con el
+  token de Edipo y el TestSetId de staging (o en producción) y un firmante con documento, nombre,
+  apellido y cargo reales. Confirmar que quien los genera no necesita el grupo de facturación
+  electrónica de Jorels y que la DIAN acepta los tres.
+- **Diario de RADIAN en producción**: marcar *Eventos RADIAN de receptor* solo en el diario de
+  facturas electrónicas de proveedores (`CHECKLIST_PRODUCCION.md`).
 
 ## Pendiente de documentar
 
 - **Pantalla de cierre de fin de mes** en el portal: solo se ve el último día hábil del mes,
   después de la hora de corte.
 - **Icono** `static/description/icon.png` de 100×100: falta y necesita arte.
+- **Validar con IA**: falta la captura del botón y de la acción de la lista; necesita el servicio de
+  IA configurado.
+- **Capturas del backend anteriores a 19.0.1.3.0** (lista, filtros, actividades, tomar revisión,
+  validación, datos extraídos, factura, notas, documento soporte y rechazo): son de Odoo 19, pero
+  todavía no muestran los botones *Validar con IA*, *Aprobar* y *Órdenes de compra* ni la pestaña
+  *Orden de compra*. Hay que recapturarlas.
 
 ## Límites conocidos
 
+- **Los eventos RADIAN no se generan al publicar**: hay que pulsar el botón en cada factura. Si un
+  evento falla, el botón ya no vuelve a aparecer y los que faltan se crean desde *Eventos DIAN*.
+- **Una orden de más de 12 meses no se radica por el portal**: la registra contabilidad en el
+  backend.
 - **La tolerancia porcentual (0,5 % por defecto) vale también para el precio unitario.** Es la
   regla de negocio vigente: un precio de 12.050 contra 12.000 (0,42 %) no deja la observación
   `PRICE_UNIT_MISMATCH`.

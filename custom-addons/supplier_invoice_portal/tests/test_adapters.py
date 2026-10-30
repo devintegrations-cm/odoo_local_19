@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 
 import requests
 
+from odoo.exceptions import UserError
 from odoo.tests import tagged
 
 from odoo.addons.supplier_invoice_portal.services import ai_adapter, dian_catalog, ocr_adapter
@@ -517,3 +518,121 @@ class TestAdapters(SprCase):
             request.action_validate()
         get.assert_not_called()
         self.assertEqual(request.dian_cufe_check, "skipped")
+
+    # ------------------------------------------------------------------
+    # Revision de unidades con IA (DECISIONS.md #65, port de la v17 #51)
+    # ------------------------------------------------------------------
+
+    def _ai_on(self):
+        self._params(**{"spr.ai_enabled": "True", "spr.ai_provider": "anthropic",
+                        "spr.ai_api_key": "sk-ant-test"})
+
+    @staticmethod
+    def _units_reply(factor, confidence=0.95):
+        """La Messages API: responde factores a la revision de unidades."""
+        def side_effect(url, **kwargs):
+            body = kwargs["json"]
+            if body["system"] != ai_adapter.UNITS_SYSTEM_PROMPT:
+                raise AssertionError("Solo se esperaba la revision de unidades")
+            sent = json.loads(body["messages"][0]["content"].split("\n\n", 1)[1])
+            answer = {
+                "lines": [{"idx": line["idx"], "factor": factor, "confidence": confidence,
+                           "note": "Bulto contra kilo"} for line in sent["lines"]],
+                "summary_es": "Unidades distintas.",
+            }
+            return http_response(200, {
+                "stop_reason": "end_turn", "model": body["model"],
+                "content": [{"type": "text", "text": json.dumps(answer)}], "usage": {},
+            })
+        return side_effect
+
+    def test_units_reviewed_by_ai_when_price_does_not_match(self):
+        # La orden pide 200 a 6.000; la factura cobra 100 a 12.000: mismo total.
+        self._ai_on()
+        order = self._create_po([
+            (self.product_cafe, 200, 6000.0),
+            (self.product_bag, 50, 2000.0),
+        ])
+        request = self._create_request(order)
+        with patch.object(ai_adapter.requests, "post", side_effect=self._units_reply(2)) as post:
+            request.action_validate()
+        self.assertEqual(post.call_count, 1)
+        sent = json.loads(post.call_args.kwargs["json"]["messages"][0]["content"].split("\n\n", 1)[1])
+        self.assertEqual(len(sent["lines"]), 1, "Solo viaja la linea que no cuadra.")
+        self.assertEqual(sent["lines"][0]["unit_code"], "KGM")
+        self.assertNotIn("900123456", json.dumps(sent))
+
+        self.assertEqual(request.state, "approved", request.validation_summary)
+        self.assertIn("UOM_CONVERTED", self._codes(request, "ok"))
+        line = request.line_ids.filtered(lambda line: line.product_code == "CAFE-001")
+        self.assertEqual(line.uom_factor, 2.0)
+        self.assertEqual(line.po_quantity, 200.0)
+
+        request.action_create_bill()
+        bill_line = request.move_id.invoice_line_ids.filtered(
+            lambda line: line.product_id == self.product_cafe)
+        self.assertEqual(bill_line.quantity, 200.0)
+        self.assertEqual(bill_line.price_unit, 6000.0)
+        self.assertEqual(bill_line.purchase_line_id.qty_invoiced, 200.0)
+
+    def test_units_fix_qty_over_po(self):
+        # La orden pide 50 a 24.000; la factura cobra 100 a 12.000: sin
+        # conversion seria QTY_OVER_PO (rechazada).
+        self._ai_on()
+        order = self._create_po([
+            (self.product_cafe, 50, 24000.0),
+            (self.product_bag, 50, 2000.0),
+        ])
+        request = self._create_request(order)
+        with patch.object(ai_adapter.requests, "post", side_effect=self._units_reply(0.5)):
+            request.action_validate()
+        self.assertEqual(request.state, "approved", request.validation_summary)
+
+    def test_units_factor_that_does_not_fit_the_price_is_ignored(self):
+        self._ai_on()
+        order = self._create_po([
+            (self.product_cafe, 200, 6000.0),
+            (self.product_bag, 50, 2000.0),
+        ])
+        request = self._create_request(order)
+        with patch.object(ai_adapter.requests, "post", side_effect=self._units_reply(3)):
+            request.action_validate()
+        self.assertEqual(request.state, "warning")
+        self.assertIn("PRICE_UNIT_MISMATCH", self._codes(request, "warning"))
+        self.assertEqual(request.line_ids.mapped("uom_factor"), [1.0, 1.0])
+        # Con confianza baja tampoco se aplica.
+        with patch.object(ai_adapter.requests, "post", side_effect=self._units_reply(2, 0.4)):
+            request.action_validate()
+        self.assertEqual(request.state, "warning")
+
+    def test_units_not_asked_when_everything_matches(self):
+        self._ai_on()
+        request = self._create_request(self._standard_po())
+        with patch.object(ai_adapter.requests, "post") as post:
+            request.action_validate()
+        post.assert_not_called()
+        self.assertEqual(request.state, "approved")
+
+    def test_validate_ai_action(self):
+        order = self._create_po([
+            (self.product_cafe, 200, 6000.0),
+            (self.product_bag, 50, 2000.0),
+        ])
+        request = self._create_request(order)
+        request.action_validate()
+        self.assertEqual(request.state, "warning")
+        # Sin IA configurada la accion lo dice en vez de fingir que valido.
+        with self.assertRaises(UserError):
+            request.action_validate_ai()
+
+        self._ai_on()
+        with patch.object(ai_adapter.requests, "post", side_effect=self._units_reply(2)):
+            request.action_validate_ai()
+        self.assertEqual(request.state, "approved", request.validation_summary)
+        # La accion de servidor llama al mismo metodo.
+        action = self.env.ref("supplier_invoice_portal.action_server_spr_validate_ai")
+        self.assertEqual(action.binding_model_id.model, "supplier.payment.request")
+
+        request.action_create_bill()
+        with self.assertRaises(UserError):
+            request.action_validate_ai()

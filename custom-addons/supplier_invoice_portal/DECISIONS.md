@@ -980,3 +980,290 @@ PDF cambia en disco se detecta por checksum y se actualiza. Al enviar,
 adjunto del asistente.
 
 La plantilla no cambia (es solo texto) y el modulo sigue en 19.0.1.2.0.
+
+Cambia en #74: el default de contexto anulaba el reporte QWeb de la
+plantilla; ahora el asistente se crea en el servidor y la guia se le suma.
+
+## 62. El portal solo ofrece ordenes de los ultimos 12 meses
+
+Port de la v17 #50, con ventana movil en vez de ano calendario (cambio del
+2026-10-28): al proveedor no se le ofrecen ordenes con mas de 12 meses. `purchase.order._spr_window_start()` calcula hoy menos 365 dias en la
+zona de la compania (por defecto America/Bogota) y se usa en
+`_spr_open_requests`, `_spr_accepts_invoice` y en el dominio del formulario
+del portal (`_spr_open_orders`). El envio del formulario pasa por el mismo
+filtro, asi que forzar el id de una orden vieja tampoco crea la solicitud.
+
+- Se filtra por `date_order` (fecha de la orden).
+- Consecuencia aceptada: una orden de hace mas de un ano ya no se radica por
+  el portal; contabilidad la registra en el backend, donde no hay filtro.
+- Las notas credito y debito no cambian: se radican contra la factura.
+
+Test `test_orders_out_of_the_12_month_window_are_not_offered`.
+
+## 63. Los campos del portal en contacto, orden y factura son solo de sus grupos
+
+Port de la v17 #49 (error en produccion): el boton de cliente Leal del POS
+(`odooleal`) lee el contacto con `searchRead` y todos los campos; los campos
+`spr_request_ids`/`spr_request_count` calculaban sobre `supplier.payment.request`
+y daban AccessError al cajero. Ahora llevan `groups="group_spr_validator"` en
+`res.partner`, `purchase.order` y `account.move`; los documentos del proveedor
+pasan de `base.group_user` a `group_spr_manager`. El portal no cambia: lee y
+escribe con sudo.
+
+Test de regresion `test_user_without_portal_groups_can_read_all_fields`
+(en 19 se verifica via `fields_get`, porque un search_read de todos los campos
+tropieza con campos del core como `rtc_session_ids`).
+
+## 64. El flete con producto configurado queda aprobado
+
+Port de la v17 #53. `EXTRA_CHARGES` pasa de WARNING a **OK** cuando hay
+producto de flete en Ajustes (el hallazgo dice el valor y el producto); sin
+producto sigue como observacion porque *Crear factura* lo exige. Se amplian los
+nombres de flete (plurales, encomienda, courier, shipping, delivery, freight)
+y se reconoce tambien por el codigo: una linea con la referencia interna o el
+codigo de barras del producto de flete es flete.
+
+Tests `test_freight_is_an_extra_charge_not_an_error`,
+`test_freight_matched_by_product_code` y `test_charge_keywords`.
+
+## 65. Revision de unidades con IA y accion "Validar con IA"
+
+Port de la v17 #51. La linea de la solicitud guarda la unidad del XML
+(`unit_code`) y un factor de unidad (`uom_factor`); `po_quantity` y
+`po_price_unit` convierten cantidad y precio a la unidad de la orden para
+compararlos y para crear la factura. `_ai_review_units` le pide a la IA los
+factores cuando cantidad y precio no cuadran; un factor solo se aplica si la
+confianza es >= 0,7 y el precio convertido queda dentro de la tolerancia. El
+hallazgo `UOM_CONVERTED` lo documenta.
+
+- **Validar con IA**: boton y accion de servidor
+  (`action_server_spr_validate_ai`, grupo Validador) para validar varias a la
+  vez; exige IA configurada.
+- El validador puede poner el factor a mano; queda como emparejamiento manual.
+- El proveedor HTTP propio no implementa la revision de unidades.
+
+Version 19.0.1.3.0. Tests `test_units_*` y `test_validate_ai_action`.
+
+## 66. Ir a las ordenes de compra y ver el PDF y el XML sin descargarlos
+
+Port de la v17 #54/#55. Widget `spr_preview_binary` (hereda el binario de
+Odoo): un ojo al lado de editar/descargar que abre el PDF en el visor PDF.js
+de Odoo o el XML con sangria (`spr_xml_preview`, con la factura embebida
+primero si es AttachedDocument). Solo aparece con la solicitud guardada y sin
+cambios pendientes.
+
+## 67. La vista previa es un boton en Adjuntos y el PDF va al chatter
+
+Port de la v17 #55. El modelo hereda `mail.thread.main.attachment`: al crear
+la solicitud o cambiar el PDF se crea una copia como adjunto del chatter (el
+`pdf_file` vive en un adjunto con `res_field`, que el chatter no muestra), se
+postea como nota interna y queda como adjunto principal. Con
+`<div class="o_attachment_preview"/>` el PDF se ve al lado del formulario en
+pantallas anchas. Migracion 19.0.1.3.0: copia el PDF de las solicitudes que ya
+existen. Boton **Ordenes de compra** (`action_view_purchases`) que abre la
+orden o la lista filtrada.
+
+Test `test_open_orders_and_preview_files`.
+
+## 68. Pestana "Orden de compra" en la solicitud
+
+Port de la v17 #56. `purchase_line_ids` (calculado, sin guardar) muestra las
+lineas de todas las ordenes de la solicitud, con subtotal y total de la
+factura frente a los de las ordenes (`purchase_amount_untaxed/total`). Con el
+IVA como producto (#43), el subtotal de las ordenes no suma la linea de mayor
+valor IVA. Sin sudo: quien valida ya necesita leer compras.
+
+## 69. El instructivo QWeb se genera dentro del modulo
+
+Port de la v17 #52. Se conserva tambien la guia estatica de #61: van las dos.
+Reporte QWeb `report_spr_instructions` sobre `res.partner` (wkhtmltopdf,
+carta), dinamico: nombre y NIT de la compania, hora del cierre de fin de mes
+y, para no obligados a facturar, cuenta de cobro en vez del XML. Las 9
+capturas viven en `static/src/img/instructivo/` y se incrustan como data URI
+(`_spr_instructions_image`), porque wkhtmltopdf no siempre alcanza el servidor.
+La plantilla del instructivo lleva el reporte en `report_template_ids`; la
+migracion 19.0.1.3.0 se lo agrega en bases existentes (es `noupdate`).
+
+Test `test_instructions_qweb_report_renders`.
+
+## 70. Ajustes de la factura de proveedor: CUFE, fecha contable y analitico del flete
+
+Ajustes del 2026-10-28:
+
+- **CUFE autollenado** (ya funcionaba): `_prepare_bill_values` pasa el `cufe`
+  de la solicitud a la factura y `account.move` lo normaliza. Ahora tiene test.
+- **Fecha contable = fecha factura**: se agrega `"date"` a `_prepare_bill_values`
+  para que la fecha contable no sea la de hoy sino la del documento.
+- **Analitico del flete**: la linea de flete que `_extra_po_line` agrega a la
+  orden hereda la `analytic_distribution` de la primera linea de mercancia, asi
+  la factura del flete queda con el mismo centro de costo (`_related_analytic_
+  distribution` de purchase la tira desde `purchase_line_id`).
+
+Tests `test_bill_accounting_date_equals_invoice_date` y
+`test_freight_bill_line_inherits_analytic_distribution`.
+
+## 71. Aprobar a mano una solicitud con observaciones
+
+Ajuste de operacion del 2026-10-29. Cuando contabilidad ya reviso los
+hallazgos (a mano o con IA) y aun asi quedan observaciones, el boton
+**Aprobar** deja la solicitud en `approved` pese a las reglas.
+
+- **Solo desde `warning`**: una en `validating` todavia no tiene hallazgos que
+  aprobar (la primera version lo permitia), una borrador se valida y una
+  rechazada se reabre con *Volver a borrador*.
+- **Solo el Responsable** (`group_spr_manager`): pasar por encima de las reglas
+  es una decision de quien responde por el pago, no de cualquier validador. El
+  boton lleva el grupo y el metodo lo vuelve a comprobar (`AccessError`), para
+  que una llamada RPC no se lo salte.
+- Registra `approved_by_id`/`approved_date` (con tracking), visibles en el
+  formulario junto al revisor, y lo deja en el chatter.
+- **Revalidar descarta la aprobacion**: `_run_pipeline` limpia los dos campos
+  junto con el paso a `validating`, y *Volver a borrador* tambien. Si las
+  reglas vuelven a dejar observaciones hay que aprobar otra vez: el formulario
+  no debe mostrar una aprobacion de un resultado anterior.
+
+Tests `test_approve_by_hand_overrides_warning`,
+`test_approve_not_allowed_from_validating`,
+`test_approve_requires_the_manager_group` y
+`test_manual_approval_is_cleared_by_reset_and_revalidation`.
+
+## 72. Eventos RADIAN de receptor: boton en el encabezado de la factura
+
+Ajuste de operacion del 2026-10-29. Cuando el proveedor ya emitio su factura
+ante la DIAN, nosotros (receptor) registramos los tres eventos de siempre: **acuse de recibo (030)**, **recibo del bien (032)** y
+**aceptacion expresa (033)**. El reclamo (031) y la aceptacion tacita (034) son
+casos a mano y no entran aqui.
+
+La primera version los generaba solos al publicar (check por factura con
+default en Ajustes) y dejaba un boton de reintento en el engranaje. Se
+descarto: publicar una factura disparaba envios a la DIAN sin que nadie lo
+decidiera y el error quedaba escondido en el chatter. Se quitaron el check
+`spr_radian_auto` (factura y Ajustes), el override de `action_post` y la accion
+de servidor del engranaje. Ahora es un solo boton visible:
+
+- **Boton "Generar eventos RADIAN" en el encabezado** del formulario de la
+  factura, junto a *Nota credito* (`//header/button[@name='action_reverse']`),
+  grupo `account.group_account_invoice`.
+- **Solo visible si se puede** (`spr_radian_can_generate`, no almacenado):
+  Jorels instalado; factura de proveedor (`in_invoice`; la nota credito
+  `in_refund` no, los eventos 030-033 son de la factura); publicada; diario
+  habilitado para RADIAN; con fecha de factura y CUFE del proveedor (`cufe`,
+  no `ei_uuid`: en documento soporte Jorels guarda ahi nuestro CUDS); y sin
+  ningun evento RADIAN previo, de cualquier tipo o estado.
+- **Diario habilitado a mano** (`account.journal.spr_radian_enabled`, "Eventos
+  RADIAN de receptor", en el formulario del diario de compras, grupo
+  Administrador de contabilidad). No se deduce del nombre ("Facturas de
+  Proveedores" cambia entre bases y se traduce) ni de "todo diario de
+  compras": produccion tiene varios (gastos, importaciones...). No hay
+  migracion que lo marque: es un paso de puesta en produccion
+  (`CHECKLIST_PRODUCCION.md`). Un constraint impide marcar un diario que no sea
+  de compras o que sea de documento soporte.
+- **Documento soporte excluido siempre**: mismo criterio que Jorels
+  (`_compute_ei_type_document`: `resolution_invoice_id.resolution_type_document_id.id
+  == 12`), leido con tolerancia si el campo no existe. Es guarda dura aunque el
+  diario este marcado, porque la resolucion se le puede poner despues.
+- **El servidor vuelve a validar todo** (`action_spr_generate_radian_events`),
+  no solo la visibilidad del boton. Antes de numerar revisa tambien lo que
+  Jorels exige y hoy falla tarde, con el evento ya numerado: facturacion
+  electronica activa, token de Edipo, TestSetId en pruebas y, del usuario
+  firmante, tipo y numero de documento, nombre, apellido y cargo. Si falta
+  algo, un solo error con la lista. El NIT generico de consumidor final
+  (`222222222222`, el que Jorels pone a los usuarios nuevos) cuenta como
+  faltante: el evento saldria firmado con una identificacion ficticia.
+- **Un savepoint por evento, en orden 030 → 032 → 033**: se crea el evento, se
+  publica y, si la compania tiene el estado intermedio "Validacion DIAN"
+  (`enable_validate_state`), se valida aqui porque Jorels no lo hace al
+  publicar. En produccion, un evento que la DIAN no valida se trata como fallo
+  aunque Jorels no lance (con `ei_always_validate` solo deja el error en su
+  chatter). En habilitacion Jorels devuelve el zip_key sin `is_valid` y se
+  acepta como enviado. Si un evento falla se revierte solo ese y no se siguen
+  los demas (032 presupone 030).
+- **Tras un fallo parcial no se lanza error**: un rollback borraria los eventos
+  que la DIAN ya acepto y dejaria la base contradiciendo a la DIAN. El
+  resultado (validados y motivo del fallo) queda en el chatter de la factura y
+  en una notificacion (de aviso y fija si hubo error). Como la factura ya tiene
+  eventos, el boton no vuelve a salir: los que falten se generan desde los
+  eventos de facturacion electronica de Jorels. Si falla el primero (030) no
+  queda nada registrado, el boton sigue y el mensaje dice que se reintenta
+  con el mismo boton.
+- **Edipo caido**: Jorels atrapa el error de conexion de `requests.post` y
+  sigue con `response` sin asignar (`radian.py`, `validate_dian_generic`), asi
+  que llega un error en ingles ("cannot access local variable 'response'...").
+  `_spr_is_edipo_unreachable` recorre la cadena de excepciones (no el texto,
+  que cambia con el idioma) buscando `UnboundLocalError` o
+  `requests.RequestException` y el chatter dice que no hubo respuesta del
+  servicio de facturacion electronica. Probado con Jorels y Edipo apagado.
+- **Sin dependencia dura de Jorels**: el modelo `radian` se resuelve en
+  runtime; sin Jorels el boton no aparece y la accion lo explica.
+- **Puente cufe → ei_uuid**: Jorels lee el CUFE de la factura en `ei_uuid`; si
+  esta vacio se copia `cufe` antes de crear los eventos.
+- **sudo en las operaciones del radian**: el modelo exige el grupo de
+  facturacion electronica de Jorels; quien genera los eventos es contabilidad
+  (grupo de cuenta). El firmante sigue siendo el usuario real (`user_id`) y la
+  compania del evento es la de la factura, que es la que se prechequeo.
+
+Tests `test_radian_button_creates_the_three_events`,
+`test_radian_button_hidden_in_draft`, `test_radian_button_hidden_without_cufe`,
+`test_radian_button_hidden_without_invoice_date`,
+`test_radian_button_hidden_on_supplier_credit_notes`,
+`test_radian_button_needs_an_enabled_journal`,
+`test_radian_button_hidden_on_support_document_journal`,
+`test_radian_button_hidden_when_events_exist`,
+`test_radian_button_in_the_bill_header`, `test_radian_journal_constraint`,
+`test_radian_requires_company_and_signer_data`,
+`test_radian_failure_keeps_the_events_already_accepted` y
+`test_radian_production_rejection_is_rolled_back`. Los tests no salen a la
+red: la validacion ante la DIAN se simula. **Verificar en STG**: la validacion
+real requiere token de Edipo, TestSetId o ambiente de produccion y usuario con
+los campos Jorels (documento, nombre, apellido, cargo).
+
+## 73. Tope del flete sobre la mercancia
+
+Con producto de flete configurado, `EXTRA_CHARGES` quedaba en OK por cualquier
+monto (#64): un flete desproporcionado pasaba sin que nadie lo mirara. Nuevo
+ajuste **Tope del flete (%)** (`spr.freight_max_pct`, default 10, 0 = sin
+tope), junto al producto de flete. Si la base de los cargos supera ese
+porcentaje del subtotal de la mercancia (lineas que no son cargo), el hallazgo
+pasa a observacion con el porcentaje real y el tope; si no, sigue el OK de #64.
+Sin producto de flete no cambia nada.
+
+Se compara base contra base. La primera version media el flete con IVA contra
+la mercancia sin IVA, y el mismo flete pasaba o no segun el impuesto. En el XML
+de la DIAN cada linea trae la base y el IVA por separado, asi que da igual si el
+proveedor negocio el flete "con todo incluido": lo que no discrimina queda en
+la base y se mide completo. El IVA descontable tampoco es costo del flete.
+
+El ajuste no usa `config_parameter`: con el, `res.config.settings.set_values`
+borra el parametro cuando el Float queda en 0 y al leerlo vuelve el default, de
+modo que "0 = sin tope" no se podria guardar. Se guarda a mano en
+`get_values`/`set_values`, como los Booleans del modulo.
+
+Tests `test_freight_under_the_cap_is_ok`, `test_freight_over_the_cap_is_a_warning`,
+`test_freight_cap_zero_means_no_cap` y `test_freight_cap_setting_keeps_zero`.
+
+## 74. El instructivo lleva los dos PDF y el precio convertido no se redondea
+
+**Instructivo**: #61 pasaba la guia en `default_attachment_ids`. Ese default
+pisa el compute de `attachment_ids` de `mail.compose.message`, que es el que
+genera los reportes de la plantilla, asi que el instructivo QWeb de #69 nunca
+llegaba al correo. Ahora `action_spr_send_instructions` crea el asistente
+(modelo, `res_ids`, plantilla, modo comentario, layout liviano), deja que el
+compute genere el reporte, le suma la guia estatica y abre ese asistente por
+`res_id`. Si la guia no esta en disco va solo el reporte.
+
+**Precio en la unidad de la orden**: `po_price_unit` era Monetary y se
+redondeaba a la moneda; con factor 12 sobre un subtotal de 100.000 quedaba en
+8.333,33 y la factura sumaba 99.999,96. Pasa a Float sin redondeo de
+almacenamiento, con `min_display_digits="Product Price"` como
+`purchase.order.line.price_unit` en 19. `digits="Product Price"` no sirve:
+esa precision trae 2 decimales y redondearia igual.
+
+Ademas, la revision de unidades con IA (#65) ya no toca ninguna linea
+emparejada a mano (antes solo excluia las de factor distinto de 1), y la
+migracion 19.0.1.3.0 solo crea el adjunto del PDF y lo fija como principal, sin
+nota en el chatter, como dice su docstring y como la 17.0.1.7.0 de la v17.
+
+Tests `test_instructions_email_adjunta_reporte_y_guia`,
+`test_instructions_email_envio_lleva_los_dos_pdf`,
+`test_instructions_email_sin_guia_en_disco` y
+`test_converted_price_is_not_rounded_to_the_currency`.

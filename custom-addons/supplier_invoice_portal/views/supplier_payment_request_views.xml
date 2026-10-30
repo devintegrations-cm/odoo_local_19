@@ -48,6 +48,10 @@
                     <button name="action_validate" type="object" string="Revalidar"
                             invisible="state not in ('approved', 'warning', 'validating')"
                             help="Vuelve a correr las reglas. Los emparejamientos manuales se conservan."/>
+                    <button name="action_validate_ai" type="object" string="Validar con IA"
+                            groups="supplier_invoice_portal.group_spr_validator"
+                            invisible="state in ('invoiced', 'cancelled') or rejection_reason"
+                            help="Valida otra vez pidiendo a la IA emparejar lineas y revisar unidades cuando cantidad y precio no cuadran con la orden."/>
                     <button name="action_accept_debit_note" type="object" string="Aceptar nota debito"
                             class="btn-primary"
                             groups="supplier_invoice_portal.group_spr_manager"
@@ -57,6 +61,11 @@
                             class="btn-primary"
                             groups="supplier_invoice_portal.group_spr_validator"
                             invisible="state not in ('approved', 'warning') or move_id or (document_type == 'debit_note' and not note_accepted_by_id)"/>
+                    <!-- DECISIONS.md #71: solo el Responsable y solo con observaciones. -->
+                    <button name="action_approve" type="object" string="Aprobar"
+                            groups="supplier_invoice_portal.group_spr_manager"
+                            invisible="state != 'warning'"
+                            help="Aprueba a mano pese a las observaciones: contabilidad ya reviso los hallazgos y deja la solicitud en Aprobada."/>
                     <button name="action_check_dian" type="object" string="Consultar DIAN"
                             invisible="not cufe or state in ('invoiced', 'cancelled')"/>
                     <button name="action_open_reject_wizard" type="object" string="Rechazar"
@@ -74,6 +83,10 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_view_purchases" type="object" class="oe_stat_button"
+                                icon="fa-shopping-cart" invisible="not purchase_count">
+                            <field name="purchase_count" widget="statinfo" string="Ordenes de compra"/>
+                        </button>
                         <button name="action_view_move" type="object" class="oe_stat_button"
                                 icon="fa-pencil-square-o" invisible="not move_id">
                             <span class="o_stat_text">Factura</span>
@@ -104,6 +117,10 @@
                         </group>
                         <group name="accounting">
                             <field name="reviewer_id" widget="many2one_avatar_user"/>
+                            <!-- Aprobacion manual (DECISIONS.md #71); se limpia al revalidar. -->
+                            <field name="approved_by_id" readonly="1" invisible="not approved_by_id"
+                                   widget="many2one_avatar_user"/>
+                            <field name="approved_date" readonly="1" invisible="not approved_by_id"/>
                             <field name="journal_id" options="{'no_create': True}"/>
                             <field name="move_id" readonly="1" invisible="not move_id"/>
                             <field name="submitted_date" readonly="1"/>
@@ -174,15 +191,50 @@
                                     <field name="product_code"/>
                                     <field name="description"/>
                                     <field name="quantity"/>
+                                    <field name="unit_code" optional="hide"/>
                                     <field name="price_unit"/>
                                     <field name="tax_rate"/>
                                     <field name="subtotal" sum="Subtotal"/>
                                     <field name="po_line_id" options="{'no_create': True}"
                                            decoration-danger="not po_line_id and not is_extra_charge"/>
                                     <field name="is_extra_charge"/>
+                                    <field name="uom_factor" optional="show"/>
+                                    <field name="po_quantity" optional="show"/>
+                                    <field name="po_price_unit" optional="hide"/>
+                                    <field name="uom_note" optional="hide" force_save="1"/>
                                     <field name="match_method" readonly="1" force_save="1"/>
                                     <field name="match_confidence" optional="show" readonly="1" force_save="1"/>
                                     <field name="match_note" optional="show" force_save="1"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <!-- La orden al lado de la factura (DECISIONS.md #68, port de la
+                             v17 #56). -->
+                        <page string="Orden de compra" name="purchase" invisible="not purchase_count">
+                            <group>
+                                <group string="Factura del proveedor">
+                                    <field name="amount_untaxed" string="Subtotal" readonly="1"/>
+                                    <field name="amount_total" string="Total" readonly="1"/>
+                                </group>
+                                <group string="Ordenes de compra">
+                                    <field name="purchase_amount_untaxed"/>
+                                    <field name="purchase_amount_total"/>
+                                </group>
+                            </group>
+                            <field name="purchase_line_ids" readonly="1" nolabel="1">
+                                <list decoration-muted="qty_to_invoice == 0">
+                                    <field name="order_id" optional="show"/>
+                                    <field name="product_id"/>
+                                    <field name="name" optional="hide"/>
+                                    <field name="product_qty"/>
+                                    <field name="qty_received"/>
+                                    <field name="qty_invoiced"/>
+                                    <field name="qty_to_invoice" string="Por facturar"/>
+                                    <field name="product_uom_id" string="Unidad" groups="uom.group_uom"/>
+                                    <field name="price_unit"/>
+                                    <field name="tax_ids" widget="many2many_tags" optional="show"/>
+                                    <field name="price_subtotal" sum="Subtotal"/>
                                     <field name="currency_id" column_invisible="True"/>
                                 </list>
                             </field>
@@ -197,14 +249,19 @@
                         </page>
                         <page string="Adjuntos" name="attachments">
                             <group>
-                                <field name="xml_file" filename="xml_filename"/>
+                                <!-- El ojo abre la vista previa (DECISIONS.md #66). -->
+                                <field name="xml_file" filename="xml_filename"
+                                       widget="spr_preview_binary" options="{'preview': 'xml'}"/>
                                 <field name="xml_filename" invisible="1"/>
-                                <field name="pdf_file" filename="pdf_filename"/>
+                                <field name="pdf_file" filename="pdf_filename"
+                                       widget="spr_preview_binary" options="{'preview': 'pdf'}"/>
                                 <field name="pdf_filename" invisible="1"/>
                             </group>
                         </page>
                     </notebook>
                 </sheet>
+                <!-- PDF al lado del chatter en pantallas anchas (DECISIONS.md #67). -->
+                <div class="o_attachment_preview"/>
                 <chatter/>
             </form>
         </field>
@@ -253,6 +310,18 @@
                 </group>
             </search>
         </field>
+    </record>
+
+    <!-- Validar con IA desde la lista o el formulario, varias a la vez
+         (DECISIONS.md #65, port de la v17 #51). -->
+    <record id="action_server_spr_validate_ai" model="ir.actions.server">
+        <field name="name">Validar con IA</field>
+        <field name="model_id" ref="model_supplier_payment_request"/>
+        <field name="binding_model_id" ref="model_supplier_payment_request"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="group_ids" eval="[(4, ref('supplier_invoice_portal.group_spr_validator'))]"/>
+        <field name="state">code</field>
+        <field name="code">records.action_validate_ai()</field>
     </record>
 
     <record id="action_spr_request" model="ir.actions.act_window">
@@ -325,13 +394,13 @@
                             proveedor lo cargue desde el portal.
                         </div>
                     </group>
-                    <group string="RUT" groups="base.group_user" invisible="not spr_doc_rut_id">
+                    <group string="RUT" groups="supplier_invoice_portal.group_spr_manager" invisible="not spr_doc_rut_id">
                         <field name="spr_doc_rut_preview" widget="pdf_viewer" nolabel="1" colspan="2"/>
                     </group>
-                    <group string="Camara de comercio" groups="base.group_user" invisible="not spr_doc_chamber_id">
+                    <group string="Camara de comercio" groups="supplier_invoice_portal.group_spr_manager" invisible="not spr_doc_chamber_id">
                         <field name="spr_doc_chamber_preview" widget="pdf_viewer" nolabel="1" colspan="2"/>
                     </group>
-                    <group string="Certificacion de cuenta bancaria" groups="base.group_user" invisible="not spr_doc_bank_cert_id">
+                    <group string="Certificacion de cuenta bancaria" groups="supplier_invoice_portal.group_spr_manager" invisible="not spr_doc_bank_cert_id">
                         <field name="spr_doc_bank_cert_preview" widget="pdf_viewer" nolabel="1" colspan="2"/>
                     </group>
                 </page>

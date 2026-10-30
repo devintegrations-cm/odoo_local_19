@@ -71,8 +71,35 @@ Marque cada punto al cerrarlo.
 
   **Sin el diario por defecto, las facturas caen en el primer diario de
   compras, que en staging es *Facturas de Activos*.**
+
+  El *Tope del flete (%)* nace en 10 %; revisarlo con contabilidad antes de
+  habilitar proveedores (0 = sin tope, DECISIONS #73).
+- [ ] **Marcar *Eventos RADIAN de receptor* en el diario de Facturas de
+  Proveedores** (FACTU en staging; *Contabilidad -> Configuracion -> Diarios*).
+  Sin esa casilla el boton *Generar eventos RADIAN* no aparece en ninguna
+  factura. No se marca por migracion ni por nombre (DECISIONS #72), y no se
+  marca en el de documento soporte. Probar con una factura real: el token de
+  Edipo, el ambiente y los datos del firmante (documento, nombre, apellido,
+  cargo) los exige Jorels.
 - [ ] **Grupos.** Asignar *Responsable* y *Validador* a quien corresponda (en
-  staging hay 10 usuarios con *Responsable*).
+  staging hay 10 usuarios con *Responsable*). Todo Validador y Responsable
+  necesita tambien *Facturacion electronica / Usuario* de Jorels: la pestana
+  *Eventos DIAN* del formulario de la factura lee `radian_ids` sin `groups` y,
+  sin ese grupo, abrir cualquier factura de proveedor da *Error de acceso*
+  (tambien la que abre *Crear factura*, aunque la factura si se crea).
+  Validadores sin el grupo:
+
+  ```sql
+  SELECT u.login FROM res_users u
+  JOIN res_groups_users_rel r ON r.uid = u.id
+  WHERE r.gid = (SELECT res_id FROM ir_model_data
+                 WHERE module = 'supplier_invoice_portal' AND name = 'group_spr_validator')
+    AND u.active AND NOT u.share
+    AND u.id NOT IN (SELECT uid FROM res_groups_users_rel
+                     WHERE gid = (SELECT res_id FROM ir_model_data
+                                  WHERE module = 'l10n_co_edi_jorels'
+                                    AND name = 'l10n_co_edi_jorels_group_user'));
+  ```
 - [ ] **Habilitar proveedores de a pocos.** Empezar con 3 a 5 conocidos: marcar
   *Puede radicar facturas en el portal* en la pestana *Portal de proveedor*,
   crear su usuario de portal y enviarle el instructivo con el boton de la

@@ -22,6 +22,7 @@ facturas de proveedor*. Lo ve quien administre Compras.
 | Diario por defecto | El diario de compras donde se crean las facturas borrador. |
 | Diario de documento soporte | El diario con la resolucion DIAN de documento soporte. Ahi se registran las cuentas de cobro de los no obligados a facturar. Sin el, esas solicitudes no generan factura. |
 | Producto de flete | Un producto de servicio para los fletes y envios que la factura cobra y la orden no tiene. Sin el, una factura con flete no genera factura. |
+| Tope del flete (%) | Aparece con el producto de flete. Si los fletes superan ese porcentaje del subtotal de la mercancia (los dos sin IVA), la solicitud queda con observaciones. Por defecto 10 %; 0 = sin tope. |
 | Cierre de radicacion de fin de mes | Activo por defecto. El ultimo dia habil del mes, desde la hora de corte (12:00), el portal no recibe documentos hasta el dia 1 del mes siguiente. Cuenta los festivos de Colombia; no hay que cargarlos. Solo cierra el portal: contabilidad puede seguir creando solicitudes en el backend. |
 | Tolerancia de montos | Diferencia admitida entre el total de la factura y lo pendiente de la orden. Pasa si esta dentro del porcentaje **o** del monto absoluto. Por defecto 0,5 % o 1.000 COP. |
 | NIT de la compania | Se deja vacio si el NIT esta bien puesto en la ficha de la compania. |
@@ -115,7 +116,7 @@ factura.
 | Borrador | Creada a mano en el backend, sin validar. | Validar. |
 | Validando | Se esta procesando. | Esperar; si se queda ahi, *Revalidar*. |
 | Aprobada | Todas las reglas pasaron. | Crear factura. |
-| Con observaciones | Paso, pero hay algo que revisar (precio distinto, linea sin emparejar, CUFE no encontrado en la DIAN...). | Leer las observaciones, corregir lo que toque, crear factura o rechazar. |
+| Con observaciones | Paso, pero hay algo que revisar (precio distinto, linea sin emparejar, CUFE no encontrado en la DIAN...). | Leer las observaciones, corregir lo que toque, crear factura o rechazar. El Responsable puede pulsar *Aprobar* si las observaciones no impiden pagar; revalidar descarta esa aprobacion. |
 | Rechazada | Alguna regla dura fallo (NIT distinto, monto mayor a la orden, CUFE repetido...) o el Responsable la rechazo. El proveedor ya fue avisado. | Nada. Si el rechazo automatico fue por un dato de Odoo (orden mal confirmada, NIT mal escrito), corregirlo y *Validar* de nuevo. Si la rechazo el Responsable, solo se reabre con *Volver a borrador*. |
 | Facturada | Ya existe la factura de proveedor. | Seguir el flujo normal de la factura. |
 | Cancelada | Descartada por el Responsable. | Nada. |

@@ -3,7 +3,7 @@
     "name": "Portal de facturas de proveedor",
     "summary": "Los proveedores solicitan el pago de sus facturas electronicas DIAN "
                "asociandolas a una orden de compra",
-    "version": "19.0.1.2.0",
+    "version": "19.0.1.3.0",
     "category": "Inventory/Purchase",
     "license": "LGPL-3",
     "author": "Libertario Coffee Roasters",
@@ -24,9 +24,11 @@
         "security/security.xml",
         "security/ir.model.access.csv",
         "data/ir_sequence_data.xml",
+        "report/spr_instructions_report.xml",
         "data/mail_template_data.xml",
         "views/supplier_payment_request_views.xml",
         "views/account_move_views.xml",
+        "views/account_journal_views.xml",
         "views/res_config_settings_views.xml",
         "views/menus.xml",
         "wizards/spr_reject_wizard_views.xml",
@@ -34,6 +36,10 @@
         "views/portal_account_templates.xml",
     ],
     "assets": {
+        "web.assets_backend": [
+            "supplier_invoice_portal/static/src/views/spr_preview_binary_field.js",
+            "supplier_invoice_portal/static/src/views/spr_preview_binary_field.xml",
+        ],
         "web.assets_frontend": [
             "supplier_invoice_portal/static/src/css/spr_dropzone.css",
             "supplier_invoice_portal/static/src/js/spr_dropzone.js",

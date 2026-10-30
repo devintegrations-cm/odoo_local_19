@@ -73,6 +73,8 @@ class SupplierInvoicePortal(CustomerPortal):
                 # En 19 no hay "done": la orden bloqueada sigue en "purchase".
                 ("state", "=", "purchase"),
                 ("invoice_status", "!=", "invoiced"),
+                # Solo los ultimos 12 meses (DECISIONS.md #62).
+                ("date_order", ">=", request.env["purchase.order"]._spr_window_start()),
             ],
             order="date_order desc, id desc",
         )

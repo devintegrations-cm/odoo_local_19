@@ -180,6 +180,28 @@ def extract_embedded_invoice(root):
     return _parse_root(_to_bytes(inner))
 
 
+def pretty_xml(xml_input):
+    """XML con sangria para la vista previa del backend (DECISIONS.md #66).
+
+    Si es un AttachedDocument, primero va la factura embebida, que es lo que se
+    quiere leer; despues el documento completo.
+    """
+    root = _parse_root(_to_bytes(xml_input))
+    whole = etree.tostring(root, pretty_print=True, encoding="unicode")
+    if _localname(root) != "AttachedDocument":
+        return whole
+    try:
+        invoice = extract_embedded_invoice(root)
+    except DianXmlError:
+        return whole
+    return "%s\n%s\n\n%s\n%s" % (
+        "<!-- Factura embebida en el AttachedDocument -->",
+        etree.tostring(invoice, pretty_print=True, encoding="unicode"),
+        "<!-- AttachedDocument completo -->",
+        whole,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Partes (emisor / adquiriente)
 # ---------------------------------------------------------------------------

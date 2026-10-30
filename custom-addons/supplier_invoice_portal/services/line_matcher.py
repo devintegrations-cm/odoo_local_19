@@ -25,11 +25,14 @@ MATCH_ORDER = "order"
 MATCH_CHARGE = "charge"
 
 # Lineas que la factura cobra y la orden no tiene: el envio casi nunca esta en
-# la orden ni en la remision (DECISIONS.md #35). Se buscan como palabra, sin
-# tildes, y solo en lineas que no se emparejaron por codigo.
+# la orden ni en la remision (DECISIONS.md #35 y #64). Se
+# buscan como palabra, sin tildes, y solo en lineas que no se emparejaron por
+# codigo.
 CHARGE_KEYWORDS = (
-    "flete", "fletes", "envio", "envios", "transporte", "domicilio", "despacho",
-    "acarreo", "mensajeria", "cargo adicional",
+    "flete", "fletes", "envio", "envios", "transporte", "transportes",
+    "domicilio", "domicilios", "despacho", "despachos", "acarreo", "acarreos",
+    "mensajeria", "mensajerias", "encomienda", "encomiendas", "courier",
+    "shipping", "delivery", "freight", "cargo adicional",
 )
 _CHARGE_RE = re.compile(r"\b(%s)\b" % "|".join(re.escape(k) for k in CHARGE_KEYWORDS))
 
@@ -220,15 +223,24 @@ def match_lines(request, parsed=None):
     pending = pending.filtered(lambda line: line not in by_code)
 
     # 3. Fletes y cargos de envio: no estan en la orden, no se le pasan a la IA
-    #    (los emparejaria con cualquier producto).
-    charges = pending.filtered(lambda line: is_charge_description(line.description))
+    #    (los emparejaria con cualquier producto). Se reconocen por el nombre o
+    #    porque traen el codigo del producto de flete de Ajustes (DECISIONS.md
+    #    #64).
+    freight = request._freight_product()
+    freight_codes = {normalize_code(code) for code in (freight.default_code, freight.barcode)
+                     if code} if freight else set()
+    charges = pending.filtered(
+        lambda line: is_charge_description(line.description)
+        or normalize_code(line.product_code) in freight_codes
+    )
     for line in charges:
         results.append({
             "invoice_idx": index_of[line],
             "po_line_id": False,
             "method": MATCH_CHARGE,
             "confidence": 1.0,
-            "note": "Cargo adicional: no esta en la orden de compra",
+            "note": ("Flete: se registra con %s" % freight.display_name if freight
+                     else "Cargo adicional: falta el producto de flete en Ajustes"),
         })
     pending = pending - charges
 

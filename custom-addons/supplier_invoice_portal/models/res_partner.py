@@ -19,6 +19,12 @@ SPR_INSTRUCTIONS_PDF = (
     "Instructivo_portal_proveedores_Libertario.pdf"
 )
 
+# Capturas del instructivo QWeb en static/src/img/instructivo (DECISIONS.md #69).
+SPR_INSTRUCTION_IMAGES = (
+    "c_01_login", "c_02_inicio", "c_03_ordenes", "c_04_orden", "c_05_facturas",
+    "c_06_radicaciones", "c_07_formulario", "c_09_detalle_rechazada", "c_10_documentos",
+)
+
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
@@ -36,11 +42,15 @@ class ResPartner(models.Model):
         help="El proveedor no expide factura electronica: radica una cuenta de cobro y "
              "la compania emite el documento soporte al registrarla.",
     )
+    # Solo para los grupos del portal: el POS de odooleal lee todos los campos
+    # del contacto y al cajero le daba AccessError (DECISIONS.md #63).
     spr_request_ids = fields.One2many(
-        "supplier.payment.request", "partner_id", string="Solicitudes de pago"
+        "supplier.payment.request", "partner_id", string="Solicitudes de pago",
+        groups="supplier_invoice_portal.group_spr_validator",
     )
     spr_request_count = fields.Integer(
-        string="Numero de solicitudes", compute="_compute_spr_request_count"
+        string="Numero de solicitudes", compute="_compute_spr_request_count",
+        groups="supplier_invoice_portal.group_spr_validator",
     )
 
     @api.depends("spr_request_ids")
@@ -141,40 +151,40 @@ class ResPartner(models.Model):
             attachment.write(vals)
         return attachment
 
-    def _spr_instructions_pdf_commands(self):
-        """Comando de enlace al adjunto con la guia, o ``[]``.
-
-        Al asistente llega solo el id (``(4, id)``): el cliente maneja un
-        entero y el PDF nunca cruza el formulario. Ver
-        ``_spr_instructions_attachment`` para la creacion y la reutilizacion.
-        """
-        attachment = self._spr_instructions_attachment()
-        return [(4, attachment.id)] if attachment else []
-
     def action_spr_send_instructions(self):
         """Abre el correo con el instructivo del portal para el proveedor.
 
         Se abre el asistente en vez de enviar directo para que compras revise
-        los destinatarios; la guia en PDF viene adjunta (DECISIONS.md #61).
+        los destinatarios. Van dos PDF: el instructivo QWeb de la plantilla y
+        la guia estatica (DECISIONS.md #61, #69 y #74).
+
+        El asistente se crea aqui porque ``default_attachment_ids`` en el
+        contexto pisa el compute de ``attachment_ids``, que es el que genera
+        el reporte de la plantilla.
         """
         self.ensure_one()
         if not self.portal_invoice_enabled:
             raise UserError(_("Habilite primero el portal de facturas para %s.") % self.name)
         template = self.env.ref("supplier_invoice_portal.mail_template_spr_instructions")
+        composer = self.env["mail.compose.message"].create({
+            "model": "res.partner",
+            "res_ids": self.ids,
+            "template_id": template.id,
+            "composition_mode": "comment",
+            "email_layout_xmlid": "mail.mail_notification_light",
+        })
+        guide = self._spr_instructions_attachment()
+        if guide:
+            # Se lee antes de escribir: el compute sigue pendiente tras el
+            # create y asignar sin leerlo descartaria el reporte.
+            composer.attachment_ids = composer.attachment_ids | guide
         return {
             "type": "ir.actions.act_window",
             "name": _("Enviar instructivo del portal"),
             "res_model": "mail.compose.message",
+            "res_id": composer.id,
             "view_mode": "form",
             "target": "new",
-            "context": {
-                "default_model": "res.partner",
-                "default_res_ids": self.ids,
-                "default_template_id": template.id,
-                "default_composition_mode": "comment",
-                "default_email_layout_xmlid": "mail.mail_notification_light",
-                "default_attachment_ids": self._spr_instructions_pdf_commands(),
-            },
         }
 
     def _spr_cutoff_label(self):
@@ -183,3 +193,20 @@ class ResPartner(models.Model):
         hours, minutes = int(hour), int(round((hour - int(hour)) * 60))
         suffix = "m." if (hours, minutes) == (12, 0) else ("p. m." if hours >= 12 else "a. m.")
         return "%d:%02d %s" % (hours if hours <= 12 else hours - 12, minutes, suffix)
+
+    def _spr_instructions_company(self):
+        """Compania que firma el instructivo: la del contacto o la activa."""
+        self.ensure_one()
+        return (self.company_id or self.env.company).sudo()
+
+    def _spr_instructions_image(self, name):
+        """Captura del instructivo QWeb como data URI (DECISIONS.md #69).
+
+        Incrustada y no por URL: wkhtmltopdf no siempre alcanza el servidor
+        (Docker, proxies), y asi el PDF sale igual en cualquier instancia.
+        """
+        if name not in SPR_INSTRUCTION_IMAGES:
+            return ""
+        path = "supplier_invoice_portal/static/src/img/instructivo/%s.png" % name
+        with file_open(path, "rb") as handle:
+            return "data:image/png;base64,%s" % base64.b64encode(handle.read()).decode()

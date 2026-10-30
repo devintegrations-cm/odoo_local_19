@@ -39,13 +39,21 @@ Para quién es:
 
 Lo que el módulo cubre:
 
-- Solo radican los proveedores marcados como **Puede radicar facturas en el portal**. Antes de
-  radicar, cada uno tiene que cargar en *Mi cuenta* su cámara de comercio, su RUT y su
-  certificación bancaria, y completar sus datos de facturación electrónica.
+- Solo radican los proveedores marcados como **Puede radicar facturas en el portal**, y solo sobre
+  órdenes de los últimos 12 meses. Antes de radicar, cada uno tiene que cargar en *Mi cuenta* su
+  cámara de comercio, su RUT y su certificación bancaria, y completar sus datos de facturación
+  electrónica.
 - Reglas automáticas: NIT del emisor y del adquiriente, CUFE repetido, estado de la orden, totales,
   impuestos, cantidades y precios contra lo pendiente de la orden, y tipo de documento.
 - Fletes y envíos que la orden no trae: se marcan como **cargo adicional** y la factura los lleva
-  con el producto de flete.
+  con el producto de flete. Un flete que supera el **tope** sobre la mercancía queda como
+  observación.
+- Facturas en otra unidad que la orden: **factor de unidad** por línea, puesto a mano o propuesto
+  por la IA.
+- El Responsable puede **aprobar a mano** una solicitud con observaciones ya revisadas.
+- Vista previa del PDF y del XML sin descargarlos, y las líneas de la orden al lado de la factura.
+- Botón **Generar eventos RADIAN** en la factura de proveedor publicada: acuse de recibo, recibo
+  del bien y aceptación expresa ante la DIAN (con la facturación electrónica de Jorels).
 - Notas crédito (generan un reembolso) y notas débito (requieren aceptación) sobre una factura ya
   registrada.
 - Cuenta de cobro de quien no está obligado a facturar: se registra en el diario de **documento
@@ -123,6 +131,9 @@ Ajustes del módulo
 - **Producto de flete** (``spr.freight_product_id``): producto de servicio para los fletes que la
   factura cobra y la orden no tiene. Sin él, *Crear factura* no funciona para una factura con
   flete.
+- **Tope del flete (%)** (``spr.freight_max_pct``): aparece con el producto de flete. Si los fletes de
+  la factura superan ese porcentaje del subtotal de la mercancía, la solicitud queda *Con
+  observaciones*. Se comparan las dos bases, sin IVA. Por defecto 10 %; 0 = sin tope.
 - **Tolerancia de montos**: diferencia admitida entre la factura y lo pendiente de la orden. Pasa
   si está dentro del porcentaje **o** del monto absoluto. Por defecto 0,5 % o 1.000. La misma
   tolerancia porcentual vale para el **precio unitario** de cada línea: es la regla de negocio
@@ -139,6 +150,57 @@ Ajustes del módulo
 - **Verificar el CUFE en el catálogo DIAN**: apagado por defecto, porque la DIAN pide captcha.
 - **OCR del PDF**, **Emparejamiento por IA** y **Conexión de prueba por CLI**: servicios externos
   opcionales. Ver ``README.md`` del módulo.
+
+El **tope del flete** aparece debajo del producto de flete, solo cuando hay producto elegido. Con
+el tope en 10 %, un flete de 15.000 sobre una mercancía de 200.000 (7,5 %) pasa; con el tope en
+5 %, la misma factura queda *Con observaciones*.
+
+.. figure:: ../static/description/39_ajustes_tope_flete.png
+   :alt: Compras › Configuración › Ajustes › Portal de facturas de proveedor: producto de flete y Tope del flete (%)
+
+   Compras › Configuración › Ajustes › Portal de facturas de proveedor: producto de flete y Tope del flete (%)
+
+Diario para los eventos RADIAN
+------------------------------
+
+Solo con la facturación electrónica de Jorels instalada. En *Facturación › Configuración ›
+Diarios* (*Contabilidad › Configuración › Diarios* con la contabilidad completa), abrir el diario de
+compras de las facturas electrónicas de proveedores y marcar **Eventos RADIAN de receptor**, en la
+pestaña *Asientos contables*. La casilla la ve el administrador de contabilidad.
+
+.. figure:: ../static/description/38_diario_eventos_radian.png
+   :alt: Facturación › Configuración › Diarios › Facturas de Proveedores: casilla Eventos RADIAN de receptor
+
+   Facturación › Configuración › Diarios › Facturas de Proveedores: casilla Eventos RADIAN de receptor
+
+- Las facturas publicadas en ese diario muestran el botón **Generar eventos RADIAN**. En un diario
+  sin la casilla el botón no aparece.
+- Si hay varios diarios de compras (gastos, importaciones…), se marca solo el de las facturas
+  electrónicas. No se marca por nombre ni se deduce: es un paso de la puesta en producción.
+- No se puede marcar en un diario que no sea de compras ni en el de documento soporte: Odoo no deja
+  guardar. Una factura en un diario con resolución de documento soporte nunca muestra el botón,
+  aunque el diario esté marcado.
+- La compañía necesita la facturación electrónica activa, el token de Edipo y, en ambiente de
+  pruebas, el TestSetId (*Ajustes › Facturación electrónica*).
+
+Datos del firmante
+~~~~~~~~~~~~~~~~~~
+
+Los eventos salen firmados por quien pulsa el botón. En su contacto (*Ajustes › Usuarios*, abrir
+el usuario y su contacto, o *Contactos*) tienen que estar:
+
+- **Puesto de trabajo**: es el cargo del firmante.
+- **Número de identificación**: tipo y número reales. El 222222222222 que Jorels pone a los
+  usuarios nuevos no sirve.
+- **Primer nombre** y **Apellido**, en la pestaña *Información postal*.
+
+.. figure:: ../static/description/40_firmante_radian.png
+   :alt: Contacto del usuario firmante: puesto de trabajo, tipo y número de identificación, primer nombre y apellido
+
+   Contacto del usuario firmante: puesto de trabajo, tipo y número de identificación, primer nombre y apellido
+
+Si falta alguno, el botón no envía nada y muestra la lista de lo que falta (ver *Eventos RADIAN* en
+el uso).
 
 Habilitar un proveedor
 ----------------------
@@ -188,21 +250,30 @@ Dar acceso al portal
 
    Invitación al portal que recibe el contacto
 
-- Pulsar **Enviar instructivo del portal** en la ficha de la empresa. Se abre el correo con el
-  paso a paso y la guía en PDF ya adjunta: solo hay que revisar los destinatarios y enviar.
+- Pulsar **Enviar instructivo del portal** en la ficha de la empresa, pestaña *Portal de
+  proveedor*. Se abre el correo con el paso a paso y **dos PDF ya adjuntos**: el instructivo
+  generado con el nombre y el NIT de la compañía, la hora de corte y, para quien no está obligado a
+  facturar, la cuenta de cobro en lugar del XML; y la guía del portal. Solo hay que revisar los
+  destinatarios y enviar.
 
 .. figure:: ../static/description/02_instructivo.png
-   :alt: Correo del instructivo del portal antes de enviarlo
+   :alt: Contacto › Portal de proveedor › Enviar instructivo del portal: destinatario, los dos PDF adjuntos y Enviar
 
-   Correo del instructivo del portal antes de enviarlo
+   Contacto › Portal de proveedor › Enviar instructivo del portal: destinatario, los dos PDF adjuntos y Enviar
 
 Permisos
 --------
 
 - **Validador**: ve las solicitudes, valida, empareja líneas a mano, toma la revisión y crea la
   factura borrador.
-- **Responsable**: lo anterior, más rechazar, aceptar notas débito, devolver a borrador, cancelar
-  y habilitar proveedores. *Compras: Administrador* es Responsable sin asignarlo.
+- **Responsable**: lo anterior, más rechazar, aprobar a mano una solicitud con observaciones,
+  aceptar notas débito, devolver a borrador, cancelar y habilitar proveedores. *Compras:
+  Administrador* es Responsable sin asignarlo.
+- **Generar eventos RADIAN**: cualquier usuario de facturación que pueda publicar facturas, aunque
+  no tenga el grupo de facturación electrónica de Jorels.
+- Los botones y pestañas del portal en contactos, órdenes y facturas (*Solicitudes*, *Portal de
+  proveedor*, documentos) solo los ven Validador y Responsable. Un usuario sin esos grupos, como un
+  cajero del punto de venta, lee el contacto sin errores de acceso.
 - Los grupos se asignan en la ficha del usuario, sección *Portal de facturas de proveedor*.
 - **Requisito con Jorels: los validadores deben tener *Facturación electrónica / Usuario*.** El
   personal de contabilidad y compras que revisa solicitudes tiene ese acceso. Sin él, *Crear
@@ -265,9 +336,9 @@ factura de esta orden**:
 
    Portal › orden de compra: Radicar factura de esta orden
 
-- **Factura electrónica**: marcar una o varias órdenes (se ofrecen las confirmadas que no tienen
-  factura ni una radicación en curso) y adjuntar el PDF y el **XML de la DIAN**. El XML es
-  obligatorio para quien está obligado a facturar.
+- **Factura electrónica**: marcar una o varias órdenes (se ofrecen las confirmadas de los
+  **últimos 12 meses** que no tienen factura ni una radicación en curso) y adjuntar el PDF y el
+  **XML de la DIAN**. El XML es obligatorio para quien está obligado a facturar.
 - **Nota crédito** o **Nota débito**: elegir la factura que corrige (o dejar que se tome del XML) y
   adjuntar PDF y XML. La lista solo trae facturas ya publicadas. Si el XML apunta a una factura
   todavía en borrador, la solicitud queda *Con observaciones*.
@@ -304,9 +375,9 @@ Al enviar, el proveedor ve el resultado de inmediato:
    Rechazada: total y cantidad mayores a lo pendiente de la orden
 
 .. figure:: ../static/description/13_portal_resultado_observaciones.png
-   :alt: Con observaciones: flete que no está en la orden de compra
+   :alt: Con observaciones: el flete supera el tope configurado sobre la mercancía
 
-   Con observaciones: flete que no está en la orden de compra
+   Con observaciones: el flete supera el tope configurado sobre la mercancía
 
 En *Facturas radicadas* sigue el estado de cada documento. Si contabilidad rechaza una solicitud,
 el motivo aparece en el detalle y le llega por correo:
@@ -383,31 +454,26 @@ Pestañas de la solicitud:
 - **Validación**: cada regla con su resultado en español. Los errores rechazan; las observaciones
   solo avisan.
 - **Líneas y emparejamiento**: a qué línea de la orden corresponde cada línea de la factura y por
-  qué método (por código, por IA o manual). Si se cambia a mano la línea de la orden, hay que
-  pulsar **Revalidar**; lo emparejado a mano se conserva. Los fletes quedan como **cargo
-  adicional**.
+  qué método (por código, por IA o manual), con el **factor de unidad** cuando la factura viene en
+  otra unidad que la orden. Si se cambia a mano la línea de la orden o el factor, hay que pulsar
+  **Revalidar**; lo emparejado a mano se conserva. Los fletes quedan como **cargo adicional**.
+- **Orden de compra**: las líneas de las órdenes al lado de la factura, con los subtotales y
+  totales de las dos.
 - **Datos extraídos**: emisor, adquiriente, número, fecha y totales leídos del XML.
-- **Adjuntos**: el PDF y el XML tal como los subió el proveedor.
+- **Adjuntos**: el PDF y el XML tal como los subió el proveedor, con el ojo de vista previa.
 
 .. figure:: ../static/description/24_backend_validacion.png
    :alt: Pestaña Validación
 
    Pestaña Validación
 
-.. figure:: ../static/description/25_backend_lineas.png
-   :alt: Líneas: emparejamiento manual y cargo adicional
-
-   Líneas: emparejamiento manual y cargo adicional
-
 .. figure:: ../static/description/26_backend_datos_extraidos.png
    :alt: Datos extraídos del XML
 
    Datos extraídos del XML
 
-.. figure:: ../static/description/27_backend_adjuntos.png
-   :alt: Adjuntos de la solicitud
-
-   Adjuntos de la solicitud
+Las pestañas *Líneas* (factor de unidad), *Orden de compra* y *Adjuntos* (vista previa) tienen su
+paso a paso con capturas en el recorrido de la versión 19.0.1.3.0, al final.
 
 Crear la factura
 ----------------
@@ -417,11 +483,14 @@ proveedor en **borrador**:
 
 - trae las líneas ligadas a la orden, y la orden queda *Facturada* en el momento;
 - la referencia es el número del proveedor;
+- la fecha contable es la fecha de la factura, no la de hoy;
 - muestra el **CUFE / CUDE del proveedor**, con un botón para copiarlo y el enlace **Consultar en
   la DIAN** (en facturas y notas crédito de proveedor);
 - adjunta el PDF y el XML;
 - un flete va con el **producto de flete** y se liga a una línea de flete de la orden; si la orden
-  no la tiene, se la agrega.
+  no la tiene, se la agrega con la misma distribución analítica de la mercancía;
+- con factor de unidad, la línea va en la unidad de la orden y el precio no se redondea, para que
+  el subtotal sea exactamente el del XML.
 
 Las actividades de revisión se cierran y el proveedor recibe el correo "factura registrada". La
 factura se confirma por el flujo normal. Si se borra la factura borrador, la solicitud vuelve a
@@ -473,6 +542,9 @@ no tiene resolución ni token.
 
    Asistente de rechazo con motivo
 
+**Aprobar a mano** una solicitud con observaciones y **generar los eventos RADIAN** de la factura
+publicada: ver el recorrido de la versión 19.0.1.3.0, al final.
+
 Correos al proveedor
 --------------------
 
@@ -498,6 +570,208 @@ radicación está cerrada y desde qué día se reabre. Solo cierra el portal: co
 creando solicitudes en el backend. Esta pantalla no se capturó, porque la prueba no se hizo en un
 día de cierre.
 
+Recorrido de la versión 19.0.1.3.0, paso a paso
+-----------------------------------------------
+
+Cada función nueva, con los pasos para repetirla en la interfaz y lo que se debe ver. Las pruebas
+1 a 6 se hacen con un usuario **Responsable**, la 7 con un usuario del portal del proveedor y la 8
+con un usuario de facturación cuyo contacto tenga los datos del firmante (ver *Datos del
+firmante* en la configuración). Los números de las capturas son los de la base de pruebas: en
+otra base cambian los documentos, no los pasos.
+
+Prueba 1: tope del flete
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+El flete que la orden no trae pasa si no supera el tope sobre la mercancía (los dos sin IVA); si lo
+supera, la solicitud queda con observación.
+
+- En *Compras › Configuración › Ajustes*, bloque *Portal de facturas de proveedor*, comprobar que
+  hay **Producto de flete** y bajar **Tope del flete (%)** a 5. Guardar.
+- Abrir una solicitud con flete por debajo del 10 % y por encima del 5 % de la mercancía (en la
+  captura, un flete de 15.000 sobre 200.000: 7,5 %) y pulsar **Revalidar**.
+- Resultado: la solicitud pasa a *Con observaciones*. En la pestaña *Validación*, la regla
+  ``EXTRA_CHARGES`` dice el porcentaje real y el tope. El proveedor ve la misma observación en el
+  portal.
+- Devolver el tope a 10, guardar y revalidar: la solicitud vuelve a *Aprobada* y la regla del flete
+  queda *Correcto*. Con el tope en 0 no hay límite.
+
+.. figure:: ../static/description/13_portal_resultado_observaciones.png
+   :alt: Portal › Facturas radicadas › detalle: Con observaciones porque el flete supera el tope
+
+   Portal › Facturas radicadas › detalle: Con observaciones porque el flete supera el tope
+
+Prueba 2: aprobar a mano una solicitud con observaciones
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Con la solicitud de la prueba 1 en *Con observaciones* (tope en 5), revisar la observación en la
+  pestaña *Validación* y pulsar **Aprobar**.
+- Resultado: la solicitud pasa a *Aprobada* y debajo del revisor aparecen **Aprobada por** y
+  **Fecha de aprobación**. En el chatter queda quién la aprobó.
+- Pulsar **Revalidar** (o *Volver a borrador*): los dos campos desaparecen y, si las reglas dejan
+  otra vez observaciones, hay que volver a aprobar.
+- Con un usuario solo **Validador** el botón *Aprobar* no aparece.
+- Al terminar, devolver el tope a 10 y revalidar.
+
+.. figure:: ../static/description/46_solicitud_observacion_flete_aprobar.png
+   :alt: Solicitud Con observaciones: regla EXTRA_CHARGES sobre el tope y botón Aprobar
+
+   Solicitud Con observaciones: regla EXTRA_CHARGES sobre el tope y botón Aprobar
+
+.. figure:: ../static/description/47_solicitud_aprobada_a_mano.png
+   :alt: Solicitud aprobada a mano: estado Aprobada, Aprobada por y Fecha de aprobación
+
+   Solicitud aprobada a mano: estado Aprobada, Aprobada por y Fecha de aprobación
+
+Prueba 3: factor de unidad
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cuando el proveedor factura en otra unidad que la orden (bultos contra unidades, por ejemplo), la
+línea guarda la unidad del XML y un factor. Cantidad y precio se comparan y se facturan en la
+unidad de la orden.
+
+- Abrir una solicitud cuya factura venga en otra unidad (en la captura, 1 BLT a 100.000 contra una
+  orden en unidades), pestaña *Líneas y emparejamiento*. Con el botón de columnas de la lista
+  (a la derecha de los títulos) mostrar *Unidad del documento* y *Precio en unidad de la orden*.
+- Poner **Factor de unidad** 12 y pulsar **Revalidar**. La cantidad pasa a 12 y el precio a
+  8.333,333333 en la unidad de la orden; el método queda *Manual*.
+- Pulsar **Crear factura** y abrirla con el botón **Factura** del encabezado.
+- Resultado: la línea de la factura dice 12 a 8.333,333333 y el subtotal es exactamente
+  100.000,00, el del XML (antes daba 99.999,96). La fecha contable es la de la factura.
+- Con la IA configurada, **Validar con IA** pone el factor solo cuando la confianza es alta y el
+  precio convertido queda dentro de la tolerancia; las líneas emparejadas a mano no las toca.
+
+.. figure:: ../static/description/25_backend_lineas.png
+   :alt: Líneas: 1 BLT en el XML, factor 12 y cantidad y precio en la unidad de la orden
+
+   Líneas: 1 BLT en el XML, factor 12 y cantidad y precio en la unidad de la orden
+
+.. figure:: ../static/description/48_factura_factor_unidad.png
+   :alt: Factura creada con el factor: 12 a 8.333,333333 y subtotal exacto
+
+   Factura creada con el factor: 12 a 8.333,333333 y subtotal exacto
+
+Prueba 4: vista previa del PDF y del XML, y órdenes de compra
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Abrir una solicitud, pestaña **Adjuntos**. Al lado de cada archivo hay un **ojo**.
+- Pulsar el ojo del XML: se abre el XML con sangría, sin descargarlo. El del PDF lo abre en el
+  visor de Odoo.
+- En una pantalla ancha, el PDF de la factura se ve al lado del formulario; en una angosta, en el
+  chatter.
+- El botón **Órdenes de compra** del encabezado abre la orden, o la lista si la factura cubre
+  varias.
+
+.. figure:: ../static/description/27_backend_adjuntos.png
+   :alt: Adjuntos: ojo de vista previa, PDF al lado del formulario y botón Órdenes de compra
+
+   Adjuntos: ojo de vista previa, PDF al lado del formulario y botón Órdenes de compra
+
+.. figure:: ../static/description/49_vista_previa_xml.png
+   :alt: Vista previa del XML de la DIAN
+
+   Vista previa del XML de la DIAN
+
+Prueba 5: pestaña Orden de compra
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- En la misma solicitud, abrir la pestaña **Orden de compra**.
+- Resultado: a la izquierda, subtotal y total de la factura; a la derecha, los de las órdenes;
+  abajo, las líneas de las órdenes con cantidad, recibido, facturado y por facturar. En la captura
+  los subtotales coinciden y los totales difieren por el flete, que la orden no trae.
+
+.. figure:: ../static/description/50_pestana_orden_compra.png
+   :alt: Pestaña Orden de compra: factura frente a órdenes
+
+   Pestaña Orden de compra: factura frente a órdenes
+
+Prueba 6: instructivo con los dos PDF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Abrir la empresa proveedora, pestaña *Portal de proveedor*, y pulsar **Enviar instructivo del
+  portal**.
+- Resultado: el correo trae el paso a paso y **dos PDF** adjuntos (ver la captura del instructivo
+  en la configuración). Abrir cada adjunto para revisarlo y cerrar con **Descartar** si solo se
+  está probando.
+
+Prueba 7: órdenes de los últimos 12 meses en el portal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Entrar al portal con un usuario del proveedor e ir a *Radicar facturas › Radicar factura*.
+- Resultado: solo se ofrecen las órdenes con fecha de orden dentro de los últimos 12 meses. En la
+  captura, P00036 (fecha de orden 29/11/2025) aparece y P00035 (29/09/2025) no, aunque las dos
+  están esperando factura.
+- Contabilidad registra una orden más vieja desde el backend, donde no hay filtro.
+
+.. figure:: ../static/description/51_portal_ordenes_12_meses.png
+   :alt: Portal › Radicar factura: solo órdenes de los últimos 12 meses
+
+   Portal › Radicar factura: solo órdenes de los últimos 12 meses
+
+Prueba 8: eventos RADIAN de receptor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Registra ante la DIAN el acuse de recibo (030), el recibo del bien (032) y la aceptación expresa
+(033) de una factura de proveedor, en ese orden. No se generan al publicar: hay que pulsar el
+botón.
+
+- Abrir una factura de proveedor **publicada**, con **fecha de factura**, **CUFE / CUDE del
+  proveedor**, en un diario marcado como *Eventos RADIAN de receptor* y sin eventos. El botón
+  **Generar eventos RADIAN** aparece en el encabezado, junto a *Nota de crédito*.
+- El botón no aparece en un borrador, sin CUFE o sin fecha, en una nota crédito de proveedor, en un
+  diario sin la casilla o de documento soporte, ni si la factura ya tiene algún evento.
+
+.. figure:: ../static/description/41_factura_boton_radian.png
+   :alt: Factura de proveedor publicada: botón Generar eventos RADIAN, fecha, diario y CUFE
+
+   Factura de proveedor publicada: botón Generar eventos RADIAN, fecha, diario y CUFE
+
+**Si faltan datos.** Con un firmante sin cargo o sin apellido, pulsar el botón muestra la lista de
+lo que falta y no numera ningún evento. Completar el contacto y volver a pulsar. Lo mismo pasa si a
+la compañía le falta el token de Edipo o el TestSetId.
+
+.. figure:: ../static/description/42_radian_faltan_datos_firmante.png
+   :alt: Faltan datos del firmante: apellido y cargo
+
+   Faltan datos del firmante: apellido y cargo
+
+**Resultado correcto.** Con todo completo, pulsar el botón:
+
+- sale una notificación verde con los tres eventos generados y validados, y el mismo texto queda
+  en el chatter;
+- el botón desaparece;
+- la pestaña **Eventos DIAN** muestra 030, 032 y 033 publicados.
+
+.. figure:: ../static/description/43_radian_resultado_ok.png
+   :alt: Eventos RADIAN generados: notificación verde y nota en el chatter
+
+   Eventos RADIAN generados: notificación verde y nota en el chatter
+
+.. figure:: ../static/description/44_radian_pestana_eventos.png
+   :alt: Pestaña Eventos DIAN con 030, 032 y 033
+
+   Pestaña Eventos DIAN con 030, 032 y 033
+
+**Si la DIAN rechaza un evento.** Los que ya aceptó se conservan y los siguientes no se envían
+(032 necesita el 030 y 033 el 032). La notificación sale amarilla y se queda fija hasta cerrarla;
+dice qué evento falló y por qué, y lo mismo queda en el chatter. El botón no vuelve a aparecer: se
+corrige la causa y los eventos que faltan se crean desde la pestaña *Eventos DIAN*.
+
+.. figure:: ../static/description/45_radian_fallo_parcial.png
+   :alt: Rechazo del 032: aviso amarillo y el 030 conservado en Eventos DIAN
+
+   Rechazo del 032: aviso amarillo y el 030 conservado en Eventos DIAN
+
+Sin captura
+~~~~~~~~~~~
+
+- **Validar con IA**: botón de la solicitud y acción *Validar con IA* de la lista para varias a la
+  vez. Necesita el servicio de IA configurado en Ajustes.
+- **Campos del portal por grupo**: un usuario sin Validador ni Responsable (un cajero del punto de
+  venta, por ejemplo) abre un contacto, una orden o una factura sin error de acceso y sin ver los
+  botones *Solicitudes* ni la pestaña *Portal de proveedor*.
+- **Analítica del flete**: si la orden tiene distribución analítica, la línea de flete que se le
+  agrega y la línea de la factura la llevan.
+
 Known issues / Roadmap
 ======================
 
@@ -522,6 +796,12 @@ Verificar en staging
   rechazó igual, por la marca ``/Encrypt``.
 - **Analítica en notas**: la orden de la prueba no tenía analítica. Falta ver un reembolso cuya
   orden sí la tenga.
+- **Eventos RADIAN ante la DIAN real**: generar los eventos de una factura de proveedor con el
+  token de Edipo y el TestSetId de staging (o en producción) y un firmante con documento, nombre,
+  apellido y cargo reales. Confirmar que quien los genera no necesita el grupo de facturación
+  electrónica de Jorels y que la DIAN acepta los tres.
+- **Diario de RADIAN en producción**: marcar *Eventos RADIAN de receptor* solo en el diario de
+  facturas electrónicas de proveedores (``CHECKLIST_PRODUCCION.md``).
 
 Pendiente de documentar
 -----------------------
@@ -529,10 +809,20 @@ Pendiente de documentar
 - **Pantalla de cierre de fin de mes** en el portal: solo se ve el último día hábil del mes,
   después de la hora de corte.
 - **Icono** ``static/description/icon.png`` de 100×100: falta y necesita arte.
+- **Validar con IA**: falta la captura del botón y de la acción de la lista; necesita el servicio de
+  IA configurado.
+- **Capturas del backend anteriores a 19.0.1.3.0** (lista, filtros, actividades, tomar revisión,
+  validación, datos extraídos, factura, notas, documento soporte y rechazo): son de Odoo 19, pero
+  todavía no muestran los botones *Validar con IA*, *Aprobar* y *Órdenes de compra* ni la pestaña
+  *Orden de compra*. Hay que recapturarlas.
 
 Límites conocidos
 -----------------
 
+- **Los eventos RADIAN no se generan al publicar**: hay que pulsar el botón en cada factura. Si un
+  evento falla, el botón ya no vuelve a aparecer y los que faltan se crean desde *Eventos DIAN*.
+- **Una orden de más de 12 meses no se radica por el portal**: la registra contabilidad en el
+  backend.
 - **La tolerancia porcentual (0,5 % por defecto) vale también para el precio unitario.** Es la
   regla de negocio vigente: un precio de 12.050 contra 12.000 (0,42 %) no deja la observación
   ``PRICE_UNIT_MISMATCH``.
@@ -548,6 +838,57 @@ Límites conocidos
 
 Changelog
 =========
+
+19.0.1.3.0 (2026-10-28)
+-----------------------
+
+Funciones que la v17 tenía y la 19 no, más ajustes de producción (DECISIONS.md #62 a #74).
+
+Traídas de la v17:
+
+- **Órdenes de los últimos 12 meses.** El formulario de radicar solo ofrece órdenes con
+  ``date_order`` dentro de una ventana móvil de 12 meses (#62).
+- **Campos ``spr_*`` protegidos por grupo.** ``spr_request_ids``/``count`` en contacto, orden y factura,
+  y los documentos del proveedor, quedan solo para Validador y Responsable. Un "leer todos los
+  campos" desde el POS ya no da AccessError (#63).
+- **Flete aprobado.** Con producto de flete en Ajustes, ``EXTRA_CHARGES`` pasa a OK (antes siempre
+  era observación). Se reconocen más nombres de flete y también el código de barras o la
+  referencia del producto (#64).
+- **Unidades con IA.** La línea guarda ``unit_code`` y ``uom_factor``, y cantidad y precio se comparan
+  en la unidad de la orden. Revisión de unidades con IA y botón/acción **Validar con IA** (#65).
+- **Vista previa del PDF y del XML, y PDF en el chatter.** Widget ``spr_preview_binary`` (el ojo en
+  *Adjuntos*). El modelo hereda ``mail.thread.main.attachment``: el PDF queda como adjunto principal
+  y se ve al lado del formulario (#66, #67). La migración copia el PDF de las solicitudes que ya
+  existen.
+- **Pestaña "Orden de compra".** Las líneas de las órdenes al lado de la factura, con subtotal y
+  total comparados (#68).
+- **Instructivo QWeb.** Reporte dinámico (compañía, NIT, hora de corte, cuenta de cobro en vez de
+  XML) generado por el módulo y enlazado a la plantilla del correo, junto a la guía estática (#69).
+
+Ajustes de producción:
+
+- **Factura de proveedor.** El CUFE ya pasaba a la factura (ahora con test), la fecha contable es
+  la de la factura y la línea de flete hereda la analítica de la orden (#70).
+- **Botón Aprobar.** El Responsable deja en *Aprobada* una solicitud con observaciones ya
+  revisada; quién y cuándo quedan en el formulario. Solo desde *Con observaciones*; revalidar o
+  volver a borrador descarta la aprobación (#71).
+- **Eventos RADIAN de receptor.** Botón **Generar eventos RADIAN** en el encabezado de la factura
+  de proveedor: crea y valida en orden el acuse 030, el recibo del bien 032 y la aceptación
+  expresa 033, cada uno en su savepoint. Solo sale en facturas publicadas, con fecha y CUFE, sin
+  eventos previos y en un diario marcado como *Eventos RADIAN de receptor* (nunca de documento
+  soporte). Antes de numerar revisa token, TestSetId y datos del firmante. Si un evento falla, los
+  ya aceptados se conservan y el resultado queda en el chatter. Nada se genera solo al publicar.
+  Sin dependencia dura de Jorels; ``cufe`` se copia a ``ei_uuid`` (#72). Verificar en STG.
+- **Tope del flete.** Ajuste *Tope del flete (%)* (10 por defecto, 0 = sin tope): con producto de
+  flete, un flete que supera ese porcentaje del subtotal de la mercancía (base contra base, sin
+  IVA) queda como observación (#73).
+- **Instructivo con los dos PDF** (reporte QWeb y guía estática), y precio en la unidad de la
+  orden sin redondear a la moneda: con factor 12 la factura ya no suma 99.999,96 sobre 100.000.
+  La revisión de unidades con IA no toca líneas emparejadas a mano y la migración del PDF no deja
+  nota en el chatter (#74).
+
+Tests: 209 (193 del módulo). Escáner: 0 BLOQUEA / 0 ROMPE / 1 REVISAR (falso positivo
+documentado).
 
 19.0.1.2.0 (2026-10-02)
 -----------------------

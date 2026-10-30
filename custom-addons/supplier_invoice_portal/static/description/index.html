@@ -19,13 +19,21 @@ contabiliza solo: la factura se confirma y se paga por el flujo normal de contab
 </ul>
 <p style="margin:0 0 12px;">Lo que el módulo cubre:</p>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;">Solo radican los proveedores marcados como <strong>Puede radicar facturas en el portal</strong>. Antes de
-  radicar, cada uno tiene que cargar en <em>Mi cuenta</em> su cámara de comercio, su RUT y su
-  certificación bancaria, y completar sus datos de facturación electrónica.</li>
+<li style="margin-bottom:7px;">Solo radican los proveedores marcados como <strong>Puede radicar facturas en el portal</strong>, y solo sobre
+  órdenes de los últimos 12 meses. Antes de radicar, cada uno tiene que cargar en <em>Mi cuenta</em> su
+  cámara de comercio, su RUT y su certificación bancaria, y completar sus datos de facturación
+  electrónica.</li>
 <li style="margin-bottom:7px;">Reglas automáticas: NIT del emisor y del adquiriente, CUFE repetido, estado de la orden, totales,
   impuestos, cantidades y precios contra lo pendiente de la orden, y tipo de documento.</li>
 <li style="margin-bottom:7px;">Fletes y envíos que la orden no trae: se marcan como <strong>cargo adicional</strong> y la factura los lleva
-  con el producto de flete.</li>
+  con el producto de flete. Un flete que supera el <strong>tope</strong> sobre la mercancía queda como
+  observación.</li>
+<li style="margin-bottom:7px;">Facturas en otra unidad que la orden: <strong>factor de unidad</strong> por línea, puesto a mano o propuesto
+  por la IA.</li>
+<li style="margin-bottom:7px;">El Responsable puede <strong>aprobar a mano</strong> una solicitud con observaciones ya revisadas.</li>
+<li style="margin-bottom:7px;">Vista previa del PDF y del XML sin descargarlos, y las líneas de la orden al lado de la factura.</li>
+<li style="margin-bottom:7px;">Botón <strong>Generar eventos RADIAN</strong> en la factura de proveedor publicada: acuse de recibo, recibo
+  del bien y aceptación expresa ante la DIAN (con la facturación electrónica de Jorels).</li>
 <li style="margin-bottom:7px;">Notas crédito (generan un reembolso) y notas débito (requieren aceptación) sobre una factura ya
   registrada.</li>
 <li style="margin-bottom:7px;">Cuenta de cobro de quien no está obligado a facturar: se registra en el diario de <strong>documento
@@ -85,6 +93,9 @@ contabiliza solo: la factura se confirma y se paga por el flujo normal de contab
 <li style="margin-bottom:7px;"><strong>Producto de flete</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">spr.freight_product_id</code>): producto de servicio para los fletes que la
   factura cobra y la orden no tiene. Sin él, <em>Crear factura</em> no funciona para una factura con
   flete.</li>
+<li style="margin-bottom:7px;"><strong>Tope del flete (%)</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">spr.freight_max_pct</code>): aparece con el producto de flete. Si los fletes de
+  la factura superan ese porcentaje del subtotal de la mercancía, la solicitud queda <em>Con
+  observaciones</em>. Se comparan las dos bases, sin IVA. Por defecto 10 %; 0 = sin tope.</li>
 <li style="margin-bottom:7px;"><strong>Tolerancia de montos</strong>: diferencia admitida entre la factura y lo pendiente de la orden. Pasa
   si está dentro del porcentaje <strong>o</strong> del monto absoluto. Por defecto 0,5 % o 1.000. La misma
   tolerancia porcentual vale para el <strong>precio unitario</strong> de cada línea: es la regla de negocio
@@ -102,6 +113,39 @@ contabiliza solo: la factura se confirma y se paga por el flujo normal de contab
 <li style="margin-bottom:7px;"><strong>OCR del PDF</strong>, <strong>Emparejamiento por IA</strong> y <strong>Conexión de prueba por CLI</strong>: servicios externos
   opcionales. Ver <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">README.md</code> del módulo.</li>
 </ul>
+<p style="margin:0 0 12px;">El <strong>tope del flete</strong> aparece debajo del producto de flete, solo cuando hay producto elegido. Con
+el tope en 10 %, un flete de 15.000 sobre una mercancía de 200.000 (7,5 %) pasa; con el tope en
+5 %, la misma factura queda <em>Con observaciones</em>.</p>
+<div class="lc-fig"><img alt="Compras › Configuración › Ajustes › Portal de facturas de proveedor: producto de flete y Tope del flete (%)" src="39_ajustes_tope_flete.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Compras › Configuración › Ajustes › Portal de facturas de proveedor: producto de flete y Tope del flete (%)</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Diario para los eventos RADIAN</h2>
+<p style="margin:0 0 12px;">Solo con la facturación electrónica de Jorels instalada. En <em>Facturación › Configuración ›
+Diarios</em> (<em>Contabilidad › Configuración › Diarios</em> con la contabilidad completa), abrir el diario de
+compras de las facturas electrónicas de proveedores y marcar <strong>Eventos RADIAN de receptor</strong>, en la
+pestaña <em>Asientos contables</em>. La casilla la ve el administrador de contabilidad.</p>
+<div class="lc-fig"><img alt="Facturación › Configuración › Diarios › Facturas de Proveedores: casilla Eventos RADIAN de receptor" src="38_diario_eventos_radian.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Facturación › Configuración › Diarios › Facturas de Proveedores: casilla Eventos RADIAN de receptor</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Las facturas publicadas en ese diario muestran el botón <strong>Generar eventos RADIAN</strong>. En un diario
+  sin la casilla el botón no aparece.</li>
+<li style="margin-bottom:7px;">Si hay varios diarios de compras (gastos, importaciones…), se marca solo el de las facturas
+  electrónicas. No se marca por nombre ni se deduce: es un paso de la puesta en producción.</li>
+<li style="margin-bottom:7px;">No se puede marcar en un diario que no sea de compras ni en el de documento soporte: Odoo no deja
+  guardar. Una factura en un diario con resolución de documento soporte nunca muestra el botón,
+  aunque el diario esté marcado.</li>
+<li style="margin-bottom:7px;">La compañía necesita la facturación electrónica activa, el token de Edipo y, en ambiente de
+  pruebas, el TestSetId (<em>Ajustes › Facturación electrónica</em>).</li>
+</ul>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Datos del firmante</h3>
+<p style="margin:0 0 12px;">Los eventos salen firmados por quien pulsa el botón. En su contacto (<em>Ajustes › Usuarios</em>, abrir
+el usuario y su contacto, o <em>Contactos</em>) tienen que estar:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Puesto de trabajo</strong>: es el cargo del firmante.</li>
+<li style="margin-bottom:7px;"><strong>Número de identificación</strong>: tipo y número reales. El 222222222222 que Jorels pone a los
+  usuarios nuevos no sirve.</li>
+<li style="margin-bottom:7px;"><strong>Primer nombre</strong> y <strong>Apellido</strong>, en la pestaña <em>Información postal</em>.</li>
+</ul>
+<div class="lc-fig"><img alt="Contacto del usuario firmante: puesto de trabajo, tipo y número de identificación, primer nombre y apellido" src="40_firmante_radian.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Contacto del usuario firmante: puesto de trabajo, tipo y número de identificación, primer nombre y apellido</p></div>
+<p style="margin:0 0 12px;">Si falta alguno, el botón no envía nada y muestra la lista de lo que falta (ver <em>Eventos RADIAN</em> en
+el uso).</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Habilitar un proveedor</h2>
 <p style="margin:0 0 12px;">Se hace en la ficha de la <strong>empresa</strong>, o de la persona natural que no pertenece a ninguna empresa.
 La ficha debe tener el NIT. En un contacto hijo la pestaña no aparece: ese contacto radica a
@@ -133,16 +177,25 @@ nombre de su empresa. La pestaña la ven solo los usuarios del grupo <strong>Res
 </ul>
 <div class="lc-fig"><img alt="Invitación al portal que recibe el contacto" src="03_invitacion_portal.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Invitación al portal que recibe el contacto</p></div>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;">Pulsar <strong>Enviar instructivo del portal</strong> en la ficha de la empresa. Se abre el correo con el
-  paso a paso y la guía en PDF ya adjunta: solo hay que revisar los destinatarios y enviar.</li>
+<li style="margin-bottom:7px;">Pulsar <strong>Enviar instructivo del portal</strong> en la ficha de la empresa, pestaña <em>Portal de
+  proveedor</em>. Se abre el correo con el paso a paso y <strong>dos PDF ya adjuntos</strong>: el instructivo
+  generado con el nombre y el NIT de la compañía, la hora de corte y, para quien no está obligado a
+  facturar, la cuenta de cobro en lugar del XML; y la guía del portal. Solo hay que revisar los
+  destinatarios y enviar.</li>
 </ul>
-<div class="lc-fig"><img alt="Correo del instructivo del portal antes de enviarlo" src="02_instructivo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Correo del instructivo del portal antes de enviarlo</p></div>
+<div class="lc-fig"><img alt="Contacto › Portal de proveedor › Enviar instructivo del portal: destinatario, los dos PDF adjuntos y Enviar" src="02_instructivo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Contacto › Portal de proveedor › Enviar instructivo del portal: destinatario, los dos PDF adjuntos y Enviar</p></div>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Permisos</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><strong>Validador</strong>: ve las solicitudes, valida, empareja líneas a mano, toma la revisión y crea la
   factura borrador.</li>
-<li style="margin-bottom:7px;"><strong>Responsable</strong>: lo anterior, más rechazar, aceptar notas débito, devolver a borrador, cancelar
-  y habilitar proveedores. <em>Compras: Administrador</em> es Responsable sin asignarlo.</li>
+<li style="margin-bottom:7px;"><strong>Responsable</strong>: lo anterior, más rechazar, aprobar a mano una solicitud con observaciones,
+  aceptar notas débito, devolver a borrador, cancelar y habilitar proveedores. <em>Compras:
+  Administrador</em> es Responsable sin asignarlo.</li>
+<li style="margin-bottom:7px;"><strong>Generar eventos RADIAN</strong>: cualquier usuario de facturación que pueda publicar facturas, aunque
+  no tenga el grupo de facturación electrónica de Jorels.</li>
+<li style="margin-bottom:7px;">Los botones y pestañas del portal en contactos, órdenes y facturas (<em>Solicitudes</em>, <em>Portal de
+  proveedor</em>, documentos) solo los ven Validador y Responsable. Un usuario sin esos grupos, como un
+  cajero del punto de venta, lee el contacto sin errores de acceso.</li>
 <li style="margin-bottom:7px;">Los grupos se asignan en la ficha del usuario, sección <em>Portal de facturas de proveedor</em>.</li>
 <li style="margin-bottom:7px;"><strong>Requisito con Jorels: los validadores deben tener <em>Facturación electrónica / Usuario</em>.</strong> El
   personal de contabilidad y compras que revisa solicitudes tiene ese acceso. Sin él, <em>Crear
@@ -178,9 +231,9 @@ todavía faltan también. Un documento ya cargado no hay que volver a subirlo pa
 factura de esta orden</strong>:</p>
 <div class="lc-fig"><img alt="Portal › orden de compra: Radicar factura de esta orden" src="07_portal_orden_compra.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Portal › orden de compra: Radicar factura de esta orden</p></div>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>Factura electrónica</strong>: marcar una o varias órdenes (se ofrecen las confirmadas que no tienen
-  factura ni una radicación en curso) y adjuntar el PDF y el <strong>XML de la DIAN</strong>. El XML es
-  obligatorio para quien está obligado a facturar.</li>
+<li style="margin-bottom:7px;"><strong>Factura electrónica</strong>: marcar una o varias órdenes (se ofrecen las confirmadas de los
+  <strong>últimos 12 meses</strong> que no tienen factura ni una radicación en curso) y adjuntar el PDF y el
+  <strong>XML de la DIAN</strong>. El XML es obligatorio para quien está obligado a facturar.</li>
 <li style="margin-bottom:7px;"><strong>Nota crédito</strong> o <strong>Nota débito</strong>: elegir la factura que corrige (o dejar que se tome del XML) y
   adjuntar PDF y XML. La lista solo trae facturas ya publicadas. Si el XML apunta a una factura
   todavía en borrador, la solicitud queda <em>Con observaciones</em>.</li>
@@ -195,7 +248,7 @@ factura de esta orden</strong>:</p>
 <p style="margin:0 0 12px;">Al enviar, el proveedor ve el resultado de inmediato:</p>
 <div class="lc-fig"><img alt="Aprobada: pasó las validaciones y queda en cola de contabilidad" src="11_portal_resultado_aprobada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Aprobada: pasó las validaciones y queda en cola de contabilidad</p></div>
 <div class="lc-fig"><img alt="Rechazada: total y cantidad mayores a lo pendiente de la orden" src="12_portal_resultado_rechazada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Rechazada: total y cantidad mayores a lo pendiente de la orden</p></div>
-<div class="lc-fig"><img alt="Con observaciones: flete que no está en la orden de compra" src="13_portal_resultado_observaciones.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Con observaciones: flete que no está en la orden de compra</p></div>
+<div class="lc-fig"><img alt="Con observaciones: el flete supera el tope configurado sobre la mercancía" src="13_portal_resultado_observaciones.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Con observaciones: el flete supera el tope configurado sobre la mercancía</p></div>
 <p style="margin:0 0 12px;">En <em>Facturas radicadas</em> sigue el estado de cada documento. Si contabilidad rechaza una solicitud,
 el motivo aparece en el detalle y le llega por correo:</p>
 <div class="lc-fig"><img alt="Portal › Facturas radicadas" src="16_portal_lista_solicitudes.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Portal › Facturas radicadas</p></div>
@@ -233,27 +286,32 @@ emparejar a mano o revalidar también asignan al usuario, si la solicitud no ten
 <li style="margin-bottom:7px;"><strong>Validación</strong>: cada regla con su resultado en español. Los errores rechazan; las observaciones
   solo avisan.</li>
 <li style="margin-bottom:7px;"><strong>Líneas y emparejamiento</strong>: a qué línea de la orden corresponde cada línea de la factura y por
-  qué método (por código, por IA o manual). Si se cambia a mano la línea de la orden, hay que
-  pulsar <strong>Revalidar</strong>; lo emparejado a mano se conserva. Los fletes quedan como <strong>cargo
-  adicional</strong>.</li>
+  qué método (por código, por IA o manual), con el <strong>factor de unidad</strong> cuando la factura viene en
+  otra unidad que la orden. Si se cambia a mano la línea de la orden o el factor, hay que pulsar
+  <strong>Revalidar</strong>; lo emparejado a mano se conserva. Los fletes quedan como <strong>cargo adicional</strong>.</li>
+<li style="margin-bottom:7px;"><strong>Orden de compra</strong>: las líneas de las órdenes al lado de la factura, con los subtotales y
+  totales de las dos.</li>
 <li style="margin-bottom:7px;"><strong>Datos extraídos</strong>: emisor, adquiriente, número, fecha y totales leídos del XML.</li>
-<li style="margin-bottom:7px;"><strong>Adjuntos</strong>: el PDF y el XML tal como los subió el proveedor.</li>
+<li style="margin-bottom:7px;"><strong>Adjuntos</strong>: el PDF y el XML tal como los subió el proveedor, con el ojo de vista previa.</li>
 </ul>
 <div class="lc-fig"><img alt="Pestaña Validación" src="24_backend_validacion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pestaña Validación</p></div>
-<div class="lc-fig"><img alt="Líneas: emparejamiento manual y cargo adicional" src="25_backend_lineas.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Líneas: emparejamiento manual y cargo adicional</p></div>
 <div class="lc-fig"><img alt="Datos extraídos del XML" src="26_backend_datos_extraidos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Datos extraídos del XML</p></div>
-<div class="lc-fig"><img alt="Adjuntos de la solicitud" src="27_backend_adjuntos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Adjuntos de la solicitud</p></div>
+<p style="margin:0 0 12px;">Las pestañas <em>Líneas</em> (factor de unidad), <em>Orden de compra</em> y <em>Adjuntos</em> (vista previa) tienen su
+paso a paso con capturas en el recorrido de la versión 19.0.1.3.0, al final.</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Crear la factura</h2>
 <p style="margin:0 0 12px;">Con la solicitud <em>Aprobada</em> o <em>Con observaciones</em>, <strong>Crear factura</strong> genera la factura de
 proveedor en <strong>borrador</strong>:</p>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">trae las líneas ligadas a la orden, y la orden queda <em>Facturada</em> en el momento;</li>
 <li style="margin-bottom:7px;">la referencia es el número del proveedor;</li>
+<li style="margin-bottom:7px;">la fecha contable es la fecha de la factura, no la de hoy;</li>
 <li style="margin-bottom:7px;">muestra el <strong>CUFE / CUDE del proveedor</strong>, con un botón para copiarlo y el enlace <strong>Consultar en
   la DIAN</strong> (en facturas y notas crédito de proveedor);</li>
 <li style="margin-bottom:7px;">adjunta el PDF y el XML;</li>
 <li style="margin-bottom:7px;">un flete va con el <strong>producto de flete</strong> y se liga a una línea de flete de la orden; si la orden
-  no la tiene, se la agrega.</li>
+  no la tiene, se la agrega con la misma distribución analítica de la mercancía;</li>
+<li style="margin-bottom:7px;">con factor de unidad, la línea va en la unidad de la orden y el precio no se redondea, para que
+  el subtotal sea exactamente el del XML.</li>
 </ul>
 <p style="margin:0 0 12px;">Las actividades de revisión se cierran y el proveedor recibe el correo "factura registrada". La
 factura se confirma por el flujo normal. Si se borra la factura borrador, la solicitud vuelve a
@@ -278,6 +336,8 @@ no tiene resolución ni token.</p>
 <p style="margin:0 0 12px;"><strong>Rechazar.</strong> El Responsable rechaza una solicitud <em>Aprobada</em> o <em>Con observaciones</em> con
 <strong>Rechazar</strong>. El motivo es obligatorio, le llega al proveedor y queda en el chatter.</p>
 <div class="lc-fig"><img alt="Asistente de rechazo con motivo" src="33_backend_asistente_rechazo.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Asistente de rechazo con motivo</p></div>
+<p style="margin:0 0 12px;"><strong>Aprobar a mano</strong> una solicitud con observaciones y <strong>generar los eventos RADIAN</strong> de la factura
+publicada: ver el recorrido de la versión 19.0.1.3.0, al final.</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Correos al proveedor</h2>
 <p style="margin:0 0 12px;">El proveedor recibe un correo cuando su documento queda en revisión, cuando no pasa las
 validaciones, cuando contabilidad lo rechaza y cuando la factura queda registrada. Cada correo le
@@ -289,6 +349,135 @@ llega a la empresa y a la persona que radicó, también cuando es una persona na
 radicación está cerrada y desde qué día se reabre. Solo cierra el portal: contabilidad puede seguir
 creando solicitudes en el backend. Esta pantalla no se capturó, porque la prueba no se hizo en un
 día de cierre.</p>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Recorrido de la versión 19.0.1.3.0, paso a paso</h2>
+<p style="margin:0 0 12px;">Cada función nueva, con los pasos para repetirla en la interfaz y lo que se debe ver. Las pruebas
+1 a 6 se hacen con un usuario <strong>Responsable</strong>, la 7 con un usuario del portal del proveedor y la 8
+con un usuario de facturación cuyo contacto tenga los datos del firmante (ver <em>Datos del
+firmante</em> en la configuración). Los números de las capturas son los de la base de pruebas: en
+otra base cambian los documentos, no los pasos.</p>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Prueba 1: tope del flete</h3>
+<p style="margin:0 0 12px;">El flete que la orden no trae pasa si no supera el tope sobre la mercancía (los dos sin IVA); si lo
+supera, la solicitud queda con observación.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">En <em>Compras › Configuración › Ajustes</em>, bloque <em>Portal de facturas de proveedor</em>, comprobar que
+  hay <strong>Producto de flete</strong> y bajar <strong>Tope del flete (%)</strong> a 5. Guardar.</li>
+<li style="margin-bottom:7px;">Abrir una solicitud con flete por debajo del 10 % y por encima del 5 % de la mercancía (en la
+  captura, un flete de 15.000 sobre 200.000: 7,5 %) y pulsar <strong>Revalidar</strong>.</li>
+<li style="margin-bottom:7px;">Resultado: la solicitud pasa a <em>Con observaciones</em>. En la pestaña <em>Validación</em>, la regla
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">EXTRA_CHARGES</code> dice el porcentaje real y el tope. El proveedor ve la misma observación en el
+  portal.</li>
+<li style="margin-bottom:7px;">Devolver el tope a 10, guardar y revalidar: la solicitud vuelve a <em>Aprobada</em> y la regla del flete
+  queda <em>Correcto</em>. Con el tope en 0 no hay límite.</li>
+</ul>
+<div class="lc-fig"><img alt="Portal › Facturas radicadas › detalle: Con observaciones porque el flete supera el tope" src="13_portal_resultado_observaciones.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Portal › Facturas radicadas › detalle: Con observaciones porque el flete supera el tope</p></div>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Prueba 2: aprobar a mano una solicitud con observaciones</h3>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Con la solicitud de la prueba 1 en <em>Con observaciones</em> (tope en 5), revisar la observación en la
+  pestaña <em>Validación</em> y pulsar <strong>Aprobar</strong>.</li>
+<li style="margin-bottom:7px;">Resultado: la solicitud pasa a <em>Aprobada</em> y debajo del revisor aparecen <strong>Aprobada por</strong> y
+  <strong>Fecha de aprobación</strong>. En el chatter queda quién la aprobó.</li>
+<li style="margin-bottom:7px;">Pulsar <strong>Revalidar</strong> (o <em>Volver a borrador</em>): los dos campos desaparecen y, si las reglas dejan
+  otra vez observaciones, hay que volver a aprobar.</li>
+<li style="margin-bottom:7px;">Con un usuario solo <strong>Validador</strong> el botón <em>Aprobar</em> no aparece.</li>
+<li style="margin-bottom:7px;">Al terminar, devolver el tope a 10 y revalidar.</li>
+</ul>
+<div class="lc-fig"><img alt="Solicitud Con observaciones: regla EXTRA_CHARGES sobre el tope y botón Aprobar" src="46_solicitud_observacion_flete_aprobar.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Solicitud Con observaciones: regla EXTRA_CHARGES sobre el tope y botón Aprobar</p></div>
+<div class="lc-fig"><img alt="Solicitud aprobada a mano: estado Aprobada, Aprobada por y Fecha de aprobación" src="47_solicitud_aprobada_a_mano.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Solicitud aprobada a mano: estado Aprobada, Aprobada por y Fecha de aprobación</p></div>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Prueba 3: factor de unidad</h3>
+<p style="margin:0 0 12px;">Cuando el proveedor factura en otra unidad que la orden (bultos contra unidades, por ejemplo), la
+línea guarda la unidad del XML y un factor. Cantidad y precio se comparan y se facturan en la
+unidad de la orden.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Abrir una solicitud cuya factura venga en otra unidad (en la captura, 1 BLT a 100.000 contra una
+  orden en unidades), pestaña <em>Líneas y emparejamiento</em>. Con el botón de columnas de la lista
+  (a la derecha de los títulos) mostrar <em>Unidad del documento</em> y <em>Precio en unidad de la orden</em>.</li>
+<li style="margin-bottom:7px;">Poner <strong>Factor de unidad</strong> 12 y pulsar <strong>Revalidar</strong>. La cantidad pasa a 12 y el precio a
+  8.333,333333 en la unidad de la orden; el método queda <em>Manual</em>.</li>
+<li style="margin-bottom:7px;">Pulsar <strong>Crear factura</strong> y abrirla con el botón <strong>Factura</strong> del encabezado.</li>
+<li style="margin-bottom:7px;">Resultado: la línea de la factura dice 12 a 8.333,333333 y el subtotal es exactamente
+  100.000,00, el del XML (antes daba 99.999,96). La fecha contable es la de la factura.</li>
+<li style="margin-bottom:7px;">Con la IA configurada, <strong>Validar con IA</strong> pone el factor solo cuando la confianza es alta y el
+  precio convertido queda dentro de la tolerancia; las líneas emparejadas a mano no las toca.</li>
+</ul>
+<div class="lc-fig"><img alt="Líneas: 1 BLT en el XML, factor 12 y cantidad y precio en la unidad de la orden" src="25_backend_lineas.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Líneas: 1 BLT en el XML, factor 12 y cantidad y precio en la unidad de la orden</p></div>
+<div class="lc-fig"><img alt="Factura creada con el factor: 12 a 8.333,333333 y subtotal exacto" src="48_factura_factor_unidad.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Factura creada con el factor: 12 a 8.333,333333 y subtotal exacto</p></div>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Prueba 4: vista previa del PDF y del XML, y órdenes de compra</h3>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Abrir una solicitud, pestaña <strong>Adjuntos</strong>. Al lado de cada archivo hay un <strong>ojo</strong>.</li>
+<li style="margin-bottom:7px;">Pulsar el ojo del XML: se abre el XML con sangría, sin descargarlo. El del PDF lo abre en el
+  visor de Odoo.</li>
+<li style="margin-bottom:7px;">En una pantalla ancha, el PDF de la factura se ve al lado del formulario; en una angosta, en el
+  chatter.</li>
+<li style="margin-bottom:7px;">El botón <strong>Órdenes de compra</strong> del encabezado abre la orden, o la lista si la factura cubre
+  varias.</li>
+</ul>
+<div class="lc-fig"><img alt="Adjuntos: ojo de vista previa, PDF al lado del formulario y botón Órdenes de compra" src="27_backend_adjuntos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Adjuntos: ojo de vista previa, PDF al lado del formulario y botón Órdenes de compra</p></div>
+<div class="lc-fig"><img alt="Vista previa del XML de la DIAN" src="49_vista_previa_xml.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Vista previa del XML de la DIAN</p></div>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Prueba 5: pestaña Orden de compra</h3>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">En la misma solicitud, abrir la pestaña <strong>Orden de compra</strong>.</li>
+<li style="margin-bottom:7px;">Resultado: a la izquierda, subtotal y total de la factura; a la derecha, los de las órdenes;
+  abajo, las líneas de las órdenes con cantidad, recibido, facturado y por facturar. En la captura
+  los subtotales coinciden y los totales difieren por el flete, que la orden no trae.</li>
+</ul>
+<div class="lc-fig"><img alt="Pestaña Orden de compra: factura frente a órdenes" src="50_pestana_orden_compra.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pestaña Orden de compra: factura frente a órdenes</p></div>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Prueba 6: instructivo con los dos PDF</h3>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Abrir la empresa proveedora, pestaña <em>Portal de proveedor</em>, y pulsar <strong>Enviar instructivo del
+  portal</strong>.</li>
+<li style="margin-bottom:7px;">Resultado: el correo trae el paso a paso y <strong>dos PDF</strong> adjuntos (ver la captura del instructivo
+  en la configuración). Abrir cada adjunto para revisarlo y cerrar con <strong>Descartar</strong> si solo se
+  está probando.</li>
+</ul>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Prueba 7: órdenes de los últimos 12 meses en el portal</h3>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Entrar al portal con un usuario del proveedor e ir a <em>Radicar facturas › Radicar factura</em>.</li>
+<li style="margin-bottom:7px;">Resultado: solo se ofrecen las órdenes con fecha de orden dentro de los últimos 12 meses. En la
+  captura, P00036 (fecha de orden 29/11/2025) aparece y P00035 (29/09/2025) no, aunque las dos
+  están esperando factura.</li>
+<li style="margin-bottom:7px;">Contabilidad registra una orden más vieja desde el backend, donde no hay filtro.</li>
+</ul>
+<div class="lc-fig"><img alt="Portal › Radicar factura: solo órdenes de los últimos 12 meses" src="51_portal_ordenes_12_meses.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Portal › Radicar factura: solo órdenes de los últimos 12 meses</p></div>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Prueba 8: eventos RADIAN de receptor</h3>
+<p style="margin:0 0 12px;">Registra ante la DIAN el acuse de recibo (030), el recibo del bien (032) y la aceptación expresa
+(033) de una factura de proveedor, en ese orden. No se generan al publicar: hay que pulsar el
+botón.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Abrir una factura de proveedor <strong>publicada</strong>, con <strong>fecha de factura</strong>, <strong>CUFE / CUDE del
+  proveedor</strong>, en un diario marcado como <em>Eventos RADIAN de receptor</em> y sin eventos. El botón
+  <strong>Generar eventos RADIAN</strong> aparece en el encabezado, junto a <em>Nota de crédito</em>.</li>
+<li style="margin-bottom:7px;">El botón no aparece en un borrador, sin CUFE o sin fecha, en una nota crédito de proveedor, en un
+  diario sin la casilla o de documento soporte, ni si la factura ya tiene algún evento.</li>
+</ul>
+<div class="lc-fig"><img alt="Factura de proveedor publicada: botón Generar eventos RADIAN, fecha, diario y CUFE" src="41_factura_boton_radian.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Factura de proveedor publicada: botón Generar eventos RADIAN, fecha, diario y CUFE</p></div>
+<p style="margin:0 0 12px;"><strong>Si faltan datos.</strong> Con un firmante sin cargo o sin apellido, pulsar el botón muestra la lista de
+lo que falta y no numera ningún evento. Completar el contacto y volver a pulsar. Lo mismo pasa si a
+la compañía le falta el token de Edipo o el TestSetId.</p>
+<div class="lc-fig"><img alt="Faltan datos del firmante: apellido y cargo" src="42_radian_faltan_datos_firmante.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Faltan datos del firmante: apellido y cargo</p></div>
+<p style="margin:0 0 12px;"><strong>Resultado correcto.</strong> Con todo completo, pulsar el botón:</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">sale una notificación verde con los tres eventos generados y validados, y el mismo texto queda
+  en el chatter;</li>
+<li style="margin-bottom:7px;">el botón desaparece;</li>
+<li style="margin-bottom:7px;">la pestaña <strong>Eventos DIAN</strong> muestra 030, 032 y 033 publicados.</li>
+</ul>
+<div class="lc-fig"><img alt="Eventos RADIAN generados: notificación verde y nota en el chatter" src="43_radian_resultado_ok.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Eventos RADIAN generados: notificación verde y nota en el chatter</p></div>
+<div class="lc-fig"><img alt="Pestaña Eventos DIAN con 030, 032 y 033" src="44_radian_pestana_eventos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pestaña Eventos DIAN con 030, 032 y 033</p></div>
+<p style="margin:0 0 12px;"><strong>Si la DIAN rechaza un evento.</strong> Los que ya aceptó se conservan y los siguientes no se envían
+(032 necesita el 030 y 033 el 032). La notificación sale amarilla y se queda fija hasta cerrarla;
+dice qué evento falló y por qué, y lo mismo queda en el chatter. El botón no vuelve a aparecer: se
+corrige la causa y los eventos que faltan se crean desde la pestaña <em>Eventos DIAN</em>.</p>
+<div class="lc-fig"><img alt="Rechazo del 032: aviso amarillo y el 030 conservado en Eventos DIAN" src="45_radian_fallo_parcial.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Rechazo del 032: aviso amarillo y el 030 conservado en Eventos DIAN</p></div>
+<h3 style="font-size:16px;font-weight:600;color:#1f2937;margin:22px 0 8px;">Sin captura</h3>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Validar con IA</strong>: botón de la solicitud y acción <em>Validar con IA</em> de la lista para varias a la
+  vez. Necesita el servicio de IA configurado en Ajustes.</li>
+<li style="margin-bottom:7px;"><strong>Campos del portal por grupo</strong>: un usuario sin Validador ni Responsable (un cajero del punto de
+  venta, por ejemplo) abre un contacto, una orden o una factura sin error de acceso y sin ver los
+  botones <em>Solicitudes</em> ni la pestaña <em>Portal de proveedor</em>.</li>
+<li style="margin-bottom:7px;"><strong>Analítica del flete</strong>: si la orden tiene distribución analítica, la línea de flete que se le
+  agrega y la línea de la factura la llevan.</li>
+</ul>
 <h2>Limitaciones y pendientes</h2>
 <div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Hallazgos abiertos de la prueba en navegador (Odoo 19, 2026-10-02)</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
@@ -309,15 +498,31 @@ día de cierre.</p>
   rechazó igual, por la marca <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/Encrypt</code>.</li>
 <li style="margin-bottom:7px;"><strong>Analítica en notas</strong>: la orden de la prueba no tenía analítica. Falta ver un reembolso cuya
   orden sí la tenga.</li>
+<li style="margin-bottom:7px;"><strong>Eventos RADIAN ante la DIAN real</strong>: generar los eventos de una factura de proveedor con el
+  token de Edipo y el TestSetId de staging (o en producción) y un firmante con documento, nombre,
+  apellido y cargo reales. Confirmar que quien los genera no necesita el grupo de facturación
+  electrónica de Jorels y que la DIAN acepta los tres.</li>
+<li style="margin-bottom:7px;"><strong>Diario de RADIAN en producción</strong>: marcar <em>Eventos RADIAN de receptor</em> solo en el diario de
+  facturas electrónicas de proveedores (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">CHECKLIST_PRODUCCION.md</code>).</li>
 </ul>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pendiente de documentar</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><strong>Pantalla de cierre de fin de mes</strong> en el portal: solo se ve el último día hábil del mes,
   después de la hora de corte.</li>
 <li style="margin-bottom:7px;"><strong>Icono</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code> de 100×100: falta y necesita arte.</li>
+<li style="margin-bottom:7px;"><strong>Validar con IA</strong>: falta la captura del botón y de la acción de la lista; necesita el servicio de
+  IA configurado.</li>
+<li style="margin-bottom:7px;"><strong>Capturas del backend anteriores a 19.0.1.3.0</strong> (lista, filtros, actividades, tomar revisión,
+  validación, datos extraídos, factura, notas, documento soporte y rechazo): son de Odoo 19, pero
+  todavía no muestran los botones <em>Validar con IA</em>, <em>Aprobar</em> y <em>Órdenes de compra</em> ni la pestaña
+  <em>Orden de compra</em>. Hay que recapturarlas.</li>
 </ul>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Límites conocidos</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Los eventos RADIAN no se generan al publicar</strong>: hay que pulsar el botón en cada factura. Si un
+  evento falla, el botón ya no vuelve a aparecer y los que faltan se crean desde <em>Eventos DIAN</em>.</li>
+<li style="margin-bottom:7px;"><strong>Una orden de más de 12 meses no se radica por el portal</strong>: la registra contabilidad en el
+  backend.</li>
 <li style="margin-bottom:7px;"><strong>La tolerancia porcentual (0,5 % por defecto) vale también para el precio unitario.</strong> Es la
   regla de negocio vigente: un precio de 12.050 contra 12.000 (0,42 %) no deja la observación
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PRICE_UNIT_MISMATCH</code>.</li>

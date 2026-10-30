@@ -247,3 +247,24 @@ class TestDianXmlParser(BaseCase):
         self.assertFalse(dian_xml_parser.is_valid_cufe("abc"))
         self.assertFalse(dian_xml_parser.is_valid_cufe("z" * 96))
         self.assertFalse(dian_xml_parser.is_valid_cufe(None))
+
+    def test_pretty_xml_indentes_a_plain_invoice(self):
+        raw = read_fixture("invoice_direct.xml")
+        pretty = dian_xml_parser.pretty_xml(raw)
+        self.assertIn("<cbc:ID>SETP990000001</cbc:ID>", pretty)
+        self.assertGreater(pretty.count("\n"), 20, "El XML sale con sangria.")
+        self.assertNotIn("AttachedDocument", pretty)
+
+    def test_pretty_xml_puts_embedded_invoice_first_for_attached(self):
+        raw = read_fixture("attached_document.xml")
+        pretty = dian_xml_parser.pretty_xml(raw)
+        self.assertIn("Factura embebida en el AttachedDocument", pretty)
+        # La factura embebida va antes del AttachedDocument completo.
+        self.assertLess(
+            pretty.index("Factura embebida"), pretty.index("AttachedDocument completo"))
+        self.assertIn("<cbc:ID>", pretty)
+
+    def test_pretty_xml_broken_raises(self):
+        # Un archivo que no es XML lanza DianXmlError (no devuelve basura).
+        with self.assertRaises(DianXmlError):
+            dian_xml_parser.pretty_xml(b"no es xml")

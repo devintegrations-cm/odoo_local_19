@@ -11,6 +11,8 @@ import re
 from datetime import date, datetime
 from unittest.mock import patch
 
+from dateutil.relativedelta import relativedelta
+
 from odoo.tests import tagged
 from odoo.tests.common import HttpCase
 
@@ -542,6 +544,23 @@ class TestSupplierPortal(SprCase, HttpCase):
         first.action_reject(reason="PDF ilegible.")
         form = self.url_open("/my/payment-requests/new?document_type=invoice")
         self.assertIn(order.name, form.text)
+
+    def test_orders_out_of_the_12_month_window_are_not_offered(self):
+        current = self._standard_po()
+        old = self._standard_po()
+        # 13 meses atras: fuera de la ventana movil de 12 meses (DECISIONS.md #62).
+        old.date_order = datetime.now() - relativedelta(months=13)
+        self.assertFalse(old._spr_accepts_invoice())
+        self.assertTrue(current._spr_accepts_invoice())
+
+        self.authenticate("ana_portal", "ana_portal_pw_2026")
+        form = self.url_open("/my/payment-requests/new?document_type=invoice")
+        self.assertIn(current.name, form.text)
+        self.assertNotIn(old.name, form.text, "Fuera de la ventana: no se ofrece.")
+        # Ni forzando el id en el envio.
+        self._submit(old)
+        self.assertFalse(self.env["supplier.payment.request"].search_count(
+            [("purchase_ids", "in", old.id)]))
 
     def test_support_doc_only_for_non_invoicing_suppliers(self):
         order = self._standard_po()

@@ -86,6 +86,56 @@ RESPONSE_SCHEMA = {
 }
 
 
+# Revision de unidades (DECISIONS.md #65, port de la v17 #51): la factura y la
+# orden hablan de la misma mercancia en unidades distintas (bulto contra kilo,
+# caja contra unidad) y por eso la cantidad y el precio no cuadran aunque el
+# total si.
+UNITS_SYSTEM_PROMPT = """Eres un asistente de contabilidad de compras en Colombia.
+Recibes lineas de una factura de proveedor ya emparejadas con una linea de la
+orden de compra. En cada par la cantidad o el precio unitario no coinciden, pero
+puede ser porque la factura y la orden usan unidades de medida distintas para la
+misma mercancia (por ejemplo, la factura cobra 2 bultos de 70 kg y la orden pide
+140 kg; o 10 cajas x 12 contra 120 unidades).
+
+Para cada linea di el factor de conversion: cuantas unidades de la orden hay en
+una unidad de la factura (cantidad_orden = cantidad_factura x factor y
+precio_orden = precio_factura / factor). Usa la descripcion, el codigo de unidad
+DIAN de la factura (unit_code, por ejemplo NIU, KGM, BG, BX), la unidad de la
+orden y los precios. Si la diferencia no se explica por unidades (es un cambio
+de precio o una cantidad de mas), responde factor 1 y explica por que.
+
+Confianza entre 0 y 1: 0.9 o mas solo si la descripcion o la unidad hacen
+evidente el factor y los precios lo confirman; por debajo de 0.7 si es una
+suposicion. No inventes factores. Notas y resumen en espanol, breves."""
+
+UNITS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "lines": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "idx": {"type": "integer"},
+                    "factor": {"type": "number"},
+                    "confidence": {"type": "number"},
+                    "note": {"type": "string"},
+                },
+                "required": ["idx", "factor", "confidence", "note"],
+                "additionalProperties": False,
+            },
+        },
+        "summary_es": {"type": "string"},
+    },
+    "required": ["lines", "summary_es"],
+    "additionalProperties": False,
+}
+
+
+class AiUnavailable(Exception):
+    """La IA no respondio algo utilizable. El mensaje va al resumen."""
+
+
 # ---------------------------------------------------------------------------
 # Respuesta normalizada
 # ---------------------------------------------------------------------------
@@ -139,6 +189,38 @@ def sanitize_response(payload, invoice_lines, po_lines, provider):
     }
 
 
+def sanitize_units_response(payload, lines):
+    """Factores de unidad con la forma exacta del contrato.
+
+    Indices fuera de rango, factores no positivos y confianzas fuera de 0-1 se
+    descartan o se acotan. Que el factor cuadre con los precios lo decide
+    despues quien lo aplica, no la IA.
+    """
+    if not isinstance(payload, dict):
+        return {"lines": [], "summary_es": "Respuesta de IA no reconocida."}
+    result = []
+    seen = set()
+    for item in payload.get("lines") or []:
+        if not isinstance(item, dict):
+            continue
+        try:
+            idx = int(item.get("idx"))
+            factor = float(item.get("factor"))
+            confidence = float(item.get("confidence") or 0.0)
+        except (TypeError, ValueError):
+            continue
+        if idx < 0 or idx >= len(lines) or idx in seen or factor <= 0:
+            continue
+        seen.add(idx)
+        result.append({
+            "idx": idx,
+            "factor": factor,
+            "confidence": max(0.0, min(1.0, confidence)),
+            "note": str(item.get("note") or "")[:500],
+        })
+    return {"lines": result, "summary_es": str(payload.get("summary_es") or "")[:1000]}
+
+
 def build_request_payload(invoice_lines, po_lines, context):
     """Lo unico que sale hacia la IA. Sin NITs, sin nombres de terceros."""
     return {
@@ -189,6 +271,21 @@ class AiAdapter:
             }
         """
         raise NotImplementedError
+
+    def reconcile_units(self, lines, context):
+        """Factor de unidad de cada par linea de factura / linea de orden.
+
+        ``lines`` es una lista de dicts con ``idx``, los datos de la factura
+        (``description``, ``code``, ``unit_code``, ``quantity``,
+        ``price_unit``) y los de la orden (``po_description``, ``po_uom``,
+        ``po_quantity``, ``po_price_unit``). Devuelve::
+
+            {"lines": [{"idx": int, "factor": float, "confidence": float,
+                        "note": str}],
+             "summary_es": str}
+        """
+        return {"lines": [], "summary_es": "La revision de unidades no esta disponible "
+                                           "con este proveedor de IA."}
 
 
 class NoopAiAdapter(AiAdapter):
@@ -254,19 +351,14 @@ class AnthropicAiAdapter(AiAdapter):
             "anthropic-version": ANTHROPIC_VERSION,
         }
 
-    def _body(self, invoice_lines, po_lines, context):
-        payload = build_request_payload(invoice_lines, po_lines, context)
-        user_text = (
-            "Empareja estas lineas. Responde solo con el JSON del esquema.\n\n%s"
-            % json.dumps(payload, ensure_ascii=False, indent=1)
-        )
+    def _body(self, system, user_text, schema):
         return {
             "model": self.model,
             "max_tokens": MAX_TOKENS,
-            "system": SYSTEM_PROMPT,
+            "system": system,
             "messages": [{"role": "user", "content": user_text}],
             "output_config": {
-                "format": {"type": "json_schema", "schema": RESPONSE_SCHEMA},
+                "format": {"type": "json_schema", "schema": schema},
             },
         }
 
@@ -283,19 +375,22 @@ class AnthropicAiAdapter(AiAdapter):
                 return json.loads(block["text"])
         raise ValueError("la respuesta no trae texto")
 
-    def match_lines(self, invoice_lines, po_lines, context):
+    def _ask(self, system, instruction, payload, schema):
+        """Una llamada a la Messages API. Devuelve el JSON del esquema o lanza
+        ``AiUnavailable`` con el motivo para el resumen."""
         if not self.api_key:
-            return empty_response(invoice_lines, po_lines, "API key de Anthropic no configurada.")
+            raise AiUnavailable("API key de Anthropic no configurada.")
+        user_text = "%s\n\n%s" % (instruction, json.dumps(payload, ensure_ascii=False, indent=1))
         try:
             response = requests.post(
                 self.url, headers=self._headers(),
-                json=self._body(invoice_lines, po_lines, context),
+                json=self._body(system, user_text, schema),
                 timeout=(CONNECT_TIMEOUT, self.timeout),
             )
         except requests.RequestException as error:
-            _logger.warning("[SPR] IA (anthropic): error de conexion (%s)", error.__class__.__name__)
-            return empty_response(invoice_lines, po_lines,
-                                  "IA no disponible (%s)." % error.__class__.__name__)
+            _logger.warning("[SPR] IA (%s): error de conexion (%s)", self.name,
+                            error.__class__.__name__)
+            raise AiUnavailable("IA no disponible (%s)." % error.__class__.__name__) from error
         if response.status_code != 200:
             # El cuerpo del error puede traer detalle util, pero nunca la key.
             detail = ""
@@ -303,22 +398,47 @@ class AnthropicAiAdapter(AiAdapter):
                 detail = (response.json().get("error") or {}).get("message") or ""
             except ValueError:
                 pass
-            _logger.warning("[SPR] IA (anthropic): HTTP %s %s", response.status_code, detail[:200])
-            return empty_response(invoice_lines, po_lines,
-                                  "IA no disponible (HTTP %s)." % response.status_code)
+            _logger.warning("[SPR] IA (%s): HTTP %s %s", self.name, response.status_code,
+                            detail[:200])
+            raise AiUnavailable("IA no disponible (HTTP %s)." % response.status_code)
         try:
             message = response.json()
-            payload = self._extract_json(message)
+            answer = self._extract_json(message)
         except ValueError as error:
-            _logger.warning("[SPR] IA (anthropic): respuesta invalida: %s", error)
-            return empty_response(invoice_lines, po_lines, "Respuesta de IA invalida: %s." % error)
+            _logger.warning("[SPR] IA (%s): respuesta invalida: %s", self.name, error)
+            raise AiUnavailable("Respuesta de IA invalida: %s." % error) from error
         usage = message.get("usage") or {}
         _logger.info(
-            "[SPR] IA (anthropic) modelo %s: %s tokens entrada, %s salida, %s sugerencias",
-            message.get("model") or self.model, usage.get("input_tokens"),
-            usage.get("output_tokens"), len(payload.get("matches") or []),
+            "[SPR] IA (%s) modelo %s: %s tokens entrada, %s salida",
+            self.name, message.get("model") or self.model, usage.get("input_tokens"),
+            usage.get("output_tokens"),
         )
+        return answer
+
+    def match_lines(self, invoice_lines, po_lines, context):
+        try:
+            payload = self._ask(
+                SYSTEM_PROMPT, "Empareja estas lineas. Responde solo con el JSON del esquema.",
+                build_request_payload(invoice_lines, po_lines, context), RESPONSE_SCHEMA,
+            )
+        except AiUnavailable as error:
+            return empty_response(invoice_lines, po_lines, str(error))
         return sanitize_response(payload, invoice_lines, po_lines, self.name)
+
+    def reconcile_units(self, lines, context):
+        payload = {
+            "lines": lines,
+            "context": {"currency": (context or {}).get("currency") or "COP"},
+        }
+        try:
+            answer = self._ask(
+                UNITS_SYSTEM_PROMPT,
+                "Da el factor de unidad de cada linea. Responde solo con el JSON del esquema.",
+                payload, UNITS_SCHEMA,
+            )
+        except AiUnavailable as error:
+            return {"lines": [], "summary_es": str(error)}
+        return sanitize_units_response(answer, lines)
 
 
 class CliAiAdapter(AnthropicAiAdapter):

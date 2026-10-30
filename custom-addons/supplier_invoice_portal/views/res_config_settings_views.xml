@@ -31,6 +31,15 @@
                     <setting string="Producto de flete"
                              help="Con el se registran los fletes y cargos de envio que la factura cobra y la orden de compra no tiene.">
                         <field name="spr_freight_product_id" options="{'no_create': True}"/>
+                        <div class="content-group mt16" invisible="not spr_freight_product_id">
+                            <div class="row">
+                                <label for="spr_freight_max_pct" class="col-lg-4 o_light_label"/>
+                                <field name="spr_freight_max_pct"/>
+                            </div>
+                            <div class="text-muted">
+                                Flete sobre el subtotal de la mercancia, los dos sin IVA; si lo supera, la solicitud queda con observaciones. 0 = sin tope.
+                            </div>
+                        </div>
                     </setting>
                     <setting string="IVA como producto"
                              help="Las lineas van con impuesto 0 % y el IVA total de la factura entra como una linea del producto de mayor valor IVA, que se agrega a la orden de compra si no la tiene.">

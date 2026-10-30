@@ -96,6 +96,7 @@ restriccion de grupo propia.
 | Grupo validador | `spr.validator_group_id` | grupo *Validador* del modulo |
 | Diario de documento soporte | `spr.support_journal_id` | vacio (obligatorio para cuentas de cobro) |
 | Producto de flete | `spr.freight_product_id` | vacio (obligatorio para facturas con flete) |
+| Tope del flete (%) | `spr.freight_max_pct` | 10 (0 = sin tope) |
 | Cierre de radicacion de fin de mes / hora de corte | `spr.cutoff_enabled` / `spr.cutoff_hour` | activado / 12:00 |
 | Consultar CUFE en la DIAN | `spr.dian_cufe_check` | desactivado (el catalogo exige captcha) |
 | URL del catalogo DIAN | `spr.dian_catalog_url` | `https://catalogo-vpfe.dian.gov.co` |
@@ -202,7 +203,7 @@ pestana *Validacion* del request y en `validation_json`.
 | `PO_STATE` | error | Hay al menos una OC y cada una esta confirmada, no esta totalmente facturada y es del proveedor |
 | `CURRENCY_UNSUPPORTED` | error | La factura viene en la moneda de la compania |
 | `AMOUNT_TOTAL` | error | El total sin fletes no supera lo pendiente por facturar de las OC, calculado linea por linea (+ tolerancia) |
-| `EXTRA_CHARGES` | observacion | La factura cobra fletes o cargos que no estan en la OC (DECISIONS #35) |
+| `EXTRA_CHARGES` | observacion / ok | La factura cobra fletes o cargos que no estan en la OC (DECISIONS #35). OK con producto de flete (#64), salvo que supere el tope del flete sobre la mercancia (#73) |
 | `NOTE_ORIGIN` | error | Notas: se identifico la factura que corrigen y es de este proveedor |
 | `NOTE_AMOUNT` | error | Nota credito: no supera el saldo de la factura |
 | `DEBIT_NOTE_ACCEPTANCE` | observacion | Nota debito: pendiente de aceptacion del Responsable |
@@ -491,7 +492,6 @@ en CDATA y una factura con descuentos de linea. Ningun test hace red.
 
 Queda como TODO para versiones posteriores:
 
-- Eventos RADIAN (acuse de recibo, recibo del bien, aceptacion expresa).
 - Plan de pagos y programacion de pagos.
 - Solicitudes de pago sin factura (anticipos), ver DECISIONS #39.
 - Facturas sin orden de compra.

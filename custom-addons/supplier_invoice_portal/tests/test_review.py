@@ -7,9 +7,12 @@
 - "Tomar revision" y la toma automatica al trabajar la solicitud.
 - Crear la factura, rechazar o cancelar cierran las actividades de revision.
 - Analitica en las notas (DECISIONS.md #52) y precision de la cantidad.
+- Aprobacion manual y eventos RADIAN de receptor (DECISIONS.md #71 y #72).
 """
 
-from odoo.exceptions import UserError
+from unittest.mock import patch
+
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, tagged
 
 from odoo.addons.supplier_invoice_portal.services import validation_rules
@@ -53,6 +56,30 @@ class TestReview(SprCase):
         request.action_validate()
         self.assertEqual(request.state, "approved", request.validation_summary)
         return request
+
+    def _radian_skip_if_no_jorels(self):
+        if "l10n_co_edi_jorels.radian" not in self.env:
+            self.skipTest("Jorels no instalado")
+
+    def _radian_ensure_sequences(self):
+        # Las secuencias RADIAN de Jorels nacen para la empresa principal; el
+        # test usa otra, asi que se replican aqui (action_post las exige).
+        for code in ("030", "032", "033"):
+            sequence_code = "radian_%s_supplier" % code
+            if not self.env["ir.sequence"].search([
+                    ("code", "=", sequence_code),
+                    ("company_id", "=", self.company.id)], limit=1):
+                self.env["ir.sequence"].create({
+                    "name": sequence_code,
+                    "code": sequence_code,
+                    "prefix": "E%s" % code,
+                    "padding": 1,
+                    "company_id": self.company.id,
+                })
+
+    def _radian_supplier_events(self, move):
+        return self.env["l10n_co_edi_jorels.radian"].sudo().search([
+            ("move_id", "=", move.id), ("type", "=", "supplier")])
 
     # ------------------------------------------------------------------
     # Actividades
@@ -218,6 +245,92 @@ class TestReview(SprCase):
         self.assertIn("Factura de proveedor en borrador SETP990000001 creada", bodies)
         self.assertNotIn("False", bodies)
 
+    def _warning_request(self):
+        other = self.env["product.product"].create({
+            "name": "Bolsa generica", "type": "consu",
+            "purchase_method": "purchase",
+            "supplier_taxes_id": [(6, 0, self.tax_19.ids)],
+        })
+        order = self._create_po([(self.product_cafe, 100, 12000.0), (other, 50, 2000.0)])
+        request = self._create_request(order)
+        request.action_validate()
+        self.assertEqual(request.state, "warning")
+        return request
+
+    def test_approve_by_hand_overrides_warning(self):
+        """DECISIONS.md #71: el Responsable aprueba a mano una solicitud con observaciones."""
+        request = self._warning_request()
+        self.assertFalse(request.approved_by_id)
+
+        request.with_user(self.manager).action_approve()
+        self.assertEqual(request.state, "approved")
+        self.assertEqual(request.approved_by_id, self.manager)
+        self.assertTrue(request.approved_date)
+        bodies = " ".join(request.message_ids.mapped(lambda message: str(message.body)))
+        self.assertIn("Aprobada a mano", bodies)
+
+        # Solo aplica a solicitudes con observaciones.
+        draft = self._create_request(self._standard_po())
+        with self.assertRaises(UserError):
+            draft.action_approve()
+
+    def test_approve_not_allowed_from_validating(self):
+        """DECISIONS.md #71: en validacion no hay hallazgos que aprobar."""
+        request = self._create_request(self._standard_po())
+        request.write({"state": "validating"})
+        with self.assertRaises(UserError):
+            request.with_user(self.manager).action_approve()
+        self.assertEqual(request.state, "validating")
+        self.assertFalse(request.approved_by_id)
+
+    def test_approve_requires_the_manager_group(self):
+        """DECISIONS.md #71: un validador sin el grupo Responsable no aprueba a mano."""
+        request = self._warning_request()
+        with self.assertRaises(AccessError):
+            request.with_user(self.validator).action_approve()
+        self.assertEqual(request.state, "warning")
+        self.assertFalse(request.approved_by_id)
+
+    def test_manual_approval_is_cleared_by_reset_and_revalidation(self):
+        """DECISIONS.md #71: revalidar o volver a borrador descarta la aprobacion."""
+        request = self._warning_request()
+        request.with_user(self.manager).action_approve()
+        self.assertTrue(request.approved_by_id)
+        request.action_validate()
+        self.assertEqual(request.state, "warning", "las reglas vuelven a dejar observaciones")
+        self.assertFalse(request.approved_by_id)
+        self.assertFalse(request.approved_date)
+
+        request.with_user(self.manager).action_approve()
+        self.assertTrue(request.approved_by_id)
+        request.action_reset_to_draft()
+        self.assertEqual(request.state, "draft")
+        self.assertFalse(request.approved_by_id)
+        self.assertFalse(request.approved_date)
+
+    def test_converted_price_is_not_rounded_to_the_currency(self):
+        """DECISIONS.md #74: con factor 12 sobre un subtotal de 100.000 el
+        precio convertido no se redondea y la linea de la factura da 100.000."""
+        order = self._create_po([
+            (self.product_cafe, 100, 12000.0),
+            (self.product_bag, 600, 2000.0 / 12),
+        ])
+        request = self._create_request(order)
+        request.action_validate()
+        bag = request.line_ids.filtered(lambda line: line.product_code == "EMP-500")
+        self.assertEqual(bag.subtotal, 100000.0)
+        bag.write({"uom_factor": 12.0, "match_method": "manual"})
+        request.action_validate()
+        self.assertIn(request.state, ("approved", "warning"), request.validation_summary)
+        bag = request.line_ids.filtered(lambda line: line.product_code == "EMP-500")
+        self.assertAlmostEqual(bag.po_price_unit, 2000.0 / 12, places=6)
+        request.action_create_bill()
+        bill_line = request.move_id.invoice_line_ids.filtered(
+            lambda line: line.product_id == self.product_bag)
+        self.assertEqual(bill_line.quantity, 600.0)
+        self.assertEqual(bill_line.discount, 0.0)
+        self.assertEqual(bill_line.price_subtotal, 100000.0)
+
     def test_take_review_not_allowed_when_closed(self):
         request = self._validated()
         request.action_create_bill()
@@ -296,6 +409,274 @@ class TestReview(SprCase):
         self.assertEqual(
             move.spr_cufe_dian_url,
             "https://catalogo-vpfe.dian.gov.co/document/searchqr?documentkey=%s" % move.cufe)
+
+    # ------------------------------------------------------------------
+    # Eventos RADIAN de receptor (DECISIONS.md #72)
+    # ------------------------------------------------------------------
+
+    def _radian_class(self):
+        return type(self.env["l10n_co_edi_jorels.radian"])
+
+    def _radian_bill(self, post=True, enable_journal=True):
+        """Factura de proveedor con CUFE y fecha, en un diario habilitado."""
+        self._radian_skip_if_no_jorels()
+        self._radian_ensure_sequences()
+        request = self._validated()
+        request.action_create_bill()
+        move = request.move_id
+        self.assertTrue(move.cufe and move.invoice_date)
+        move.journal_id.spr_radian_enabled = enable_journal
+        if post:
+            move.action_post()
+        return move
+
+    def _radian_offline(self):
+        """Sin red: los prechequeos de compania y firmante se prueban aparte y
+        la validacion ante la DIAN no sale (el mock cuenta las llamadas)."""
+        return (
+            patch.object(type(self.env["account.move"]),
+                         "_spr_radian_missing_requirements", return_value=[]),
+            patch.object(self._radian_class(), "validate_dian", autospec=True),
+        )
+
+    def _can_generate(self, move):
+        move.invalidate_recordset(["spr_radian_can_generate"])
+        return move.spr_radian_can_generate
+
+    def test_radian_button_creates_the_three_events(self):
+        """El boton crea, publica y valida 030, 032 y 033 y luego se oculta."""
+        move = self._radian_bill()
+        self.assertFalse(move.ei_uuid)
+        self.assertTrue(self._can_generate(move))
+
+        requirements, validate = self._radian_offline()
+        with requirements, validate as validate_dian:
+            action = move.action_spr_generate_radian_events()
+        self.assertEqual(move.ei_uuid, move.cufe, "cufe se puentea a ei_uuid")
+        events = self._radian_supplier_events(move)
+        self.assertEqual(len(events), 3)
+        self.assertEqual(set(events.mapped("event_id.code")), {"030", "032", "033"})
+        self.assertEqual(set(events.mapped("state")), {"posted"})
+        self.assertEqual(events.user_id, self.env.user)
+        self.assertEqual(events.company_id, move.company_id)
+        # La compania de pruebas tiene el estado intermedio de Jorels: se
+        # valida aqui, una vez por evento.
+        self.assertTrue(move.company_id.enable_validate_state)
+        self.assertEqual(validate_dian.call_count, 3)
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(action["params"]["type"], "success")
+        self.assertFalse(action["params"]["sticky"])
+        bodies = " ".join(move.message_ids.mapped(lambda m: str(m.body)))
+        self.assertIn("generados y validados", bodies)
+        # Ya tiene eventos: el boton desaparece y la accion no repite.
+        self.assertFalse(self._can_generate(move))
+        with self.assertRaises(UserError):
+            move.action_spr_generate_radian_events()
+        self.assertEqual(len(self._radian_supplier_events(move)), 3)
+
+    def test_radian_button_hidden_in_draft(self):
+        move = self._radian_bill(post=False)
+        self.assertEqual(move.state, "draft")
+        self.assertFalse(self._can_generate(move))
+        with self.assertRaises(UserError):
+            move.action_spr_generate_radian_events()
+        self.assertFalse(self._radian_supplier_events(move))
+
+    def test_radian_button_hidden_without_cufe(self):
+        move = self._radian_bill()
+        move.write({"cufe": False})
+        self.assertFalse(self._can_generate(move))
+        # ei_uuid no cuenta: en documento soporte guarda nuestro CUDS.
+        move.sudo().ei_uuid = "a" * 96
+        self.assertFalse(self._can_generate(move))
+        with self.assertRaises(UserError):
+            move.action_spr_generate_radian_events()
+
+    def test_radian_button_hidden_without_invoice_date(self):
+        move = self._radian_bill()
+        # Una factura publicada no deja borrar la fecha por el ORM.
+        self.env.flush_all()
+        self.env.cr.execute(
+            "UPDATE account_move SET invoice_date = NULL WHERE id = %s", [move.id])
+        move.invalidate_recordset()
+        self.assertFalse(self._can_generate(move))
+        with self.assertRaises(UserError):
+            move.action_spr_generate_radian_events()
+
+    def test_radian_button_hidden_on_supplier_credit_notes(self):
+        """Los eventos 030-033 son de la factura: la nota credito no los lleva."""
+        self._radian_skip_if_no_jorels()
+        invoice_request = self._validated()
+        invoice_request.action_create_bill()
+        invoice_request.move_id.journal_id.spr_radian_enabled = True
+        invoice_request.move_id.action_post()
+        note = self._create_request(None, xml_name="credit_note.xml", document_type="credit_note")
+        note.action_validate()
+        note.action_create_bill()
+        refund = note.move_id
+        self.assertEqual(refund.move_type, "in_refund")
+        refund.action_post()
+        self.assertTrue(refund.cufe and refund.invoice_date)
+        self.assertTrue(refund.journal_id.spr_radian_enabled)
+        self.assertFalse(self._can_generate(refund))
+        with self.assertRaises(UserError):
+            refund.action_spr_generate_radian_events()
+
+    def test_radian_button_needs_an_enabled_journal(self):
+        """Solo en diarios marcados: un diario de compras sin marcar no
+        muestra el boton; al marcarlo, si."""
+        move = self._radian_bill(enable_journal=False)
+        self.assertFalse(move.journal_id.spr_radian_enabled)
+        self.assertFalse(self._can_generate(move))
+        with self.assertRaisesRegex(UserError, "no esta habilitado para eventos RADIAN"):
+            move.action_spr_generate_radian_events()
+        move.journal_id.spr_radian_enabled = True
+        self.assertTrue(self._can_generate(move))
+
+    def test_radian_button_hidden_on_support_document_journal(self):
+        """Documento soporte (resolucion tipo 12) es guarda dura aunque el
+        diario este marcado: se simula porque el test no arma la resolucion."""
+        move = self._radian_bill()
+        self.assertTrue(self._can_generate(move))
+        with patch.object(type(self.env["account.journal"]),
+                          "_spr_is_support_document_journal", return_value=True):
+            self.assertFalse(self._can_generate(move))
+            with self.assertRaises(UserError):
+                move.action_spr_generate_radian_events()
+
+    def test_radian_button_hidden_when_events_exist(self):
+        """Si ya hay eventos (p. ej. creados a mano en Jorels), no se duplica."""
+        move = self._radian_bill()
+        event = self.env["l10n_co_edi_jorels.events"].sudo().search([("code", "=", "030")], limit=1)
+        self.env["l10n_co_edi_jorels.radian"].sudo().create({
+            "move_id": move.id, "event_id": event.id, "type": "supplier",
+            "user_id": self.env.user.id,
+        })
+        self.assertFalse(self._can_generate(move))
+        with self.assertRaises(UserError):
+            move.action_spr_generate_radian_events()
+        self.assertEqual(len(self._radian_supplier_events(move)), 1)
+
+    def test_radian_button_in_the_bill_header(self):
+        """El boton va en el encabezado del formulario, no en el engranaje."""
+        from lxml import etree
+        arch = etree.fromstring(
+            self.env["account.move"].get_views([(False, "form")])["views"]["form"]["arch"])
+        button = arch.xpath("//header/button[@name='action_spr_generate_radian_events']")
+        self.assertEqual(len(button), 1)
+        self.assertEqual(button[0].get("invisible"), "not spr_radian_can_generate")
+        self.assertFalse(self.env["ir.actions.server"].search([
+            ("binding_model_id.model", "=", "account.move"),
+            ("code", "ilike", "action_spr_generate_radian_events"),
+        ]))
+        journal_arch = etree.fromstring(
+            self.env["account.journal"].get_views([(False, "form")])["views"]["form"]["arch"])
+        self.assertTrue(journal_arch.xpath("//field[@name='spr_radian_enabled']"))
+
+    def test_radian_journal_constraint(self):
+        """Solo diarios de compras que no sean de documento soporte."""
+        self._radian_skip_if_no_jorels()
+        sale = self.company_data["default_journal_sale"]
+        with self.assertRaises(ValidationError):
+            sale.spr_radian_enabled = True
+        purchase = self.company_data["default_journal_purchase"]
+        with patch.object(type(purchase), "_spr_is_support_document_journal", return_value=True):
+            with self.assertRaises(ValidationError):
+                purchase.spr_radian_enabled = True
+        purchase.spr_radian_enabled = True
+        self.assertTrue(purchase.spr_radian_enabled)
+
+    def test_radian_requires_company_and_signer_data(self):
+        """Lo que Jorels exige y hoy falla tarde se avisa antes de numerar."""
+        move = self._radian_bill()
+        move.company_id.write({
+            "ei_enable": True, "api_key": "token-de-prueba",
+            "is_not_test": False, "test_set_id": "set-de-prueba",
+        })
+        self.env.user.partner_id.function = False
+        with self.assertRaisesRegex(UserError, "cargo del usuario firmante"):
+            move.action_spr_generate_radian_events()
+        self.assertFalse(self._radian_supplier_events(move))
+
+        move.company_id.write({"api_key": False, "test_set_id": False})
+        missing = move._spr_radian_missing_requirements()
+        self.assertTrue(any("api_key" in item for item in missing))
+        self.assertTrue(any("TestSetId" in item for item in missing))
+
+        # El NIT generico de consumidor final no cuenta como documento.
+        self.env.user.partner_id.vat = "222222222222"
+        missing = move._spr_radian_missing_requirements()
+        self.assertTrue(any("consumidor final" in item for item in missing))
+
+    def test_radian_failure_keeps_the_events_already_accepted(self):
+        """Si falla el 032, el 030 queda, 032 y 033 no, y no se lanza error:
+        un rollback perderia lo que la DIAN ya acepto."""
+        move = self._radian_bill()
+        original = self._radian_class().action_post
+
+        def action_post(radian):
+            if radian.event_id.code == "032":
+                raise UserError("DIAN rechazo el recibo del bien")
+            return original(radian)
+
+        requirements, validate = self._radian_offline()
+        with requirements, validate, patch.object(
+                self._radian_class(), "action_post", action_post):
+            action = move.action_spr_generate_radian_events()
+        events = self._radian_supplier_events(move)
+        self.assertEqual(events.event_id.mapped("code"), ["030"])
+        self.assertEqual(events.state, "posted")
+        self.assertEqual(action["params"]["type"], "warning")
+        self.assertTrue(action["params"]["sticky"])
+        bodies = " ".join(move.message_ids.mapped(lambda m: str(m.body)))
+        self.assertIn("Fallo el evento 032", bodies)
+        self.assertIn("DIAN rechazo el recibo del bien", bodies)
+        self.assertIn(events.name, bodies)
+
+    def test_radian_edipo_unreachable_gives_a_clear_message(self):
+        """Edipo caido: Jorels deja escapar un UnboundLocalError envuelto en un
+        UserError en ingles; el chatter dice que no hubo respuesta y no queda
+        ningun evento."""
+        move = self._radian_bill()
+
+        def action_post(radian):
+            # Lo que hace validate_dian_generic cuando requests.post falla.
+            try:
+                raise UnboundLocalError(
+                    "cannot access local variable 'response' where it is not "
+                    "associated with a value")
+            except UnboundLocalError as error:
+                raise UserError("Failed to process the DIAN request for document: %s: %s"
+                                % (radian.name, error))
+
+        requirements, validate = self._radian_offline()
+        with requirements, validate, patch.object(
+                self._radian_class(), "action_post", action_post):
+            action = move.action_spr_generate_radian_events()
+        self.assertFalse(self._radian_supplier_events(move))
+        self.assertEqual(action["params"]["type"], "warning")
+        bodies = " ".join(move.message_ids.mapped(lambda m: str(m.body)))
+        self.assertIn("No hubo respuesta del servicio de facturacion electronica", bodies)
+        self.assertIn("vuelva a pulsar 'Generar eventos RADIAN'", bodies)
+        self.assertNotIn("local variable", bodies)
+        self.assertTrue(self._can_generate(move))
+
+    def test_radian_production_rejection_is_rolled_back(self):
+        """En produccion, un evento que la DIAN no valida (Jorels con
+        ei_always_validate no lanza) se revierte y no se siguen los demas."""
+        move = self._radian_bill()
+        # Por SQL: el write de Jorels sobre is_not_test llama a la API de Edipo.
+        self.env.flush_all()
+        self.env.cr.execute(
+            "UPDATE res_company SET is_not_test = TRUE WHERE id = %s", [move.company_id.id])
+        move.company_id.invalidate_recordset(["is_not_test"])
+        requirements, validate = self._radian_offline()
+        with requirements, validate:  # validate_dian no marca edi_is_valid
+            action = move.action_spr_generate_radian_events()
+        self.assertFalse(self._radian_supplier_events(move))
+        self.assertEqual(action["params"]["type"], "warning")
+        bodies = " ".join(move.message_ids.mapped(lambda m: str(m.body)))
+        self.assertIn("Fallo el evento 030", bodies)
 
     def test_amounts_in_findings_use_colombian_format(self):
         """$ 1.547.000,00 y no 1,547,000.00 (DECISIONS.md #56)."""

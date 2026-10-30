@@ -20,13 +20,21 @@ Para quién es:
 
 Lo que el módulo cubre:
 
-- Solo radican los proveedores marcados como **Puede radicar facturas en el portal**. Antes de
-  radicar, cada uno tiene que cargar en *Mi cuenta* su cámara de comercio, su RUT y su
-  certificación bancaria, y completar sus datos de facturación electrónica.
+- Solo radican los proveedores marcados como **Puede radicar facturas en el portal**, y solo sobre
+  órdenes de los últimos 12 meses. Antes de radicar, cada uno tiene que cargar en *Mi cuenta* su
+  cámara de comercio, su RUT y su certificación bancaria, y completar sus datos de facturación
+  electrónica.
 - Reglas automáticas: NIT del emisor y del adquiriente, CUFE repetido, estado de la orden, totales,
   impuestos, cantidades y precios contra lo pendiente de la orden, y tipo de documento.
 - Fletes y envíos que la orden no trae: se marcan como **cargo adicional** y la factura los lleva
-  con el producto de flete.
+  con el producto de flete. Un flete que supera el **tope** sobre la mercancía queda como
+  observación.
+- Facturas en otra unidad que la orden: **factor de unidad** por línea, puesto a mano o propuesto
+  por la IA.
+- El Responsable puede **aprobar a mano** una solicitud con observaciones ya revisadas.
+- Vista previa del PDF y del XML sin descargarlos, y las líneas de la orden al lado de la factura.
+- Botón **Generar eventos RADIAN** en la factura de proveedor publicada: acuse de recibo, recibo
+  del bien y aceptación expresa ante la DIAN (con la facturación electrónica de Jorels).
 - Notas crédito (generan un reembolso) y notas débito (requieren aceptación) sobre una factura ya
   registrada.
 - Cuenta de cobro de quien no está obligado a facturar: se registra en el diario de **documento
