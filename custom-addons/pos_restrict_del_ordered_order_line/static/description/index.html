@@ -119,9 +119,10 @@ actualiza con la cantidad nueva.</p>
   cuenta.</li>
 <li style="margin-bottom:7px;"><strong>La cantidad ordenada no baja con una reducción autorizada.</strong> Queda en el valor anterior hasta el
   próximo envío o pago.</li>
-<li style="margin-bottom:7px;"><strong>Sin "Iniciar sesión como empleado" la regla compara ids distintos.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getCashier()</code> devuelve el
-  usuario (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.users</code>) y el módulo compara su id con ids de empleados. El campo se oculta en Ajustes
-  en ese caso, pero el valor guardado se conserva y sigue aplicando.</li>
+<li style="margin-bottom:7px;"><strong>Sin "Iniciar sesión como empleado" la regla no aplica.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getCashier()</code> devuelve el usuario
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.users</code>), cuyo id no se puede comparar con ids de empleados, así que el módulo permite reducir
+  y eliminar a cualquiera aunque la lista haya quedado cargada de antes. El campo se oculta en Ajustes
+  en ese caso, pero el valor guardado se conserva.</li>
 <li style="margin-bottom:7px;">El texto de ayuda de Ajustes menciona "borrar pedidos", que es la función de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_del_order</code>.</li>
 <li style="margin-bottom:7px;">Los textos están en español en el código; el aviso usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_t</code> pero el módulo no trae archivos de
   traducción. El título <em>Operacion no permitida</em> va sin tilde.</li>
@@ -165,6 +166,6 @@ actualiza con la cantidad nueva.</p>
 </ul></div>
 <div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee Roasters</b><ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">Libertario Coffee Roasters, equipo de desarrollo</li>
-<li style="margin-bottom:7px;">Cristian Mira (migración a Odoo 19)</li>
+<li style="margin-bottom:7px;">Miguel Bolivar (migración a Odoo 19)</li>
 </ul></div>
 </div>

@@ -14,9 +14,10 @@
   cuenta.
 - **La cantidad ordenada no baja con una reducción autorizada.** Queda en el valor anterior hasta el
   próximo envío o pago.
-- **Sin "Iniciar sesión como empleado" la regla compara ids distintos.** `getCashier()` devuelve el
-  usuario (`res.users`) y el módulo compara su id con ids de empleados. El campo se oculta en Ajustes
-  en ese caso, pero el valor guardado se conserva y sigue aplicando.
+- **Sin "Iniciar sesión como empleado" la regla no aplica.** `getCashier()` devuelve el usuario
+  (`res.users`), cuyo id no se puede comparar con ids de empleados, así que el módulo permite reducir
+  y eliminar a cualquiera aunque la lista haya quedado cargada de antes. El campo se oculta en Ajustes
+  en ese caso, pero el valor guardado se conserva.
 - El texto de ayuda de Ajustes menciona "borrar pedidos", que es la función de `pos_del_order`.
 - Los textos están en español en el código; el aviso usa `_t` pero el módulo no trae archivos de
   traducción. El título *Operacion no permitida* va sin tilde.

@@ -10,10 +10,10 @@
   líneas a la de destino), *Liberar la mesa* (solo con la orden vacía), la opción *Cancelar
   órdenes* del cierre de sesión cuando quedan órdenes abiertas y la sincronización entre
   dispositivos del restaurante.
-- **Sin "Iniciar sesión como empleado" la regla compara ids distintos.** Sin `pos_hr` activo en el
-  punto de venta, `getCashier()` devuelve el usuario (`res.users`) y el módulo compara su id con
-  ids de empleados. Si la lista quedó cargada de antes, el resultado no es confiable. El campo se
-  oculta en Ajustes en ese caso, pero el valor guardado se conserva.
+- **Sin "Iniciar sesión como empleado" la regla no aplica.** Sin `pos_hr` activo en el punto de
+  venta, `getCashier()` devuelve el usuario (`res.users`), cuyo id no se puede comparar con ids de
+  empleados, así que el módulo permite borrar a cualquiera aunque la lista haya quedado cargada de
+  antes. El campo se oculta en Ajustes en ese caso, pero el valor guardado se conserva.
 - La fila de Ajustes no tiene texto de ayuda: el significado de la lista vacía solo se ve en el
   marcador "Todos los empleados".
 - El aviso está escrito en español en el código. Está marcado con `_t`, pero el módulo no trae

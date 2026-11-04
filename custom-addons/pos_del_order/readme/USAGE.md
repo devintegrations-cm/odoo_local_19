@@ -38,6 +38,6 @@ el POS muestra el aviso *Advertencia* y la orden no se toca.
 - **Nadie ve el ícono de borrar.** Odoo lo oculta además en órdenes pagadas, con un pago
   electrónico ya aprobado, en la orden vacía por defecto y para empleados con permisos mínimos.
   Esas condiciones aplican también con la lista vacía.
-- **El aviso sale para todos, incluso con la lista cargada.** Comprobar que *Iniciar sesión como
-  empleado* esté activo: sin él, el POS usa el usuario y no el empleado, y el control no encuentra
-  coincidencias (ver *Limitaciones conocidas*).
+- **La regla no restringe a nadie, incluso con la lista cargada.** Comprobar que *Iniciar sesión como
+  empleado* esté activo: sin él, el POS usa el usuario y no el empleado, y el módulo no aplica la
+  restricción (ver *Limitaciones conocidas*).

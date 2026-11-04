@@ -82,9 +82,9 @@ el POS muestra el aviso <em>Advertencia</em> y la orden no se toca.</p>
 <li style="margin-bottom:7px;"><strong>Nadie ve el ícono de borrar.</strong> Odoo lo oculta además en órdenes pagadas, con un pago
   electrónico ya aprobado, en la orden vacía por defecto y para empleados con permisos mínimos.
   Esas condiciones aplican también con la lista vacía.</li>
-<li style="margin-bottom:7px;"><strong>El aviso sale para todos, incluso con la lista cargada.</strong> Comprobar que <em>Iniciar sesión como
-  empleado</em> esté activo: sin él, el POS usa el usuario y no el empleado, y el control no encuentra
-  coincidencias (ver <em>Limitaciones conocidas</em>).</li>
+<li style="margin-bottom:7px;"><strong>La regla no restringe a nadie, incluso con la lista cargada.</strong> Comprobar que <em>Iniciar sesión como
+  empleado</em> esté activo: sin él, el POS usa el usuario y no el empleado, y el módulo no aplica la
+  restricción (ver <em>Limitaciones conocidas</em>).</li>
 </ul>
 <h2>Limitaciones y pendientes</h2>
 <div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
@@ -99,10 +99,10 @@ el POS muestra el aviso <em>Advertencia</em> y la orden no se toca.</p>
   líneas a la de destino), <em>Liberar la mesa</em> (solo con la orden vacía), la opción <em>Cancelar
   órdenes</em> del cierre de sesión cuando quedan órdenes abiertas y la sincronización entre
   dispositivos del restaurante.</li>
-<li style="margin-bottom:7px;"><strong>Sin "Iniciar sesión como empleado" la regla compara ids distintos.</strong> Sin <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo en el
-  punto de venta, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getCashier()</code> devuelve el usuario (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.users</code>) y el módulo compara su id con
-  ids de empleados. Si la lista quedó cargada de antes, el resultado no es confiable. El campo se
-  oculta en Ajustes en ese caso, pero el valor guardado se conserva.</li>
+<li style="margin-bottom:7px;"><strong>Sin "Iniciar sesión como empleado" la regla no aplica.</strong> Sin <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo en el punto de
+  venta, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getCashier()</code> devuelve el usuario (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.users</code>), cuyo id no se puede comparar con ids de
+  empleados, así que el módulo permite borrar a cualquiera aunque la lista haya quedado cargada de
+  antes. El campo se oculta en Ajustes en ese caso, pero el valor guardado se conserva.</li>
 <li style="margin-bottom:7px;">La fila de Ajustes no tiene texto de ayuda: el significado de la lista vacía solo se ve en el
   marcador "Todos los empleados".</li>
 <li style="margin-bottom:7px;">El aviso está escrito en español en el código. Está marcado con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_t</code>, pero el módulo no trae
@@ -138,7 +138,8 @@ el POS muestra el aviso <em>Advertencia</em> y la orden no se toca.</p>
   POS no tiene test automático: se valida a mano en el navegador.</li>
 <li style="margin-bottom:7px;">En <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">doc/historial_16_17/</code> quedan las notas de la migración 16→17, solo como historial.</li>
 </ul></div>
-<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Osmar Toloza</b><ul style="margin:0 0 14px;padding-left:22px;">
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Desarrollado por:</b><ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">Osmar Toloza</li>
+<li style="margin-bottom:7px;">Miguel Bolivar</li>
 </ul></div>
 </div>

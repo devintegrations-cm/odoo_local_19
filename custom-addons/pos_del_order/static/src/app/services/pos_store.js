@@ -44,6 +44,11 @@ patch(PosStore.prototype, {
     },
 
     isEmployeeAllowedToDeleteOrders() {
+        if (!this.config.module_pos_hr) {
+            // Sin login de empleados el cajero es un res.users: su id no se
+            // puede comparar con ids de hr.employee, asi que la regla no aplica.
+            return true;
+        }
         const allowed = this._allowedDeletionEmployeeIds();
         if (!allowed.length) {
             // Empty configuration keeps the historical behaviour: everyone.

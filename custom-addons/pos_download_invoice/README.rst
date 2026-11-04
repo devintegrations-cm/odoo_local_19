@@ -4,7 +4,7 @@ POS Download Invoice
 
 ..
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   !! Generado por .claude/scripts/gen_readme.py          !!
+   !! Generado a partir de los fragmentos de readme/      !!
    !! Los cambios se sobrescriben: editar readme/*.md     !!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

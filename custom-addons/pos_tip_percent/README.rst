@@ -4,7 +4,7 @@ POS Tip Percentage
 
 ..
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   !! Generado por .claude/scripts/gen_readme.py          !!
+   !! Generado a partir de los fragmentos de readme/      !!
    !! Los cambios se sobrescriben: editar readme/*.md     !!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -238,4 +238,4 @@ Contributors
 
 - Roaya (autor original)
 - Libertario Coffee
-- Cristian Mira (migración a Odoo 19)
+- Miguel Bolivar (migración a Odoo 19)

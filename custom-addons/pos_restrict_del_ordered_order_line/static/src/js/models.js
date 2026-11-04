@@ -50,7 +50,9 @@ patch(PosOrderline.prototype, {
 
     isCapableToDeletePosOrderLines() {
         const pos = posRestrictState.pos;
-        if (!pos) {
+        if (!pos || !pos.config.module_pos_hr) {
+            // Sin login de empleados el cajero es un res.users: su id no se
+            // puede comparar con ids de hr.employee, asi que la regla no aplica.
             return true;
         }
         const cashier = pos.getCashier();
