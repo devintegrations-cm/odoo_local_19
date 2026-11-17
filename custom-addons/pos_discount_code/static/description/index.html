@@ -1,0 +1,120 @@
+<div style="max-width:860px;margin:0;padding:4px 0 40px;font-size:15px;line-height:1.65;color:#374151;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 14px;font-size:17px;line-height:1.6;color:#1f2937;">Agrega al Punto de Venta el botón <strong>Convenio To Plus</strong> para canjear bonos (códigos promocionales,
+cupones y tarjetas de regalo) pidiendo el <strong>tipo y el número de documento</strong> de quien canjea, y deja
+el canje <strong>registrado en la orden</strong> para poder rastrearlo después.</p>
+<p style="margin:0 0 12px;">El módulo no crea descuentos propios: aplica los programas de <em>Punto de venta › Productos ›
+Descuentos y lealtad</em> con la lealtad nativa de Odoo (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_loyalty</code>). En las cajas donde está
+activo, el botón reemplaza al «Enter Code» de Odoo.</p>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Formulario con tipo de documento, número y código, validado desde el primer <strong>Validar</strong>:</li>
+<li style="margin-bottom:7px;">promociones con código: vigencia y lista de precios, en la caja;</li>
+<li style="margin-bottom:7px;">cupones y tarjetas de regalo: consulta al servidor que <strong>no gasta</strong> el cupón;</li>
+<li style="margin-bottom:7px;">en los tipos numéricos (NIT, CC, TI, TE, CE, NIUP), el número solo admite dígitos.</li>
+<li style="margin-bottom:7px;">El cupón se gasta recién al cobrar.</li>
+<li style="margin-bottom:7px;">Vista previa antes de aplicar: programa, valor (%, fijo o saldo de la tarjeta), vigencia y
+  documento.</li>
+<li style="margin-bottom:7px;">Un código no se aplica dos veces en la misma orden. Si el cajero quitó la línea del descuento,
+  el código se puede volver a aplicar sin que el cliente pierda el bono.</li>
+<li style="margin-bottom:7px;">Si la orden ya tenía otro código, se avisa en la vista previa y queda solo el nuevo.</li>
+<li style="margin-bottom:7px;">Pestaña <strong>Descuento</strong> en la orden con el programa, el código, el valor descontado, el estado
+  del bono al canjear y el documento. El valor y el estado los calcula el servidor.</li>
+<li style="margin-bottom:7px;">Antes de abrir el formulario se revisa que <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_loyalty</code> tenga la forma esperada: si una
+  actualización de Odoo la cambia, el botón muestra un aviso en vez de aplicar descuentos a medias.</li>
+</ul>
+<div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
+<h2>Configuración</h2>
+<p style="margin:0 0 12px;"><strong>Botón por caja.</strong> En <em>Punto de Venta › Configuración › Ajustes</em>, elegir la caja en el selector
+superior y, en el bloque de precios y descuentos, marcar <strong>Botón de descuento (Convenio To Plus)</strong>.
+Viene marcado por defecto. Desmarcado, esa caja vuelve a mostrar el «Enter Code» de Odoo.</p>
+<div class="lc-fig"><img alt="Punto de Venta › Configuración › Ajustes: elegir la caja y marcar «Botón de descuento (Convenio To Plus)»" src="01_configuracion.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Punto de Venta › Configuración › Ajustes: elegir la caja y marcar «Botón de descuento (Convenio To Plus)»</p></div>
+<p style="margin:0 0 12px;">El botón aparece solo si la caja tiene cargado al menos un programa canjeable con código.</p>
+<p style="margin:0 0 12px;"><strong>Programas de descuento.</strong> En <em>Punto de Venta › Productos › Descuentos y lealtad</em>, crear el
+programa con <em>Disponible en: Punto de venta</em>. Sirven los tipos <strong>Código de descuento</strong>,
+<strong>Cupones</strong>, <strong>Promociones</strong> (con regla de código), <strong>Tarjeta de regalo</strong> y <strong>Cupones para la
+próxima orden</strong>; las tarjetas de lealtad por puntos no se canjean con este botón.</p>
+<div class="lc-fig"><img alt="Programa de tipo «Código de descuento» con la regla del código y la compra mínima" src="02_programa.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Programa de tipo «Código de descuento» con la regla del código y la compra mínima</p></div>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Un descuento fijo nunca supera el total de la orden. Si el bono no debe usarse en compras
+  menores a su valor, configurar una <strong>compra mínima</strong> en la regla del código.</li>
+<li style="margin-bottom:7px;">Un código promocional no guarda saldo; para eso se usa una tarjeta de regalo.</li>
+<li style="margin-bottom:7px;">Los cambios en los programas llegan a la caja la próxima vez que se carga el POS.</li>
+</ul>
+<h2>Uso</h2>
+<p style="margin:0 0 12px;">Con los productos ya en la orden, abrir las acciones (<strong>⋮</strong>) y pulsar <strong>Convenio To Plus</strong>:</p>
+<div class="lc-fig"><img alt="Acciones de la orden: botón «Convenio To Plus»" src="03_boton.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Acciones de la orden: botón «Convenio To Plus»</p></div>
+<p style="margin:0 0 12px;">Elegir el tipo de documento, escribir el número y el código, y pulsar <strong>Validar</strong>. Los errores
+(número vacío o con puntos, código inexistente, vencido o ya aplicado) se muestran en el mismo
+formulario:</p>
+<div class="lc-fig"><img alt="Formulario del canje con tipo de documento, número y código" src="04_formulario.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Formulario del canje con tipo de documento, número y código</p></div>
+<p style="margin:0 0 12px;">La vista previa muestra el bono y el documento. <strong>Modificar</strong> vuelve al formulario y <strong>Aplicar</strong>
+activa el código en la orden:</p>
+<div class="lc-fig"><img alt="Vista previa antes de aplicar el bono" src="05_vista_previa.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Vista previa antes de aplicar el bono</p></div>
+<p style="margin:0 0 12px;">El descuento queda como una línea más de la orden y un aviso muestra el valor descontado:</p>
+<div class="lc-fig"><img alt="Orden con la línea del descuento y el aviso del valor aplicado" src="06_descuento_aplicado.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Orden con la línea del descuento y el aviso del valor aplicado</p></div>
+<p style="margin:0 0 12px;">Si la orden todavía no cumple las condiciones del bono (por ejemplo, la compra mínima), el código
+queda activado con el aviso «el descuento se aplicará cuando la orden cumpla las condiciones del
+bono». La línea aparece sola cuando se cumplan, también si la orden se envió antes a cocina.</p>
+<p style="margin:0 0 12px;">Se cobra normalmente. Al sincronizar la orden pagada, el servidor registra el canje en la pestaña
+<strong>Descuento</strong> de la orden:</p>
+<div class="lc-fig"><img alt="Pestaña «Descuento» de una orden pagada" src="07_registro_orden.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pestaña «Descuento» de una orden pagada</p></div>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Qué se guarda en la orden</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;"><strong>Nombre del descuento</strong> y <strong>programa</strong>: los del programa, no lo que envía la caja.</li>
+<li style="margin-bottom:7px;"><strong>Código de descuento</strong>: el digitado en la caja.</li>
+<li style="margin-bottom:7px;"><strong>Valor del descuento</strong>: suma de las líneas de descuento del programa, con impuestos. Se
+  recalcula si cambian las líneas.</li>
+<li style="margin-bottom:7px;"><strong>Fecha de vigencia</strong>: la fecha final del programa.</li>
+<li style="margin-bottom:7px;"><strong>Estado al canjear</strong>: vigente o vencido <strong>en la fecha del canje</strong>, según el día local del
+  cajero. No cambia aunque el programa venza después.</li>
+<li style="margin-bottom:7px;"><strong>Tipo y número de documento</strong>: los digitados; en los tipos numéricos se quitan espacios, puntos
+  y guiones.</li>
+<li style="margin-bottom:7px;"><strong>Fecha de canje</strong>: el momento en que se aplicó el código.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Reglas del servidor</h2>
+<ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">El canje se registra solo si, <strong>al cobrar</strong>, el programa existe, el código es de ese programa
+  (regla con código o tarjeta) y la orden tiene al menos una línea de descuento del programa. Si
+  no, los campos quedan vacíos.</li>
+<li style="margin-bottom:7px;">Mientras la orden está en borrador (mesa abierta, enviada a cocina) el canje se conserva aunque
+  todavía no haya línea de descuento.</li>
+<li style="margin-bottom:7px;">Un dato inválido nunca impide que la orden se sincronice.</li>
+<li style="margin-bottom:7px;">En órdenes pagadas, los datos del canje no se pueden modificar.</li>
+</ul>
+<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pruebas</h2>
+<p style="margin:0 0 12px;">Las pruebas automáticas de la lógica del servidor están en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tests/test_discount_code.py</code> (22
+casos). Se corren en una base de pruebas, nunca en una base real, con
+<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">odoo -d &lt;base_de_pruebas&gt; -i pos_discount_code --test-enable --test-tags /pos_discount_code --stop-after-init</code>.</p>
+<p style="margin:0 0 12px;">El popup se prueba a mano en una caja, recargándola después de actualizar el módulo:</p>
+<ol style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Código válido sobre la compra mínima: línea de descuento y aviso con el valor.</li>
+<li style="margin-bottom:7px;">El mismo código otra vez: «Este código ya fue aplicado en la orden.»</li>
+<li style="margin-bottom:7px;">Otro código: aviso de reemplazo en la vista previa; queda solo el nuevo descuento.</li>
+<li style="margin-bottom:7px;">Quitar la línea del descuento y volver a aplicar el código: el descuento vuelve.</li>
+<li style="margin-bottom:7px;">Código inexistente, vencido o aún no vigente: error en el formulario.</li>
+<li style="margin-bottom:7px;">Cupón o tarjeta de regalo válidos: vista previa con el saldo real.</li>
+<li style="margin-bottom:7px;">Cédula con puntos: error de solo dígitos. Pasaporte con letras: pasa.</li>
+<li style="margin-bottom:7px;">Código bajo la compra mínima, orden enviada a cocina, completar la compra y cobrar: canje
+   registrado con su valor.</li>
+<li style="margin-bottom:7px;">Cobrar con el código activado pero sin línea de descuento: la orden queda sin canje.</li>
+<li style="margin-bottom:7px;">Caja con el ajuste desmarcado: aparece el «Enter Code» de Odoo.</li>
+</ol>
+<h2>Limitaciones y pendientes</h2>
+<div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Devolver una venta con bono no reactiva el bono ni marca el canje como reversado.</li>
+<li style="margin-bottom:7px;">No hay vistas de consulta de canjes (listas, filtros); los datos se ven en cada orden.</li>
+<li style="margin-bottom:7px;">En el formulario de una orden pagada los campos del canje se ven editables, pero guardar un
+  cambio da error: el servidor los bloquea.</li>
+<li style="margin-bottom:7px;">Las cajas que no se recarguen después de actualizar el módulo siguen con el JavaScript anterior.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/loyalty_adapter.js</code> es el único archivo que usa el estado interno de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_loyalty</code> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">codeActivatedProgramRules</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">couponPointChanges</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">disabledRewards</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_code_activated_coupon_ids</code>) y sus métodos internos. Al actualizar Odoo es el archivo a revisar.</li>
+<li style="margin-bottom:7px;">Con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">odooleal</code> instalado, su versión 19 solo deja aplicar recompensas cuando el programa Leal
+  está activo en la orden, para cualquier programa. Mientras no se corrija en ese módulo, el
+  descuento del bono no llega a la orden en las cajas sin Leal. Se valida en staging junto con
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">odooleal</code>.</li>
+</ul></div>
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Miguel Bolivar, Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
+<li style="margin-bottom:7px;">Miguel Bolivar</li>
+<li style="margin-bottom:7px;">Desarrollo Libertario \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#101;&#103;&#105;&#111;&#110;&#97;&#108;&#105;&#116;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#114;&#101;&#103;&#105;&#111;&#110;&#97;&#108;&#105;&#116;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;</a>&gt;</li>
+</ul></div>
+</div>

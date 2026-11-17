@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--
+        El botón "Enter Code" lo agrega pos_loyalty (pos_loyalty.ControlButtons)
+        dentro del diálogo de acciones ("More…"). No tiene clase ni nombre propio:
+        se ubica por su t-on-click. Si una actualización de Odoo lo cambia, este
+        xpath falla al cargar el POS (no queda oculto en silencio).
+    -->
+    <t t-name="pos_discount_code.ControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//button[@t-on-click='() => this.clickPromoCode()']" position="attributes">
+            <attribute name="t-if">!pos.config.show_discount_code_button</attribute>
+        </xpath>
+        <xpath expr="//button[@t-on-click='() => this.clickPromoCode()']" position="after">
+            <button t-if="showDiscountCodeButton()"
+                    class="o_discount_code_button"
+                    t-att-class="buttonClass"
+                    t-on-click="() => this.clickDiscountCode()">
+                <i class="fa fa-tag me-1"/>Convenio To Plus
+            </button>
+        </xpath>
+    </t>
+
+</templates>
