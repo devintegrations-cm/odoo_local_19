@@ -215,6 +215,35 @@ class TestPosApiCredibanco(TransactionCase):
 
         self.assertFalse(payment.credibanco_extra_info)
 
+    # ------------------------------------------------------------------
+    # Manual completion ("Agregar información")
+    # ------------------------------------------------------------------
+
+    def test_extra_info_wizard_offers_the_terminal_concepts(self):
+        """Regression: the callable selection took no argument and the wizard
+        could not be opened (TypeError when the form asked for its fields)."""
+        selection = self.env["credibanco.extra.info.wizard"].fields_get(
+            ["credibancoExtraField"]
+        )["credibancoExtraField"]["selection"]
+
+        self.assertIn(("Código de autorización", "Código de autorización"), selection)
+
+    def test_extra_info_wizard_adds_a_row_to_the_payment(self):
+        payment = self._payment()
+
+        wizard = self.env["credibanco.extra.info.wizard"].create({
+            "payment_order_id": payment.id,
+            "credibancoExtraField": "Código de autorización",
+            "credibancoExtraValue": "M777",
+        })
+        wizard.action_confirm()
+
+        values = {
+            row.credibancoField: row.credibancoValue
+            for row in payment.credibanco_extra_info
+        }
+        self.assertEqual(values.get("Código de autorización"), "M777")
+
     def test_pending_sale_is_stored_for_the_recovery_flow(self):
         """The interface keeps the unreconciled sale on the line, for after a reload."""
         payment = self._payment(credibanco_pending_sale=json.dumps(self._answer()))
