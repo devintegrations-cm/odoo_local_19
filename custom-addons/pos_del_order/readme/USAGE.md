@@ -25,8 +25,11 @@ el POS muestra el aviso *Advertencia* y la orden no se toca.
   bloquear la caja y entrar con otro PIN, el ícono aparece o desaparece según el nuevo empleado.
 - **Orden vacía**: el empleado no autorizado tampoco puede eliminarla con *Cancelar orden*; el aviso
   sale igual.
-- **Transferir o fusionar mesas, Liberar la mesa y cierre de sesión**: Odoo elimina órdenes en esos
-  flujos sin pasar por la regla del módulo (ver *Limitaciones conocidas*).
+- **Liberar la mesa**: el empleado no autorizado no puede liberar una mesa cuya orden (vacía) ya
+  está guardada en el servidor; sale el mismo aviso. Una mesa abierta por error y nunca guardada se
+  libera normalmente.
+- **Transferir o fusionar mesas y cierre de sesión**: Odoo elimina órdenes en esos flujos sin pasar
+  por la regla del módulo (ver *Limitaciones conocidas*).
 
 ## Solución de problemas
 

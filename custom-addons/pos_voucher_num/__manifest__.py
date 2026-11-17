@@ -14,7 +14,7 @@
     'author': "Osmar Toloza",
     'website': "desarrollo@libertariocoffee.com",
     'category': 'POS',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.1.1',
     'depends': ['base', 'point_of_sale', 'account'],
     'license': 'OPL-1',
     'data': [
@@ -35,5 +35,5 @@
             'pos_voucher_num/static/src/app/*',
         ],
     },
-    'auto_install': True,
+    'auto_install': False,
 }

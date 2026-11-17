@@ -16,7 +16,9 @@ class ProductTemplate(models.Model):
                 raise ValidationError("The Percentage Difference Cost must be between 0 and 1.")
 
     def calculate_difference_percentage(self):
-        telegram_config = self.env['telegram.alerts.config'].search([], limit=1)
+        # sudo(): la configuración (y su token) solo es accesible para base.group_system; quien ejecuta la acción
+        # desde la lista de productos sigue pudiendo enviar la alerta, como en 17.
+        telegram_config = self.env['telegram.alerts.config'].sudo().search([], limit=1)
         if not telegram_config:
             raise ValueError("Telegram configuration not found.")
 
@@ -30,7 +32,7 @@ class ProductTemplate(models.Model):
                 telegram_config.send_alert(message)
     
     def send_cost_differences(self, telegram_id):
-        telegram_config = self.env['telegram.alerts.config'].search([('identifier', '=', telegram_id)], limit=1)
+        telegram_config = self.env['telegram.alerts.config'].sudo().search([('identifier', '=', telegram_id)], limit=1)
         if not telegram_config:
             raise ValueError("Telegram configuration not found.")
 

@@ -49,7 +49,8 @@ Los grupos de campos cambian según el tipo elegido.
 - **Importe mínimo** (por defecto 0): el bloque solo sale si el total con impuestos del pedido es
   igual o mayor. 0 significa sin mínimo.
 - **Cada N pedidos** (obligatorio, por defecto 1) y **Desplazamiento** (por defecto 0): con 1 sale en
-  todos los pedidos; con 10, en los pedidos 10, 20, 30… de la sesión de caja. El desplazamiento
+  todos los pedidos; con 10, en los pedidos 10, 20, 30… de la secuencia del punto de venta (no se
+  reinicia al abrir caja). El desplazamiento
   corre el ciclo (con 10 y desplazamiento 5, sale en 5, 15, 25…) y debe estar entre 0 y N − 1.
 
 Para el QR de reseña, el *Contenido* puede ser el Place ID de Google o una URL completa: si empieza

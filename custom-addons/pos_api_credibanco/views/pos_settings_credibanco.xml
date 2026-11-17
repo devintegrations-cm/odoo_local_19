@@ -2,7 +2,7 @@
 
 <odoo>
     <!--
-        Odoo 19 renamed the list view type: <tree> is gone and view_mode no
+        Odoo 19 renamed the list view type: the old "tree" tag is gone and view_mode no
         longer accepts "tree".
     -->
     <record id="pos_credibanco_settings_view_list" model="ir.ui.view">

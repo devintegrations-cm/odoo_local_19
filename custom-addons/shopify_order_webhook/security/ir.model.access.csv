@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_shopify_payment_mapping_user,shopify.payment.journal.mapping user,model_shopify_payment_journal_mapping,base.group_user,1,0,0,0
+access_shopify_payment_mapping_manager,shopify.payment.journal.mapping manager,model_shopify_payment_journal_mapping,base.group_system,1,1,1,1
+access_shopify_source_tag_mapping_user,shopify.source.tag.mapping user,model_shopify_source_tag_mapping,base.group_user,1,0,0,0
+access_shopify_source_tag_mapping_manager,shopify.source.tag.mapping manager,model_shopify_source_tag_mapping,base.group_system,1,1,1,1
+access_shopify_order_simulation_manager,shopify.order.simulation manager,model_shopify_order_simulation,base.group_system,1,1,1,1
+access_shopify_order_import_user,shopify.order.import user,model_shopify_order_import,sales_team.group_sale_salesman,1,1,1,0
+access_shopify_order_import_manager,shopify.order.import manager,model_shopify_order_import,sales_team.group_sale_manager,1,1,1,1
+access_shopify_product_mapping_user,shopify.product.mapping user,model_shopify_product_mapping,sales_team.group_sale_salesman,1,1,1,0
+access_shopify_product_mapping_manager,shopify.product.mapping manager,model_shopify_product_mapping,sales_team.group_sale_manager,1,1,1,1

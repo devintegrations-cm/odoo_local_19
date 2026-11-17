@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Coffee lines: the first level of the sheet, with the plant's colours -->
+    <record id="view_plant_coffee_line_tree" model="ir.ui.view">
+        <field name="name">plant.coffee.line.tree</field>
+        <field name="model">plant.coffee.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" default_order="sequence, id">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="color" widget="color"/>
+                <field name="net_color" widget="color" optional="hide"/>
+                <field name="shrinkage"/>
+                <field name="green_minimum_kg" optional="show"/>
+                <field name="green_stock_kg" optional="show"/>
+                <field name="green_stock_raw_kg" optional="hide"/>
+                <field name="green_product_ids" widget="many2many_tags" optional="hide"/>
+                <field name="product_count"/>
+                <button name="action_open_products" type="object" string="Productos" icon="fa-cubes" title="Productos de la línea"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_plant_coffee_lines" model="ir.actions.act_window">
+        <field name="name">Líneas de café</field>
+        <field name="res_model">plant.coffee.line</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin líneas de café</p>
+            <p>Cada línea agrupa las filas de la hoja y da el color. El clasificador crea una línea nueva la primera vez que un producto la nombra. La merma de tostión y el mínimo de café verde de cada línea alimentan las alertas de café verde; vacíos, usan los valores de Ajustes › Planta.</p>
+        </field>
+    </record>
+
+    <!-- Products as the plant sees them -->
+    <record id="view_plant_product_tree" model="ir.ui.view">
+        <field name="name">product.template.plant.tree</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" create="false" default_order="plant_coffee_line_id, plant_net_grams, name" decoration-muted="not plant_in_sheet" decoration-info="plant_master_id">
+                <field name="default_code" readonly="1"/>
+                <field name="name" readonly="1"/>
+                <field name="plant_kind_id" options="{'no_create': True}"/>
+                <field name="plant_coffee_line_id"/>
+                <field name="plant_net_grams"/>
+                <field name="plant_grind"/>
+                <field name="plant_in_sheet" widget="boolean_toggle"/>
+                <field name="plant_master_id" options="{'no_create': True}"/>
+                <field name="plant_manual" widget="boolean_toggle" optional="show"/>
+                <field name="categ_id" optional="hide" readonly="1"/>
+                <field name="uom_id" optional="hide" readonly="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_plant_product_search" model="ir.ui.view">
+        <field name="name">product.template.plant.search</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', ('name', 'ilike', self), ('default_code', 'ilike', self)]" string="Producto"/>
+                <field name="plant_coffee_line_id"/>
+                <field name="plant_master_id"/>
+                <filter name="in_sheet" string="Cuentan en el consolidado" domain="[('plant_in_sheet', '=', True)]"/>
+                <filter name="unclassified" string="Sin clasificar" domain="[('plant_kind_id', '=', False)]"/>
+                <filter name="auto" string="Clasificación automática" domain="[('plant_manual', '=', False)]"/>
+                <filter name="with_master" string="Con referencia maestra" domain="[('plant_master_id', '!=', False)]"/>
+                <filter name="masters" string="Maestras con variantes" domain="[('plant_variant_ids', '!=', False)]"/>
+                <separator/>
+                <filter name="prepare" string="Café a granel" domain="[('plant_kind_code', '=', 'prepare')]"/>
+                <filter name="packed" string="Café empacado" domain="[('plant_kind_code', '=', 'packed')]"/>
+                <filter name="ready" string="Listos para vender" domain="[('plant_kind_code', '=', 'ready')]"/>
+                <filter name="supply" string="Insumos" domain="[('plant_kind_code', '=', 'supply')]"/>
+                <separator/>
+                <filter name="inactive" string="Archivados" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_line" string="Línea de café" context="{'group_by': 'plant_coffee_line_id'}"/>
+                    <filter name="group_kind" string="Tipo planta" context="{'group_by': 'plant_kind_id'}"/>
+                    <filter name="group_master" string="Referencia maestra" context="{'group_by': 'plant_master_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_plant_products" model="ir.actions.act_window">
+        <field name="name">Productos de planta</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_plant_product_tree"/>
+        <field name="search_view_id" ref="view_plant_product_search"/>
+        <field name="domain">[('type', '!=', 'service')]</field>
+        <field name="context">{'search_default_in_sheet': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin productos</p>
+            <p>Tipo planta, línea de café, gramos, molienda y referencia maestra de cada producto: con esto se arman las filas de la hoja y el plan de tostión.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_plant_products" name="Productos de planta" parent="menu_plant_root" action="action_plant_products" sequence="70" groups="stock.group_stock_manager"/>
+    <menuitem id="menu_plant_coffee_lines" name="Líneas de café" parent="menu_plant_root" action="action_plant_coffee_lines" sequence="71" groups="stock.group_stock_manager"/>
+</odoo>

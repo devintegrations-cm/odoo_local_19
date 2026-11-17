@@ -3,7 +3,6 @@ import psycopg2
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
 from odoo.fields import Domain
-from odoo.tools import plaintext2html
 from odoo.tools.translate import _lt
 
 # Module-level terms must use the lazy translation helper: get_text_alias (`_`)
@@ -56,6 +55,17 @@ class PosSession(models.Model):
         "rescue_parent_session_id",
         string="Sesiones de Rescate",
         readonly=True,
+    )
+    # Mismo campo que en 17 (17.0.4.1.0): producción tiene sesiones con valor.
+    # Quitarlo hace que el upgrade borre la columna (hallazgo B7/E7).
+    expected_opening_balance = fields.Monetary(
+        string="Saldo de apertura esperado",
+        readonly=True,
+        copy=False,
+        help="Saldo que Odoo calculó automáticamente al abrir la sesión. "
+             "Se compara con el saldo ingresado por el operador para detectar "
+             "inconsistencias de continuidad de caja.",
+        currency_field="currency_id",
     )
 
     # ------------------------------------------------------------------
@@ -264,11 +274,12 @@ class PosSession(models.Model):
 
         These are *internal consistency* checks: they detect data that should
         never happen (more movements than the limit, paid orders without
-        payments, unresolved rescues).  They block a cashier but only warn a
-        manager, because a false positive must never leave a store unable to
-        close its register at the end of the day.  The monetary rule
-        (``_check_authorized_cash_difference``) is deliberately NOT part of
-        this list: it applies to every role.
+        payments, unresolved rescues).  As in 17 they block every role,
+        managers included (decision recorded in ESTADO.md, 2026-09-24): in
+        production every store user is a POS manager, so a manager exemption
+        would switch the checks off.  The monetary rule
+        (``_check_authorized_cash_difference``) is not part of this list
+        because it must run before core stores the counted cash.
         """
         self.ensure_one()
         blockers = []
@@ -288,23 +299,12 @@ class PosSession(models.Model):
 
         return blockers
 
-    def _post_cash_validation_bypass(self, blockers):
-        """Audit trail for a manager closing over a consistency warning."""
-        for entry in blockers:
-            self.message_post(body=plaintext2html(_(
-                "Validación de caja superada por un responsable.\n\n"
-                "Regla: %(rule)s\n\n%(message)s",
-                rule=entry["kind"],
-                message=entry["message"],
-            )))
-
     def _get_structural_block_reason(self):
         """Why this session cannot be closed from the POS, whatever the role.
 
         These are not heuristics: a rescue session has no closing flow in the
         interface (core closes it from the backend), and a session already
-        closed or closing must not be closed twice.  Unlike the consistency
-        checks above, a manager cannot bypass them.
+        closed or closing must not be closed twice.
         """
         key = self._get_structural_block_reason_key()
         if key == "rescue_session":
@@ -332,9 +332,9 @@ class PosSession(models.Model):
     def _get_blocking_reasons(self):
         """Return the list of messages explaining why this session cannot close.
 
-        Feeds both the backend decision (``_cannot_close_session``) and the
-        frontend popup, so the operator and the server can never disagree.
-        Empty when the current user may proceed.
+        Feeds the frontend popup with the same rules ``_cannot_close_session``
+        enforces, so the operator and the server can never disagree.  Empty
+        when the session may be closed.  Not role dependent (as in 17).
         """
         self.ensure_one()
         reasons = []
@@ -343,11 +343,9 @@ class PosSession(models.Model):
         if structural:
             reasons.append(structural)
 
-        # Consistency checks: a manager may proceed, the decision is audited.
-        if not self.env.user.has_group(POS_MANAGER_GROUP):
-            reasons.extend(
-                entry["message"] for entry in self._get_cash_validation_blockers()
-            )
+        reasons.extend(
+            entry["message"] for entry in self._get_cash_validation_blockers()
+        )
 
         return reasons
 
@@ -485,17 +483,12 @@ class PosSession(models.Model):
     def _cannot_close_session(self, bank_payment_method_diffs=None):
         """Odoo extension point: block session close when validations fail.
 
-        Managers are allowed through the consistency checks of this module
-        (see ``_get_cash_validation_blockers``) so a false positive cannot trap
-        a store; ``post_closing_cash_details`` records the decision in the
-        session chatter.
+        Same rules as 17 for every role (rescue pending, Cash In/Out
+        integrity, data integrity); see ``_get_cash_validation_blockers``.
         """
         result = super()._cannot_close_session(bank_payment_method_diffs)
 
         if result:
-            return result
-
-        if self.env.user.has_group(POS_MANAGER_GROUP):
             return result
 
         blockers = self._get_cash_validation_blockers()
@@ -640,21 +633,13 @@ class PosSession(models.Model):
         # that the row lock is ours.
         self.invalidate_recordset()
 
-        blockers = self._get_cash_validation_blockers()
-        bypass_as_manager = (
-            bool(blockers) and self.env.user.has_group(POS_MANAGER_GROUP)
-        )
-
         error = self._check_authorized_cash_difference(counted_cash)
         if error:
             return error
 
-        result = super().post_closing_cash_details(counted_cash)
-
-        if bypass_as_manager and isinstance(result, dict) and result.get("successful"):
-            self._post_cash_validation_bypass(blockers)
-
-        return result
+        # Core calls our ``_cannot_close_session`` (consistency checks, fresh
+        # data after the lock) before writing the counted balance.
+        return super().post_closing_cash_details(counted_cash)
 
     def _check_authorized_cash_difference(self, counted_cash):
         """Return error dict if cash difference exceeds the configured maximum.
@@ -803,6 +788,65 @@ class PosSession(models.Model):
                 if last_normal:
                     vals["rescue_parent_session_id"] = last_normal.id
         return super().create(vals_list)
+
+    # ------------------------------------------------------------------
+    # Opening balance audit (restaurado de 17; decisión ESTADO.md 2026-09-24)
+    # ------------------------------------------------------------------
+
+    def action_pos_session_open(self):
+        """Capture the expected opening balance, as in 17.
+
+        Core (``point_of_sale/models/pos_session.py`` 19, ``action_pos_session_open``)
+        still sets ``cash_register_balance_start`` from the previous session's
+        ``cash_register_balance_end_real`` with the very same search; the value
+        is kept apart because the operator overwrites
+        ``cash_register_balance_start`` when opening the register.
+        """
+        for session in self.filtered(lambda s: s.state == "opening_control"):
+            if session.config_id.cash_control and not session.rescue:
+                last_session = self.search([
+                    ("config_id", "=", session.config_id.id),
+                    ("id", "!=", session.id),
+                ], limit=1)
+                if last_session:
+                    session.expected_opening_balance = (
+                        last_session.cash_register_balance_end_real
+                    )
+
+        return super().action_pos_session_open()
+
+    def _set_opening_control_data(self, cashbox_value, notes):
+        """Validate opening balance continuity (17: ``set_cashbox_pos``).
+
+        Odoo 19 renamed ``set_cashbox_pos`` to ``set_opening_control`` and asks
+        to inherit ``_set_opening_control_data`` instead (docstring of
+        ``set_opening_control``).  The check runs before super, i.e. before
+        the session is marked opened and the counted amount is stored.
+        """
+        self.ensure_one()
+
+        expected = self.expected_opening_balance
+        if self.config_id.set_maximum_difference and expected:
+            difference = abs(cashbox_value - expected)
+            maximum = self.config_id.amount_authorized_diff
+
+            if self.currency_id.compare_amounts(difference, maximum) > 0:
+                raise UserError(_(
+                    "Inconsistencia de continuidad de caja.\n\n"
+                    "Saldo esperado (calculado por el sistema): %(expected)s\n"
+                    "Saldo ingresado por el operador: %(entered)s\n"
+                    "Diferencia: %(diff)s\n"
+                    "Máximo autorizado: %(maximum)s\n\n"
+                    "El saldo ingresado difiere significativamente del saldo "
+                    "que el sistema esperaba basándose en la sesión anterior. "
+                    "Contacte a un responsable del Punto de Venta.",
+                    expected=self.currency_id.format(expected),
+                    entered=self.currency_id.format(cashbox_value),
+                    diff=self.currency_id.format(difference),
+                    maximum=self.currency_id.format(maximum),
+                ))
+
+        return super()._set_opening_control_data(cashbox_value, notes)
 
     # ------------------------------------------------------------------
     # Cycle validation: pending rescue sessions

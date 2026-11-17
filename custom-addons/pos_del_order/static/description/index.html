@@ -9,25 +9,6 @@ pasar por el líder de tienda.</p>
 <p style="margin:0 0 12px;">Con la lista vacía, todos los empleados pueden eliminar órdenes. Así se comportaba el POS antes de
 instalar el módulo.</p>
 <div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
-<h2>Instalación</h2>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
-<ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> (Odoo Community). <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> hace falta porque el permiso se asigna a
-  empleados (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">hr.employee</code>) y se evalúa sobre el empleado que inició sesión en el POS. No hay
-  dependencias externas ni librerías de Python adicionales.</li>
-</ul>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
-<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em>. No crea modelos ni permisos de acceso: agrega un campo a
-la configuración del punto de venta y dos archivos JavaScript al POS. Después de instalar o
-actualizar, hay que <strong>volver a entrar al POS</strong> desde el backend para que cargue los archivos
-nuevos.</p>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
-<p style="margin:0 0 12px;">El campo conserva el nombre técnico y la tabla de relación de Odoo 17 (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">able_del_employee_ids</code>,
-<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_config_able_del_employee_rel</code>), así que la lista de empleados autorizados se mantiene sin
-script de datos.</p>
-<p style="margin:0 0 12px;">Cambió el identificador de la vista de Ajustes (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">view_hr_employee_inh_form</code> pasó a
-<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res_config_settings_view_form_inherit_pos_del_order</code>). Al actualizar, Odoo borra la vista vieja y
-crea la nueva, sin intervención manual.</p>
 <h2>Configuración</h2>
 <p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Ajustes</em>, elegir el punto de venta en la parte superior y
 buscar el bloque <strong>Interfaz de PdV</strong>.</p>
@@ -69,8 +50,11 @@ el POS muestra el aviso <em>Advertencia</em> y la orden no se toca.</p>
   bloquear la caja y entrar con otro PIN, el ícono aparece o desaparece según el nuevo empleado.</li>
 <li style="margin-bottom:7px;"><strong>Orden vacía</strong>: el empleado no autorizado tampoco puede eliminarla con <em>Cancelar orden</em>; el aviso
   sale igual.</li>
-<li style="margin-bottom:7px;"><strong>Transferir o fusionar mesas, Liberar la mesa y cierre de sesión</strong>: Odoo elimina órdenes en esos
-  flujos sin pasar por la regla del módulo (ver <em>Limitaciones conocidas</em>).</li>
+<li style="margin-bottom:7px;"><strong>Liberar la mesa</strong>: el empleado no autorizado no puede liberar una mesa cuya orden (vacía) ya
+  está guardada en el servidor; sale el mismo aviso. Una mesa abierta por error y nunca guardada se
+  libera normalmente.</li>
+<li style="margin-bottom:7px;"><strong>Transferir o fusionar mesas y cierre de sesión</strong>: Odoo elimina órdenes en esos flujos sin pasar
+  por la regla del módulo (ver <em>Limitaciones conocidas</em>).</li>
 </ul>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
@@ -96,7 +80,7 @@ el POS muestra el aviso <em>Advertencia</em> y la orden no se toca.</p>
 <li style="margin-bottom:7px;"><strong>Flujos de Odoo que no pasan por la regla.</strong> El módulo intercepta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">beforeDeleteOrder</code>, que usan
   el ícono de <em>Órdenes</em> y <em>Cancelar orden</em>. Estos flujos llaman a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">deleteOrders</code> directamente y no
   quedan restringidos: <em>Transferir / Fusionar</em> (la orden de origen se elimina después de pasar sus
-  líneas a la de destino), <em>Liberar la mesa</em> (solo con la orden vacía), la opción <em>Cancelar
+  líneas a la de destino), la opción <em>Cancelar
   órdenes</em> del cierre de sesión cuando quedan órdenes abiertas y la sincronización entre
   dispositivos del restaurante.</li>
 <li style="margin-bottom:7px;"><strong>Sin "Iniciar sesión como empleado" la regla no aplica.</strong> Sin <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo en el punto de
@@ -122,6 +106,9 @@ el POS muestra el aviso <em>Advertencia</em> y la orden no se toca.</p>
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">isEmployeeAllowedToDeleteOrders()</code>, que usa también la pantalla de órdenes.</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/screens/ticket_screen/ticket_screen.js</code>: parche de
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">TicketScreen.shouldHideDeleteButton()</code> para ocultar el ícono.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/app/screens/order_summary/order_summary.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">OrderSummary.unbookTable()</code>
+  (<em>Liberar la mesa</em> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_restaurant</code>, que llama a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">deleteOrders</code> sin <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">beforeDeleteOrder</code>). Solo
+  frena órdenes ya guardadas en el servidor; una mesa abierta por error se sigue liberando.</li>
 <li style="margin-bottom:7px;">El campo llega al POS sin cargador propio: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> no define <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_fields</code> y el
   POS lee todos sus campos.</li>
 </ul>
@@ -138,7 +125,7 @@ el POS muestra el aviso <em>Advertencia</em> y la orden no se toca.</p>
   POS no tiene test automático: se valida a mano en el navegador.</li>
 <li style="margin-bottom:7px;">En <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">doc/historial_16_17/</code> quedan las notas de la migración 16→17, solo como historial.</li>
 </ul></div>
-<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Desarrollado por:</b><ul style="margin:0 0 14px;padding-left:22px;">
+<div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Osmar Toloza</b><ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">Osmar Toloza</li>
 <li style="margin-bottom:7px;">Miguel Bolivar</li>
 </ul></div>

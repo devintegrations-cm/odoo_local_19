@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- The channels of the plant board, in order of evaluation. Their rules (warehouses, pricelists, teams, tags,
+         customers) are records of this database, linked in Planta › Canales; the 1.4.0 migration links the ones the
+         text settings named before. An update of the module never overwrites what the plant changed. -->
+    <record id="channel_ecommerce" model="plant.channel">
+        <field name="code">ecommerce</field>
+        <field name="name">E-commerce</field>
+        <field name="sequence">10</field>
+        <field name="sheet">otros</field>
+        <field name="shopify" eval="True"/>
+        <field name="color">4</field>
+    </record>
+    <record id="channel_attenza" model="plant.channel">
+        <field name="code">attenza</field>
+        <field name="name">Attenza</field>
+        <field name="sequence">20</field>
+        <field name="sheet">attenza</field>
+        <field name="color">9</field>
+    </record>
+    <record id="channel_alianzas" model="plant.channel">
+        <field name="code">alianzas</field>
+        <field name="name">Alianzas</field>
+        <field name="sequence">30</field>
+        <field name="sheet">otros</field>
+        <field name="color">6</field>
+    </record>
+    <record id="channel_eventos" model="plant.channel">
+        <field name="code">eventos</field>
+        <field name="name">Eventos</field>
+        <field name="sequence">40</field>
+        <field name="sheet">tiendas</field>
+        <field name="color">2</field>
+    </record>
+    <record id="channel_tiendas" model="plant.channel">
+        <field name="code">tiendas</field>
+        <field name="name">Tiendas</field>
+        <field name="sequence">50</field>
+        <field name="sheet">tiendas</field>
+        <field name="fallback">internal</field>
+        <field name="color">10</field>
+    </record>
+    <record id="channel_otros" model="plant.channel">
+        <field name="code">otros</field>
+        <field name="name">Otros</field>
+        <field name="sequence">60</field>
+        <field name="sheet">otros</field>
+        <field name="fallback">outgoing</field>
+        <field name="color">0</field>
+    </record>
+</odoo>

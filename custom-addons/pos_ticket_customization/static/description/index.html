@@ -14,27 +14,6 @@ ninguna librería JavaScript externa. Las imágenes se incrustan en el ticket, a
 imprimiendo aunque la caja pierda la conexión, y si un código no se puede generar se imprime la
 misma información en texto.</p>
 <div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
-<h2>Instalación</h2>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
-<ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code>. No hay dependencias externas ni librerías de Python adicionales.</li>
-</ul>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
-<p style="margin:0 0 12px;">Instalar el módulo desde <em>Aplicaciones</em>. Crea el modelo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.receipt.custom.block</code>, sus permisos y
-una regla multicompañía. Después de instalar o actualizar, hay que <strong>volver a entrar al POS</strong> desde
-el backend (o recargar la pestaña) para que cargue los archivos nuevos y los bloques.</p>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Permisos</h2>
-<ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>Administrador del POS</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.group_pos_manager</code>) y <strong>Ajustes</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">base.group_system</code>):
-  lectura y escritura de bloques.</li>
-<li style="margin-bottom:7px;"><strong>Usuario del POS</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.group_pos_user</code>): solo lectura, que es lo que necesita la
-  caja para cargar los bloques al abrir la sesión.</li>
-</ul>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
-<p style="margin:0 0 12px;">El módulo conserva el nombre técnico, el modelo y los nombres de campo de la versión 17, así que
-los bloques ya configurados se mantienen sin script de datos. Lo que cambió es el código del POS:
-la carga de datos pasó al contrato <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.load.mixin</code> de Odoo 19 y el ticket se arma a partir del
-pedido vivo en lugar de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">export_for_printing()</code>.</p>
 <h2>Configuración</h2>
 <p style="margin:0 0 12px;">Los bloques se configuran por punto de venta. El acceso principal está en <em>Punto de venta ›
 Configuración › Punto de venta</em>: al abrir una tienda, al final del formulario aparece la sección
@@ -81,7 +60,8 @@ Los grupos de campos cambian según el tipo elegido.</p>
 <li style="margin-bottom:7px;"><strong>Importe mínimo</strong> (por defecto 0): el bloque solo sale si el total con impuestos del pedido es
   igual o mayor. 0 significa sin mínimo.</li>
 <li style="margin-bottom:7px;"><strong>Cada N pedidos</strong> (obligatorio, por defecto 1) y <strong>Desplazamiento</strong> (por defecto 0): con 1 sale en
-  todos los pedidos; con 10, en los pedidos 10, 20, 30… de la sesión de caja. El desplazamiento
+  todos los pedidos; con 10, en los pedidos 10, 20, 30… de la secuencia del punto de venta (no se
+  reinicia al abrir caja). El desplazamiento
   corre el ciclo (con 10 y desplazamiento 5, sale en 5, 15, 25…) y debe estar entre 0 y N − 1.</li>
 </ul>
 <p style="margin:0 0 12px;">Para el QR de reseña, el <em>Contenido</em> puede ser el Place ID de Google o una URL completa: si empieza
@@ -123,8 +103,8 @@ ejemplo: un texto libre en la cabecera, un QR de WiFi antes del pie y, al final,
 QR de propina cuya leyenda usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{order_name}</code> y un texto legal.</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Casos especiales</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>Reimpresión</strong>: la frecuencia se calcula con el número de pedido dentro de la sesión de caja,
-  que se guarda con el pedido. Una reimpresión muestra los mismos bloques que el ticket original.</li>
+<li style="margin-bottom:7px;"><strong>Reimpresión</strong>: la frecuencia se calcula con el número de pedido del punto de venta, que asigna
+  el servidor y se guarda con el pedido. Una reimpresión muestra los mismos bloques que el ticket original.</li>
 <li style="margin-bottom:7px;"><strong>Sin conexión</strong>: los códigos que no dependen del pedido se descargan al abrir la sesión y quedan
   en memoria. Los que llevan marcadores se generan al imprimir; si en ese momento no hay conexión,
   el bloque imprime la información en texto (SSID y clave del WiFi, la URL, el teléfono…).</li>
@@ -139,8 +119,10 @@ QR de propina cuya leyenda usa <code style="background:#f3f4f6;border:1px solid 
 <li style="margin-bottom:7px;"><strong>Un bloque no aparece en el ticket.</strong> Revisar que esté activo, que la fecha de hoy esté dentro
   de la vigencia, que el total alcance el importe mínimo y que <em>Cada N pedidos</em> sea 1 (o que le
   toque a ese pedido). Después de cambiar algo, recargar el POS.</li>
-<li style="margin-bottom:7px;"><strong>Un bloque con <em>Cada N pedidos</em> no sale nunca.</strong> El conteo se reinicia en cada sesión de caja: si
-  la tienda hace menos de N pedidos por turno, el bloque no llega a imprimirse. Bajar N.</li>
+<li style="margin-bottom:7px;"><strong>Un bloque con <em>Cada N pedidos</em> no sale en un turno.</strong> El conteo sigue la secuencia del punto de
+  venta y no se reinicia al abrir caja: sale uno de cada N pedidos, repartidos entre turnos.</li>
+<li style="margin-bottom:7px;"><strong>Un bloque archivado sigue saliendo.</strong> Volver a entrar al POS desde el backend (<em>Continuar
+  vendiendo</em> / <em>Abrir caja</em>): al cargar la sesión el POS borra de su memoria los bloques archivados.</li>
 <li style="margin-bottom:7px;"><strong>Aparece <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">{algo}</code> literal en el ticket.</strong> El marcador está mal escrito; ver la lista en
   <em>Configuración</em>.</li>
 <li style="margin-bottom:7px;"><strong>Sale el texto en lugar del código.</strong> El código no se pudo generar (sin conexión con el
@@ -162,7 +144,11 @@ QR de propina cuya leyenda usa <code style="background:#f3f4f6;border:1px solid 
   reactivan desde el menú global o desde <em>Configurar bloques</em>.</li>
 <li style="margin-bottom:7px;"><strong>El contador de Ajustes cuenta solo los activos</strong>, aunque la etiqueta dice <em>Bloques
   configurados</em>.</li>
-<li style="margin-bottom:7px;">La frecuencia se reinicia en cada sesión de caja (usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sequence_number</code>).</li>
+<li style="margin-bottom:7px;">La frecuencia ya no se reinicia en cada sesión de caja: en Odoo 19 <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sequence_number</code> lo asigna
+  el servidor con la secuencia del punto de venta (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order_seq_id</code>), que sigue corriendo entre turnos.
+  En 17 era un contador por sesión. La proporción (uno de cada N) se mantiene.</li>
+<li style="margin-bottom:7px;">Un pedido que se imprime antes de sincronizar (caja sin conexión) todavía no tiene número y
+  siempre lleva el bloque.</li>
 <li style="margin-bottom:7px;">Las etiquetas de la interfaz están en español dentro del código y no hay <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">i18n/</code>.</li>
 <li style="margin-bottom:7px;">No hay vista previa del bloque en el formulario: el resultado se ve en el POS.</li>
 <li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>: en <em>Aplicaciones</em> se ve el ícono genérico de Odoo.</li>
@@ -220,6 +206,6 @@ QR de propina cuya leyenda usa <code style="background:#f3f4f6;border:1px solid 
 </ul></div>
 <div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">Libertario Coffee</li>
-<li style="margin-bottom:7px;">Miguel Bolivar (migración a Odoo 19)</li>
+<li style="margin-bottom:7px;">Cristian Mira (migración a Odoo 19)</li>
 </ul></div>
 </div>

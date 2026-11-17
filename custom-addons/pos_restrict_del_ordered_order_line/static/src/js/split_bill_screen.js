@@ -20,8 +20,15 @@ patch(SplitBillScreen.prototype, {
         // la original y no hacemos nada.
         const newOrder = this.pos.getOrder();
         if (newOrder && newOrder.uuid !== originalUuid) {
-            this.updateOrderedQuantitiesByUuid(originalUuid);
+            const original = this.updateOrderedQuantitiesByUuid(originalUuid);
             this.updateOrderedQuantities(newOrder);
+            // super() ya sincronizo las dos ordenes (syncAllOrders) ANTES de este parche, asi que
+            // las cantidades ordenadas nuevas no llegaban al servidor: al recargar volvian las
+            // viejas. Se vuelven a sincronizar.
+            const orders = [original, newOrder].filter(Boolean);
+            if (orders.length) {
+                await this.pos.syncAllOrders({ orders });
+            }
         }
     },
 
@@ -31,6 +38,7 @@ patch(SplitBillScreen.prototype, {
         }
         const order = this.pos.models["pos.order"].find((o) => o.uuid === uuid);
         this.updateOrderedQuantities(order);
+        return order;
     },
 
     updateOrderedQuantities(order) {
@@ -38,7 +46,8 @@ patch(SplitBillScreen.prototype, {
             return;
         }
         for (const line of order.getOrderlines()) {
-            line.ordered_quantities = line.getQuantity();
+            // update() marca la linea como modificada para que syncAllOrders la envie
+            line.update({ ordered_quantities: line.getQuantity() });
         }
     },
 });

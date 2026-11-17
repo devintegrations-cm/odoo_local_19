@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit_plant" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.plant.request.board</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='warehouse_setting_container']" position="after">
+                <block title="Planta" name="plant_request_setting_container">
+                    <setting id="plant_request_notify" string="Aviso de pedidos nuevos" help="Sonido y notificación en el navegador del personal de planta, y mensaje en un canal de Conversaciones. Los pedidos creados por el personal de planta no avisan.">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="plant_user_ids" class="col-lg-4 o_light_label"/><field name="plant_user_ids" widget="many2many_tags"/></div>
+                            <div class="row"><label for="plant_channel_id" class="col-lg-4 o_light_label"/><field name="plant_channel_id"/></div>
+                            <div class="row"><label for="plant_warehouse_ids" class="col-lg-4 o_light_label"/><field name="plant_warehouse_ids" widget="many2many_tags" options="{'no_create': True}"/></div>
+                            <button name="action_plant_test_notification" type="object" string="Probar sonido y notificación" class="btn-link" icon="fa-volume-up"/>
+                        </div>
+                    </setting>
+                    <setting id="plant_request_channels" string="Canales del tablero" help="Cada solicitud toma el primer canal cuyas reglas la reconocen: almacén destino, lista de precios o equipo de la venta, etiqueta o cliente. Las reglas son registros de esta base, no textos. La pestaña de la hoja donde suma cada canal también se define allí.">
+                        <div class="content-group">
+                            <div class="mt8"><button name="%(plant_request_board.action_plant_channels)d" type="action" string="Canales y sus reglas" class="btn-link" icon="fa-sitemap"/></div>
+                            <div class="mt8"><button name="%(plant_request_board.action_plant_sheet_columns)d" type="action" string="Columnas de la hoja: alias, orden y ocultar" class="btn-link" icon="fa-columns"/></div>
+                        </div>
+                    </setting>
+                    <setting id="plant_request_vocabulary" string="Clasificador de productos" help="Con qué palabras propone el clasificador el tipo, la línea, la molienda y los gramos de un producto nuevo. Los productos ya revisados no cambian; los automáticos se clasifican de nuevo al guardar.">
+                        <div class="content-group">
+                            <div class="mt8"><button name="%(plant_request_board.action_plant_kinds)d" type="action" string="Tipos de línea: etiquetas, iconos y palabras clave" class="btn-link" icon="fa-tags"/></div>
+                            <div class="mt8"><button name="%(plant_request_board.action_plant_product_fill_wizard)d" type="action" string="Clasificar productos (vista previa)" class="btn-link" icon="fa-magic"/></div>
+                            <div class="mt8"><button name="%(plant_request_board.action_plant_duplicate_wizard)d" type="action" string="Referencias duplicadas" class="btn-link" icon="fa-clone"/></div>
+                            <div class="row"><label for="plant_beans_words" class="col-lg-5 o_light_label"/><field name="plant_beans_words"/></div>
+                            <div class="row"><label for="plant_ground_words" class="col-lg-5 o_light_label"/><field name="plant_ground_words"/></div>
+                            <div class="row"><label for="plant_ignore_words" class="col-lg-5 o_light_label"/><field name="plant_ignore_words"/></div>
+                            <div class="row"><label for="plant_short_words" class="col-lg-5 o_light_label"/><field name="plant_short_words" widget="text"/></div>
+                            <div class="row"><label for="plant_card_rows" class="col-lg-5 o_light_label"/><field name="plant_card_rows"/></div>
+                        </div>
+                    </setting>
+                    <setting id="plant_request_rows" string="Filas de la hoja" help="Las filas se generan solas por línea de café × gramos × molienda desde los campos de los productos; aquí se decide cómo.">
+                        <div class="content-group">
+                            <div class="mt8"><button name="%(plant_request_board.action_plant_coffee_lines)d" type="action" string="Líneas de café: orden y colores" class="btn-link" icon="fa-paint-brush"/></div>
+                            <div class="mt8"><button name="%(plant_request_board.action_plant_sheet_rows)d" type="action" string="Kits y excepciones" class="btn-link" icon="fa-th-list"/></div>
+                            <div class="row mt8"><label for="plant_prep_bag_grams" class="col-lg-5 o_light_label"/><field name="plant_prep_bag_grams"/></div>
+                            <div class="row"><label for="plant_row_grind" class="col-lg-5 o_light_label"/><field name="plant_row_grind"/></div>
+                        </div>
+                    </setting>
+                    <setting id="plant_request_green" string="Café verde e insumos" help="Merma de tostión y mínimos de las alertas: kg verde = kg a tostar ÷ (1 − merma). Cada línea de café puede fijar su propia merma y su mínimo en Planta › Líneas de café.">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="plant_default_shrinkage" class="col-lg-5 o_light_label"/><field name="plant_default_shrinkage"/></div>
+                            <div class="row"><label for="plant_green_minimum_kg" class="col-lg-5 o_light_label"/><field name="plant_green_minimum_kg"/></div>
+                            <div class="row"><label for="plant_supply_minimum" class="col-lg-5 o_light_label"/><field name="plant_supply_minimum"/></div>
+                        </div>
+                    </setting>
+                    <setting id="plant_request_briefing" string="Análisis de cada solicitud" help="Opcional: resumen escrito con la API de Anthropic a partir de cantidades, existencias e histórico calculados por Odoo">
+                        <div class="content-group">
+                            <field name="plant_ai_enabled" invisible="1"/>
+                            <div class="alert alert-warning mt8 mb-0 py-1" role="status" invisible="plant_ai_enabled"><i class="fa fa-power-off"/> Análisis IA desactivado: sin clave, las solicitudes no se encolan y el cron no hace nada. El botón «Analizar para planta» sigue escribiendo la tabla de hechos.</div>
+                            <div class="alert alert-success mt8 mb-0 py-1" role="status" invisible="not plant_ai_enabled"><i class="fa fa-check"/> Análisis IA activo.</div>
+                            <div class="text-muted small mt4">La clave de Anthropic no se guarda en la base de datos: va en la variable de entorno <code>PLANT_ANTHROPIC_API_KEY</code> del servidor o en la opción <code>plant_anthropic_api_key</code> de odoo.conf.</div>
+                            <div class="row"><label for="plant_anthropic_model" class="col-lg-4 o_light_label"/><field name="plant_anthropic_model"/></div>
+                            <div class="row"><label for="plant_history_days" class="col-lg-4 o_light_label"/><field name="plant_history_days"/></div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

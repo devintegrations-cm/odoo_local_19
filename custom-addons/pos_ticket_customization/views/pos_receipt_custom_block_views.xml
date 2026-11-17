@@ -107,10 +107,10 @@
                             <div colspan="2"
                                  class="text-muted"
                                  invisible="frequency &lt;= 1">
-                                El conteo usa el número de pedido dentro de la sesión
-                                de caja, que se reinicia al abrir caja. Al reimprimir
-                                un ticket salen los mismos bloques que se imprimieron
-                                la primera vez.
+                                El conteo usa el número de pedido del punto de venta,
+                                que asigna el servidor y no se reinicia al abrir caja.
+                                Al reimprimir un ticket salen los mismos bloques que se
+                                imprimieron la primera vez.
                             </div>
                         </group>
 

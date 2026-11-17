@@ -1,0 +1,15 @@
+// Purchase lines: the cell that is probably wrong gets a red or yellow background, not only coloured text.
+// Scoped to the purchase order lines so other lists keep Odoo's usual decorations.
+.o_purchase_order .o_field_widget[name="order_line"] .o_list_table td.o_data_cell {
+    &.text-danger {
+        background-color: #f8d7da !important;
+        color: #842029 !important;
+        font-weight: 700;
+        box-shadow: inset 0 0 0 1px #e35d6a;
+    }
+    &.text-warning {
+        background-color: #fff3cd !important;
+        color: #664d03 !important;
+        box-shadow: inset 0 0 0 1px #ffda6a;
+    }
+}

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="purchase_cost_validator_config_form" model="ir.ui.view">
+        <field name="name">purchase.cost.validator.config.form</field>
+        <field name="model">purchase.cost.validator.config</field>
+        <field name="arch" type="xml">
+            <form string="Validador de costos">
+                <p class="text-muted">Compara cada precio de compra con el costo del producto, en la misma unidad de medida, con la Variación de Costo de cada producto como margen. Rojo: precio en cero o desfase incoherente. Amarillo: fuera de la tolerancia del producto. La orden nunca se bloquea.</p>
+                <group>
+                    <group string="¿A quién se avisa?">
+                        <field name="reviewer_id" options="{'no_create': True, 'no_open': True}" placeholder="Administradores de compras"/>
+                        <div class="text-muted small" colspan="2">El aviso le llega por correo o a su bandeja de Odoo, según cómo tenga configuradas sus notificaciones en su perfil, y además como actividad pendiente.</div>
+                    </group>
+                    <group string="¿Desde cuándo?">
+                        <field name="start_date"/>
+                        <div class="text-muted small" colspan="2">Solo se revisan las órdenes creadas desde esta fecha. Las órdenes y recepciones anteriores siguen exactamente igual, y el validador nunca modifica un costo.</div>
+                    </group>
+                    <group string="Recepciones">
+                        <field name="hold_receipt"/>
+                    </group>
+                    <group string="Sensibilidad">
+                        <field name="gross_factor"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_save" type="object" string="Guardar" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_purchase_cost_validator_config" model="ir.actions.act_window">
+        <field name="name">Validador de costos</field>
+        <field name="res_model">purchase.cost.validator.config</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <!-- An explicit record instead of <menuitem groups=...>: on Odoo 19 the shorthand adds the group on updates, so a menu
+         created earlier for another group would keep it. (6, 0, ...) replaces the groups, whichever way it is installed. -->
+    <record id="menu_purchase_cost_validator_config" model="ir.ui.menu">
+        <field name="name">Validador de costos</field>
+        <field name="parent_id" ref="purchase.menu_purchase_config"/>
+        <field name="action" ref="action_purchase_cost_validator_config"/>
+        <field name="sequence">1</field>
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
+    </record>
+</odoo>

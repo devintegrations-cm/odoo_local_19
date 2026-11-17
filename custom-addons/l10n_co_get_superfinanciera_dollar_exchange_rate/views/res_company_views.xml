@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="l10n_co_get_superfinanciera_dollar_exchange_rate_inherit_view_company_form" model="ir.ui.view">
+            <field name="name">l10n.co.get.superfinanciera.dollar.exchange.rate.inherit.view.company.form</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[last()]" position="after">
+                    <page string = "Superfinancial Api data" name="superfinancial_api_data" groups="base.group_no_one">
+                        <group>
+                            <field name="url_superfinancial_service"/>
+                            <field name="body_superfinancial_request"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

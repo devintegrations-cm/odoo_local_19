@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="clara_analytic_rule_view_tree" model="ir.ui.view">
+        <field name="name">clara.analytic.rule.tree</field>
+        <field name="model">clara.analytic.rule</field>
+        <field name="arch" type="xml">
+            <list string="Analítico por titular Clara" editable="bottom" multi_edit="1">
+                <header>
+                    <button name="action_resolve_analytic_accounts" type="object" string="Buscar cuentas por nombre" display="always"
+                            groups="clara_purchase_bridge.group_clara_admin"
+                            help="Enlaza las reglas sin cuenta con la cuenta analítica de Odoo que se llame como su analítico estándar"/>
+                </header>
+                <field name="kind"/>
+                <field name="name"/>
+                <field name="cardholder_email" optional="show"/>
+                <field name="cardholder_uuid" optional="hide"/>
+                <field name="area"/>
+                <field name="analytic_name" optional="show"/>
+                <field name="multi_cost_center"/>
+                <field name="analytic_distribution" widget="analytic_distribution"
+                       options="{'force_applicability': 'optional', 'disable_save': true}"/>
+                <field name="note" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="clara_analytic_rule_view_form" model="ir.ui.view">
+        <field name="name">clara.analytic.rule.form</field>
+        <field name="model">clara.analytic.rule</field>
+        <field name="arch" type="xml">
+            <form string="Analítico por titular Clara">
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group string="A quién aplica">
+                            <field name="kind"/>
+                            <field name="name"/>
+                            <field name="cardholder_email" invisible="kind != 'cardholder'"/>
+                            <field name="cardholder_uuid" invisible="kind != 'cardholder'"/>
+                            <field name="area"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Analítico que se imputa">
+                            <field name="multi_cost_center"/>
+                            <field name="analytic_name"/>
+                            <field name="analytic_distribution" widget="analytic_distribution"
+                                   options="{'force_applicability': 'optional', 'disable_save': true}"
+                                   invisible="multi_cost_center"/>
+                            <field name="note"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="clara_analytic_rule_view_search" model="ir.ui.view">
+        <field name="name">clara.analytic.rule.search</field>
+        <field name="model">clara.analytic.rule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="cardholder_email"/>
+                <field name="cardholder_uuid"/>
+                <field name="area"/>
+                <field name="analytic_name"/>
+                <filter name="cardholders" string="Titulares" domain="[('kind', '=', 'cardholder')]"/>
+                <filter name="areas" string="Áreas" domain="[('kind', '=', 'area')]"/>
+                <separator/>
+                <filter name="multi" string="Varios centros de costo" domain="[('multi_cost_center', '=', True)]"/>
+                <filter name="unlinked" string="Sin cuenta analítica" domain="[('multi_cost_center', '=', False), ('analytic_distribution', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archivados" domain="[('active', '=', False)]"/>
+                <group name="group_by">
+                    <filter name="group_area" string="Área" context="{'group_by': 'area'}"/>
+                    <filter name="group_kind" string="Tipo" context="{'group_by': 'kind'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_clara_analytic_rule" model="ir.actions.act_window">
+        <field name="name">Analítico por titular Clara</field>
+        <field name="res_model">clara.analytic.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_area': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin reglas de analítico</p>
+            <p>Define el área y la cuenta analítica (centro de costo) de cada titular de tarjeta Clara, o por defecto de cada área. El dashboard de Clara las muestra en cada tarjeta y transacción.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_clara_analytic_rule" name="Analítico por titular Clara" parent="purchase.menu_purchase_config"
+              action="action_clara_analytic_rule" sequence="60" groups="clara_purchase_bridge.group_clara_reader"/>
+</odoo>

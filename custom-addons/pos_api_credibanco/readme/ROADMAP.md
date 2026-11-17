@@ -4,9 +4,10 @@
   datáfono (respuestas completas con franquicia, recibo y terminal), pero la anulación, la
   recuperación y el cobro con propina no están validados de punta a punta con el terminal. Hay que
   probarlos en cada tienda antes de habilitar el método.
-- **Propina cobrada.** El monto de la línea aprobada es la posición 40 (valor total) más la 80
-  (propina). Si el 40 del datáfono ya incluye la propina, se contaría dos veces. En 17 se sumaban
-  el 40 y el 81, que la respuesta de compra no trae. Confirmar con una compra real con propina.
+- **Propina cobrada.** El monto de la línea aprobada es la posición 40, como en Odoo 17 (que sumaba
+  la 81, ausente en la respuesta de compra). La 80 es *Compra Neta*, no la propina, y en los pagos
+  Credibanco de producción siempre vale 0. Falta confirmar con un voucher real que la 40 de la
+  respuesta incluye la propina enviada en la 81.
 - **POS por https.** Con https el navegador usa `wss://`, y el puente actual no tiene TLS: ningún
   cobro conecta. En 17 la URL era siempre `ws://`. Hoy el POS tiene que abrirse por http en la red
   local, o el puente necesita TLS.
@@ -25,8 +26,8 @@
   mismo puente podrían cruzarlas.
 - **Puente sin autenticación** en la red local, y escribe en su salida estándar lo que recibe y lo
   que responde el datáfono (incluidos datos de la tarjeta).
-- **Impuestos mixtos.** Si el pedido tiene al menos un impuesto IVA o INC, los impuestos de otros
-  grupos no se informan y el cobro sigue sin aviso.
+- **Impuestos mixtos.** Si el pedido tiene al menos un impuesto IVA, INC o Impoconsumo, los
+  impuestos de otros grupos (p. ej. *Redem*) no se informan y el cobro sigue sin aviso, como en 17.
 - **Cajero (83).** Viaja el primer nombre del cajero, recortado a 12 caracteres. Falta confirmar
   qué espera el banco para la conciliación.
 - Los códigos de error de E/S del puente (`MSG_CODE_1`, `MSG_CODE_2`) no están mapeados porque no
@@ -68,8 +69,10 @@
 
 ## Notas para mantenimiento
 
-- **La trama es la certificada.** El número de caja (42 = sesión + cajero), el orden de los campos
-  y el LRC reproducen lo que enviaba Odoo 17. No se rellenan ni se recortan valores: el puente
+- **La trama es la certificada.** El número de caja (42 = sesión + cajero), el orden de los campos,
+  el `0` de la posición 84 y el LRC reproducen lo que enviaba Odoo 17. El número de transacción
+  (53) sí cambió: sale de una secuencia por método de pago (`000001`…) y no de sesión + pedido +
+  línea. No se rellenan ni se recortan valores: el puente
   rellena cada campo a su longitud (`fields.ini`) y un valor que no cabe se rechaza con mensaje.
 - **`sendPaymentReversal` devuelve `false` a propósito** aunque la anulación se apruebe. Con `true`
   el núcleo dejaría la línea en 0 con estado *reversed*, y al cierre no habría asiento que

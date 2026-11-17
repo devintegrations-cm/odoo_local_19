@@ -2,6 +2,11 @@
 Delete Pos Order
 ================
 
+..
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   !! Generado por .claude/scripts/gen_readme.py          !!
+   !! Los cambios se sobrescriben: editar readme/*.md     !!
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -127,8 +132,11 @@ Casos especiales
   bloquear la caja y entrar con otro PIN, el ícono aparece o desaparece según el nuevo empleado.
 - **Orden vacía**: el empleado no autorizado tampoco puede eliminarla con *Cancelar orden*; el aviso
   sale igual.
-- **Transferir o fusionar mesas, Liberar la mesa y cierre de sesión**: Odoo elimina órdenes en esos
-  flujos sin pasar por la regla del módulo (ver *Limitaciones conocidas*).
+- **Liberar la mesa**: el empleado no autorizado no puede liberar una mesa cuya orden (vacía) ya
+  está guardada en el servidor; sale el mismo aviso. Una mesa abierta por error y nunca guardada se
+  libera normalmente.
+- **Transferir o fusionar mesas y cierre de sesión**: Odoo elimina órdenes en esos flujos sin pasar
+  por la regla del módulo (ver *Limitaciones conocidas*).
 
 Solución de problemas
 ---------------------
@@ -158,7 +166,7 @@ Limitaciones conocidas
 - **Flujos de Odoo que no pasan por la regla.** El módulo intercepta ``beforeDeleteOrder``, que usan
   el ícono de *Órdenes* y *Cancelar orden*. Estos flujos llaman a ``deleteOrders`` directamente y no
   quedan restringidos: *Transferir / Fusionar* (la orden de origen se elimina después de pasar sus
-  líneas a la de destino), *Liberar la mesa* (solo con la orden vacía), la opción *Cancelar
+  líneas a la de destino), la opción *Cancelar
   órdenes* del cierre de sesión cuando quedan órdenes abiertas y la sincronización entre
   dispositivos del restaurante.
 - **Sin "Iniciar sesión como empleado" la regla no aplica.** Sin ``pos_hr`` activo en el punto de
@@ -185,6 +193,9 @@ Componentes
   ``isEmployeeAllowedToDeleteOrders()``, que usa también la pantalla de órdenes.
 - ``static/src/app/screens/ticket_screen/ticket_screen.js``: parche de
   ``TicketScreen.shouldHideDeleteButton()`` para ocultar el ícono.
+- ``static/src/app/screens/order_summary/order_summary.js``: parche de ``OrderSummary.unbookTable()``
+  (*Liberar la mesa* de ``pos_restaurant``, que llama a ``deleteOrders`` sin ``beforeDeleteOrder``). Solo
+  frena órdenes ya guardadas en el servidor; una mesa abierta por error se sigue liberando.
 - El campo llega al POS sin cargador propio: ``pos.config`` no define ``_load_pos_data_fields`` y el
   POS lee todos sus campos.
 
@@ -213,4 +224,5 @@ Authors
 Contributors
 ------------
 
+- Osmar Toloza
 - Miguel Bolivar

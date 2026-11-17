@@ -474,6 +474,18 @@ class TestReview(SprCase):
             move.action_spr_generate_radian_events()
         self.assertEqual(len(self._radian_supplier_events(move)), 3)
 
+    def test_radian_action_requires_the_invoicing_group(self):
+        """K3: el metodo es publico y crea los eventos con sudo; sin el grupo
+        del boton (Facturacion) una llamada RPC no los emite."""
+        move = self._radian_bill()
+        self.assertFalse(self.manager.has_group("account.group_account_invoice"))
+        requirements, validate = self._radian_offline()
+        with requirements, validate as validate_dian:
+            with self.assertRaises(AccessError):
+                move.with_user(self.manager).action_spr_generate_radian_events()
+        self.assertEqual(validate_dian.call_count, 0)
+        self.assertFalse(self._radian_supplier_events(move))
+
     def test_radian_button_hidden_in_draft(self):
         move = self._radian_bill(post=False)
         self.assertEqual(move.state, "draft")

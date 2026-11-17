@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Purchase order: subtle banner + red / yellow price on the lines. Nothing blocks typing or confirming. -->
+    <record id="purchase_order_form_cost_check" model="ir.ui.view">
+        <field name="name">purchase.order.form.cost.validator</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <field name="cost_check_state" invisible="1"/>
+                <div class="alert alert-danger mb-0 py-2" role="alert" invisible="cost_check_state != 'danger'">
+                    <i class="fa fa-exclamation-triangle me-1" title="Desfase de costo"/>
+                    Ey, revisa <field name="cost_check_summary" class="d-inline fw-bold" readonly="1"/>: el precio no cuadra con lo que suele costar. Mira las celdas en rojo (precio, cantidad o unidad); si se recibe así, se daña el costo del inventario.
+                </div>
+                <div class="alert alert-warning mb-0 py-2" role="status" invisible="cost_check_state != 'warning'">
+                    <i class="fa fa-info-circle me-1" title="Variación de costo"/>
+                    <field name="cost_check_summary" class="d-inline fw-bold" readonly="1"/> tiene un precio un poco distinto al habitual (fuera de la tolerancia del producto). Revísalo si no esperabas el cambio.
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="attributes">
+                <attribute name="decoration-danger">cost_check_state == 'danger'</attribute>
+                <attribute name="decoration-warning">cost_check_state == 'warning'</attribute>
+                <attribute name="decoration-bf">cost_check_state == 'danger'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="attributes">
+                <attribute name="decoration-danger">cost_check_state == 'danger' and cost_check_field == 'quantity'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_id']" position="attributes">
+                <attribute name="decoration-danger">cost_check_state == 'danger' and cost_check_field == 'quantity'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_subtotal']" position="attributes">
+                <attribute name="decoration-danger">cost_check_state == 'danger'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_subtotal']" position="after">
+                <field name="cost_check_state" string="Costo" widget="badge" optional="show"
+                       decoration-danger="cost_check_state == 'danger'" decoration-warning="cost_check_state == 'warning'" decoration-success="cost_check_state == 'ok'" decoration-muted="cost_check_state == 'none'"/>
+                <field name="cost_check_field" column_invisible="1"/>
+                <field name="cost_check_reference" string="Esperado" optional="hide"/>
+                <field name="cost_check_message" string="Detalle del costo" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_view_tree_cost_check" model="ir.ui.view">
+        <field name="name">purchase.order.tree.cost.validator</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">cost_alert</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="cost_alert" optional="show" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="purchase_order_kpis_tree_cost_check" model="ir.ui.view">
+        <field name="name">purchase.order.kpis.tree.cost.validator</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_kpis_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">cost_alert</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="cost_alert" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="purchase_order_search_cost_check" model="ir.ui.view">
+        <field name="name">purchase.order.search.cost.validator</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[1]" position="before">
+                <filter name="cost_alert" string="Con desfase de costo" domain="[('cost_alert', '=', True)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+    <record id="purchase_rfq_search_cost_check" model="ir.ui.view">
+        <field name="name">purchase.order.rfq.search.cost.validator</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[1]" position="before">
+                <filter name="cost_alert" string="Con desfase de costo" domain="[('cost_alert', '=', True)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

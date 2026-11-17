@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_clara" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.clara</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Clara" string="Clara" name="clara_connector" logo="/clara_connector/static/description/icon.png" groups="clara_purchase_bridge.group_clara_admin">
+                    <block title="Conexión con Clara" id="clara_connector_settings">
+                        <setting string="Credenciales de la API" help="Client ID, Secret y NIT entregados por Clara. El conector solo lee: ninguna llamada escribe en Clara">
+                            <div class="content-group">
+                                <div class="row mt8"><label for="clara_country" class="col-lg-5 o_light_label"/><field name="clara_country"/></div>
+                                <div class="row"><label for="clara_client_id" class="col-lg-5 o_light_label"/><field name="clara_client_id"/></div>
+                                <div class="row"><label for="clara_client_secret" class="col-lg-5 o_light_label"/><field name="clara_client_secret" password="True"/></div>
+                                <div class="row"><label for="clara_tax_identifier" class="col-lg-5 o_light_label"/><field name="clara_tax_identifier"/></div>
+                                <div class="row"><label for="clara_request_timeout" class="col-lg-5 o_light_label"/><field name="clara_request_timeout"/></div>
+                                <div class="mt16">
+                                    <button name="action_test_clara_connection" type="object" string="Probar conexión" class="btn btn-primary" icon="fa-plug"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Certificados mTLS" help="Certificados emitidos por Clara. Se guardan en la base de datos y se usan solo durante cada llamada">
+                            <div class="content-group">
+                                <span class="badge text-bg-success" invisible="not clara_cert_uploaded_date">Cargados</span>
+                                <span class="badge text-bg-warning" invisible="clara_cert_uploaded_date">Faltan</span>
+                                <div class="mt8"><label for="clara_ca_cert" string="Certificado CA (.pem)"/><field name="clara_ca_cert" filename="'ca.pem'"/></div>
+                                <div class="mt8"><label for="clara_client_cert" string="Certificado del cliente (.crt)"/><field name="clara_client_cert" filename="'cert.crt'"/></div>
+                                <div class="mt8"><label for="clara_client_key" string="Llave privada del cliente (.key)"/><field name="clara_client_key" filename="'key.key'"/></div>
+                                <div class="mt8 text-muted" invisible="not clara_cert_uploaded_date"><small>Cargados el <field name="clara_cert_uploaded_date" readonly="1"/></small></div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Sincronización semanal" id="clara_sync_settings">
+                        <setting string="Corrida semanal" help="Una sola acción planificada, los domingos a las 10:00 p. m. (hora de Bogotá), pide a Clara solo las transacciones creadas o modificadas desde la corrida anterior y las tarjetas, por páginas de 100. El día y la hora se cambian en Ajustes › Técnico › Acciones planificadas">
+                            <div class="content-group">
+                                <div class="row mt8"><label for="clara_sync_start_date" class="col-lg-5 o_light_label"/><field name="clara_sync_start_date"/></div>
+                                <div class="row"><label for="clara_page_size" class="col-lg-5 o_light_label"/><field name="clara_page_size"/></div>
+                                <div class="row"><label for="clara_sync_overlap_days" class="col-lg-5 o_light_label"/><field name="clara_sync_overlap_days"/></div>
+                                <div class="row"><label for="clara_monthly_call_limit" class="col-lg-5 o_light_label"/><field name="clara_monthly_call_limit"/></div>
+                                <div class="row"><label for="clara_last_sync_date" class="col-lg-5 o_light_label"/><field name="clara_last_sync_date" readonly="1"/></div>
+                                <div class="row"><label for="clara_calls_this_month" class="col-lg-5 o_light_label"/><field name="clara_calls_this_month" readonly="1"/></div>
+                                <div class="mt16">
+                                    <button name="action_clara_sync_now" type="object" string="Sincronizar ahora" class="btn btn-primary" icon="fa-refresh"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_clara_config_settings" model="ir.actions.act_window">
+        <field name="name">Ajustes de Clara</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'clara_connector'}</field>
+    </record>
+</odoo>

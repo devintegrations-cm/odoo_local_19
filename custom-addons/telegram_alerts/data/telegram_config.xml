@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <record id="telegram_alert_config_demo" model="telegram.alerts.config">
+<!--
+    noupdate="1": en un -u el registro se salta entero y conserva lo que la base tenga (token, chats, mensaje),
+    aunque ir_model_data siga en noupdate=false en bases que vienen de 17. No se borra el registro del archivo:
+    con noupdate=false en ir_model_data, _process_end lo eliminaría junto con el token.
+    forcecreate="0": un -u no recrea la conexión si alguien la eliminó; una instalación nueva sí la crea.
+    El token no va como campo: es required y una instalación nueva lo necesita, pero un campo presente en el XML
+    pisa el valor en cualquier escritura. default_token solo actua al crear. El token real se pone en la pantalla.
+    user_ids: marcador, no chat id reales (no se versionan). Con noupdate="1" un -u no lo escribe sobre una base
+    existente; en una instalación nueva se configuran los chats en la pantalla junto con el token.
+-->
+<odoo noupdate="1">
+    <record id="telegram_alert_config_demo" model="telegram.alerts.config" forcecreate="0"
+            context="{'default_token': 'PENDIENTE_CONFIGURAR'}">
         <field name="name">Alertas Costos</field>
         <field name="identifier">cost_alert</field>
-        <field name="token">6456588938:AAFzs0dbt1J694ftqzSg9fHWsqyiLo6o0iY</field>
-        <field name="user_ids">1563529894, -4596522657</field>
+        <field name="user_ids">PENDIENTE_CONFIGURAR</field>
         <field name="msg_test">Mensaje de prueba para Alertas Costos</field>
     </record>
 </odoo>

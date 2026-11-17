@@ -8,24 +8,27 @@ import { PosStore } from "@point_of_sale/app/services/pos_store";
 /**
  * Restricts order deletion to the employees configured on the point of sale.
  *
- * The guard belongs to `beforeDeleteOrder` (the core hook that every deletion
- * path goes through) and not to the ticket screen: the delete button of the
- * product screen calls `pos.onDeleteOrder` directly, so a ticket-screen-only
- * check left a bypass.  `shouldHideDeleteButton` is patched as well so the icon
- * disappears instead of answering with an error.
+ * The guard belongs to `beforeDeleteOrder` (the hook of `onDeleteOrder`) and
+ * not to the ticket screen: the delete button of the product screen calls
+ * `pos.onDeleteOrder` directly, so a ticket-screen-only check left a bypass.
+ * "Release table" of pos_restaurant calls `deleteOrders` without that hook; it
+ * is guarded in order_summary.js.  `shouldHideDeleteButton` is patched as well
+ * so the icon disappears instead of answering with an error.
  */
 patch(PosStore.prototype, {
     async beforeDeleteOrder(order, options) {
         if (!this.isEmployeeAllowedToDeleteOrders()) {
-            this.dialog.add(AlertDialog, {
-                title: _t("Advertencia"),
-                body: _t(
-                    "No tiene permisos para eliminar una orden, contacte al líder de tienda."
-                ),
-            });
+            this.alertDeleteOrderNotAllowed();
             return false;
         }
         return super.beforeDeleteOrder(order, options);
+    },
+
+    alertDeleteOrderNotAllowed() {
+        this.dialog.add(AlertDialog, {
+            title: _t("Advertencia"),
+            body: _t("No tiene permisos para eliminar una orden, contacte al líder de tienda."),
+        });
     },
 
     /**
@@ -46,7 +49,9 @@ patch(PosStore.prototype, {
     isEmployeeAllowedToDeleteOrders() {
         if (!this.config.module_pos_hr) {
             // Sin login de empleados el cajero es un res.users: su id no se
-            // puede comparar con ids de hr.employee, asi que la regla no aplica.
+            // puede comparar con ids de hr.employee, asi que la regla no aplica
+            // (ed0a689, Colombia). En staging/prod la unica caja sin pos_hr
+            // tiene la lista vacia: no cambia el comportamiento de 17.
             return true;
         }
         const allowed = this._allowedDeletionEmployeeIds();

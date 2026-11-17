@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+        En Odoo 19 el POS ya no tiene editor propio de clientes (la plantilla
+        point_of_sale.PartnerDetailsEdit desaparecio): crear y editar un cliente
+        desde el POS abre la accion point_of_sale.res_partner_action_edit_pos
+        (PosStore.editPartner), que por defecto usa base.view_partner_form.
+
+        Esta vista primaria hereda el formulario completo (con las extensiones de
+        l10n_latam_base, Jorels, point_of_sale, odooleal...) y solo la usa esa
+        accion, para no alterar el formulario del backend. Prioridad alta para que
+        no se vuelva la vista de formulario por defecto de res.partner
+        (base.view_partner_form tiene prioridad 1).
+
+        Delta que aplicaba el modulo en 17 sobre el editor del POS:
+        - Codigo de barras oculto.
+        - Numero de documento con ayuda del NIT con digito de verificacion.
+        - Telefono oculto y Celular visible: en 19 res.partner.mobile no existe,
+          asi que Telefono queda visible (ya lo esta en el formulario base).
+    -->
+    <record id="view_partner_form_pos_edit" model="ir.ui.view">
+        <field name="name">res.partner.form.pos.edit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="mode">primary</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="attributes">
+                <attribute name="placeholder">Si es NIT debe ir con dígito de verificación 900XXXYYY-D</attribute>
+            </xpath>
+            <!-- Grupo agregado por point_of_sale.view_partner_property_form (solo contiene barcode) -->
+            <xpath expr="//group[@name='point_of_sale']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="point_of_sale.res_partner_action_edit_pos" model="ir.actions.act_window">
+        <field name="view_id" ref="view_partner_form_pos_edit"/>
+    </record>
+</odoo>

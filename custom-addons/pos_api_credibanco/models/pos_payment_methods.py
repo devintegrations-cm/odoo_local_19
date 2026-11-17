@@ -57,12 +57,15 @@ class PosPaymentMethod(models.Model):
     # instead of by tax id: the ids of a chart of accounts are meaningless in
     # another company or after a re-installation, and the hardcoded 9/10/61 of
     # the Odoo 17 module silently became a withholding tax in a different chart.
-    # Colombia: IVA -> 41, and the restaurant "IAC" is the group named INC
-    # (Impuesto Nacional al Consumo) -> 82.  Withholdings (R ICA…, R IVA…) start
-    # with "R ", so the prefix test leaves them out, and their negative amounts
-    # must never reach the terminal.
-    VAT_GROUP_PREFIX = "IVA"
-    IAC_GROUP_PREFIX = "INC"
+    # Colombia: IVA -> 41, and the restaurant "IAC" -> 82.  The IAC of Odoo 17
+    # was tax id 61, "Impoconsumo 8%", whose group in production is named
+    # "Impoconsumo" (not "INC ..."): it is on ~84% of the Credibanco orders, so
+    # both names are IAC (POS-API-CREDIBANCO-INT-0007).  Withholdings (R ICA…,
+    # R IVA…) start with "R ", so the prefix test leaves them out, and their
+    # negative amounts must never reach the terminal.  Matched with
+    # ``str.startswith`` on the upper-cased group name.
+    VAT_GROUP_PREFIX = ("IVA",)
+    IAC_GROUP_PREFIX = ("INC", "IMPOCONSUMO")
 
     def get_credibanco_tax_map(self):
         """``{tax_id: 'vat' | 'iac'}`` for the terminal message of this method.

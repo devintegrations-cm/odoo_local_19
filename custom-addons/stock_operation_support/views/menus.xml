@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_stock_operation_support"
+              name="Soportes de operacion"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_stock_operation_support"
+              groups="stock_operation_support.group_sos_user"
+              sequence="90"/>
+
+</odoo>

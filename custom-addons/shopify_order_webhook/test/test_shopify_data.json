@@ -1,0 +1,584 @@
+{
+  "admin_graphql_api_id": "gid://shopify/Order/820982911946154508",
+  "app_id": null,
+  "billing_address": {
+    "address1": "123 Shipping Street",
+    "address2": null,
+    "city": "Shippington",
+    "company": "Shipping Company",
+    "country": "United States",
+    "country_code": "US",
+    "first_name": "Steve",
+    "last_name": "Shipper",
+    "latitude": null,
+    "longitude": null,
+    "name": "Steve Shipper",
+    "phone": "555-555-SHIP",
+    "province": "Kentucky",
+    "province_code": "KY",
+    "zip": "40003"
+  },
+  "browser_ip": null,
+  "buyer_accepts_marketing": true,
+  "cancel_reason": "customer",
+  "cancelled_at": "2026-05-14T19:14:03-05:00",
+  "cart_token": null,
+  "checkout_token": null,
+  "client_details": null,
+  "closed_at": null,
+  "company": null,
+  "confirmation_number": null,
+  "confirmed": false,
+  "contact_email": "jon@example.com",
+  "created_at": "2026-05-14T19:14:03-05:00",
+  "currency": "COP",
+  "current_shipping_price_set": {
+    "presentment_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    }
+  },
+  "current_subtotal_price": "178444.98",
+  "current_subtotal_price_set": {
+    "presentment_money": {
+      "amount": "178444.98",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "178444.98",
+      "currency_code": "COP"
+    }
+  },
+  "current_total_additional_fees_set": null,
+  "current_total_discounts": "0.00",
+  "current_total_discounts_set": {
+    "presentment_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    }
+  },
+  "current_total_duties_set": null,
+  "current_total_price": "178444.98",
+  "current_total_price_set": {
+    "presentment_money": {
+      "amount": "178444.98",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "178444.98",
+      "currency_code": "COP"
+    }
+  },
+  "current_total_tax": "0.00",
+  "current_total_tax_set": {
+    "presentment_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    }
+  },
+  "customer": {
+    "admin_graphql_api_id": "gid://shopify/Customer/115310627314723954",
+    "created_at": null,
+    "currency": "COP",
+    "default_address": {
+      "address1": "123 Elm St.",
+      "address2": null,
+      "city": "Ottawa",
+      "company": null,
+      "country": "Canada",
+      "country_code": "CA",
+      "country_name": "Canada",
+      "customer_id": 115310627314723954,
+      "default": true,
+      "first_name": "John",
+      "id": 715243470612851245,
+      "last_name": "Smith",
+      "name": "John Smith",
+      "phone": "123-123-1234",
+      "province": "Ontario",
+      "province_code": "ON",
+      "zip": "K2H7A8"
+    },
+    "email": "john@example.com",
+    "first_name": "John",
+    "id": 115310627314723954,
+    "last_name": "Smith",
+    "multipass_identifier": null,
+    "note": null,
+    "phone": null,
+    "state": "disabled",
+    "tax_exempt": false,
+    "tax_exemptions": [],
+    "updated_at": null,
+    "verified_email": true
+  },
+  "customer_locale": "es",
+  "device_id": null,
+  "discount_applications": [],
+  "discount_codes": [],
+  "duties_included": false,
+  "email": "jon@example.com",
+  "estimated_taxes": false,
+  "financial_status": "voided",
+  "fulfillment_status": null,
+  "fulfillments": [],
+  "id": 820982911946154520,
+  "landing_site": null,
+  "landing_site_ref": null,
+  "line_item_groups": [],
+  "line_items": [
+    {
+      "admin_graphql_api_id": "gid://shopify/LineItem/866550311766439020",
+      "attributed_staffs": [
+        {
+          "id": "gid://shopify/StaffMember/902541635",
+          "quantity": 1
+        }
+      ],
+      "current_quantity": 1,
+      "discount_allocations": [],
+      "duties": [],
+      "fulfillable_quantity": 1,
+      "fulfillment_service": "manual",
+      "fulfillment_status": null,
+      "gift_card": false,
+      "grams": 454,
+      "id": 866550311766439022,
+      "name": "Paz",
+      "price": "60600.00",
+      "price_set": {
+        "presentment_money": {
+          "amount": "60600.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "60600.00",
+          "currency_code": "COP"
+        }
+      },
+      "product_exists": true,
+      "product_id": 8358813270306,
+      "properties": [],
+      "quantity": 1,
+      "requires_shipping": true,
+      "sales_line_item_group_id": null,
+      "sku": "PAZ454GENGRA",
+      "tax_lines": [],
+      "taxable": true,
+      "title": "Paz",
+      "total_discount": "0.00",
+      "total_discount_set": {
+        "presentment_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        }
+      },
+      "variant_id": 50231961583906,
+      "variant_inventory_management": null,
+      "variant_title": null,
+      "vendor": null
+    },
+    {
+      "admin_graphql_api_id": "gid://shopify/LineItem/789012345678901234",
+      "attributed_staffs": [],
+      "current_quantity": 1,
+      "discount_allocations": [],
+      "duties": [],
+      "fulfillable_quantity": 1,
+      "fulfillment_service": "manual",
+      "fulfillment_status": null,
+      "gift_card": false,
+      "grams": 0,
+      "id": 789012345678901234,
+      "name": "Lens Protection Plan (2 Year)",
+      "price": "19.99",
+      "price_set": {
+        "presentment_money": {
+          "amount": "19.99",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "19.99",
+          "currency_code": "COP"
+        }
+      },
+      "product_exists": false,
+      "product_id": null,
+      "properties": [],
+      "quantity": 1,
+      "requires_shipping": true,
+      "sales_line_item_group_id": 234567890123456789,
+      "sku": "LENS-PROTECT-2YR",
+      "tax_lines": [],
+      "taxable": true,
+      "title": "Lens Protection Plan (2 Year)",
+      "total_discount": "0.00",
+      "total_discount_set": {
+        "presentment_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        }
+      },
+      "variant_id": null,
+      "variant_inventory_management": null,
+      "variant_title": null,
+      "vendor": null
+    },
+    {
+      "admin_graphql_api_id": "gid://shopify/LineItem/890123456789012345",
+      "attributed_staffs": [],
+      "current_quantity": 1,
+      "discount_allocations": [],
+      "duties": [],
+      "fulfillable_quantity": 1,
+      "fulfillment_service": "manual",
+      "fulfillment_status": null,
+      "gift_card": false,
+      "grams": 0,
+      "id": 890123456789012345,
+      "name": "Premium Leather Case",
+      "price": "24.99",
+      "price_set": {
+        "presentment_money": {
+          "amount": "24.99",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "24.99",
+          "currency_code": "COP"
+        }
+      },
+      "product_exists": false,
+      "product_id": null,
+      "properties": [],
+      "quantity": 1,
+      "requires_shipping": true,
+      "sales_line_item_group_id": 234567890123456789,
+      "sku": "CASE-LEATHER-PREM",
+      "tax_lines": [],
+      "taxable": true,
+      "title": "Premium Leather Case",
+      "total_discount": "0.00",
+      "total_discount_set": {
+        "presentment_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        }
+      },
+      "variant_id": null,
+      "variant_inventory_management": null,
+      "variant_title": null,
+      "vendor": null
+    },
+    {
+      "admin_graphql_api_id": "gid://shopify/LineItem/141249953214522974",
+      "attributed_staffs": [],
+      "current_quantity": 1,
+      "discount_allocations": [],
+      "duties": [],
+      "fulfillable_quantity": 1,
+      "fulfillment_service": "manual",
+      "fulfillment_status": null,
+      "gift_card": false,
+      "grams": 454,
+      "id": 141249953214522974,
+      "name": "Libre",
+      "price": "65300.00",
+      "price_set": {
+        "presentment_money": {
+          "amount": "65300.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "65300.00",
+          "currency_code": "COP"
+        }
+      },
+      "product_exists": true,
+      "product_id": 8360258601250,
+      "properties": [],
+      "quantity": 1,
+      "requires_shipping": true,
+      "sales_line_item_group_id": 142831562,
+      "sku": "LIB454GENGRA",
+      "tax_lines": [],
+      "taxable": true,
+      "title": "Libre",
+      "total_discount": "0.00",
+      "total_discount_set": {
+        "presentment_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        }
+      },
+      "variant_id": 45468063629602,
+      "variant_inventory_management": null,
+      "variant_title": null,
+      "vendor": null
+    },
+    {
+      "admin_graphql_api_id": "gid://shopify/LineItem/257004973105704598",
+      "attributed_staffs": [],
+      "current_quantity": 1,
+      "discount_allocations": [],
+      "duties": [],
+      "fulfillable_quantity": 1,
+      "fulfillment_service": "manual",
+      "fulfillment_status": null,
+      "gift_card": false,
+      "grams": 0,
+      "id": 257004973105704598,
+      "name": "Impacto",
+      "price": "52500.00",
+      "price_set": {
+        "presentment_money": {
+          "amount": "52500.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "52500.00",
+          "currency_code": "COP"
+        }
+      },
+      "product_exists": true,
+      "product_id": 8360300806434,
+      "properties": [],
+      "quantity": 1,
+      "requires_shipping": true,
+      "sales_line_item_group_id": 142831562,
+      "sku": "IMP340GENGRA",
+      "tax_lines": [],
+      "taxable": true,
+      "title": "Impacto",
+      "total_discount": "0.00",
+      "total_discount_set": {
+        "presentment_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        }
+      },
+      "variant_id": 45468178710818,
+      "variant_inventory_management": "shopify",
+      "variant_title": null,
+      "vendor": null
+    }
+  ],
+  "location_id": null,
+  "merchant_business_entity_id": "MTc4MzczMjI0NzM4",
+  "merchant_of_record_app_id": null,
+  "name": "#9999",
+  "note": null,
+  "note_attributes": [],
+  "number": 234,
+  "order_number": 1234,
+  "order_status_url": "https://www.libertariocoffee.com/78373224738/orders/123456abcd/authenticate?key=abcdefg",
+  "original_total_additional_fees_set": null,
+  "original_total_duties_set": null,
+  "payment_gateway_names": [
+    "visa",
+    "bogus"
+  ],
+  "payment_terms": null,
+  "phone": null,
+  "po_number": null,
+  "presentment_currency": "COP",
+  "processed_at": "2026-05-14T19:14:03-05:00",
+  "reference": null,
+  "referring_site": null,
+  "refunds": [],
+  "returns": [],
+  "shipping_address": {
+    "address1": "123 Shipping Street",
+    "address2": null,
+    "city": "Shippington",
+    "company": "Shipping Company",
+    "country": "United States",
+    "country_code": "US",
+    "first_name": "Steve",
+    "last_name": "Shipper",
+    "latitude": null,
+    "longitude": null,
+    "name": "Steve Shipper",
+    "phone": "555-555-SHIP",
+    "province": "Kentucky",
+    "province_code": "KY",
+    "zip": "40003"
+  },
+  "shipping_lines": [
+    {
+      "carrier_identifier": null,
+      "code": null,
+      "current_discounted_price_set": {
+        "presentment_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        }
+      },
+      "discount_allocations": [],
+      "discounted_price": "0.00",
+      "discounted_price_set": {
+        "presentment_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "0.00",
+          "currency_code": "COP"
+        }
+      },
+      "id": 271878346596884016,
+      "is_removed": false,
+      "phone": null,
+      "price": "10.00",
+      "price_set": {
+        "presentment_money": {
+          "amount": "10.00",
+          "currency_code": "COP"
+        },
+        "shop_money": {
+          "amount": "10.00",
+          "currency_code": "COP"
+        }
+      },
+      "requested_fulfillment_service_id": null,
+      "source": "shopify",
+      "tax_lines": [],
+      "title": "Generic Shipping"
+    }
+  ],
+  "source_identifier": null,
+  "source_name": "web",
+  "source_url": null,
+  "subtotal_price": "178434.98",
+  "subtotal_price_set": {
+    "presentment_money": {
+      "amount": "178434.98",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "178434.98",
+      "currency_code": "COP"
+    }
+  },
+  "tags": "tag1, tag2",
+  "tax_exempt": false,
+  "tax_lines": [],
+  "taxes_included": false,
+  "test": true,
+  "token": "123456abcd",
+  "total_cash_rounding_payment_adjustment_set": {
+    "presentment_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    }
+  },
+  "total_cash_rounding_refund_adjustment_set": {
+    "presentment_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    }
+  },
+  "total_discounts": "20.00",
+  "total_discounts_set": {
+    "presentment_money": {
+      "amount": "20.00",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "20.00",
+      "currency_code": "COP"
+    }
+  },
+  "total_line_items_price": "178444.98",
+  "total_line_items_price_set": {
+    "presentment_money": {
+      "amount": "178444.98",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "178444.98",
+      "currency_code": "COP"
+    }
+  },
+  "total_outstanding": "178444.98",
+  "total_price": "178434.98",
+  "total_price_set": {
+    "presentment_money": {
+      "amount": "178434.98",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "178434.98",
+      "currency_code": "COP"
+    }
+  },
+  "total_shipping_price_set": {
+    "presentment_money": {
+      "amount": "10.00",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "10.00",
+      "currency_code": "COP"
+    }
+  },
+  "total_tax": "0.00",
+  "total_tax_set": {
+    "presentment_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    },
+    "shop_money": {
+      "amount": "0.00",
+      "currency_code": "COP"
+    }
+  },
+  "total_tip_received": "0.00",
+  "total_weight": 0,
+  "updated_at": "2026-05-14T19:14:03-05:00",
+  "user_id": null
+}

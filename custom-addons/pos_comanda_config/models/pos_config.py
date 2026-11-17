@@ -8,7 +8,7 @@ class PosConfig(models.Model):
     # Los campos de pos.config viajan al frontend sin declarar nada: el modelo
     # no define `_load_pos_data_fields`, el mixin pasa `[]` y `read([])` lee
     # todos los campos (odoo/orm/models.py). Mismo camino que los flags de
-    # pos_obligatory_invoice y pos_dian_client, ya probados en este entorno.
+    # obligatory_invoice_msg y pos_dian_client, ya probados en este entorno.
     comanda_padding_top = fields.Integer(
         string='Espacio superior (px)',
         default=0,

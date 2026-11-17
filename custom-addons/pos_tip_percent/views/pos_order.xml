@@ -22,6 +22,16 @@
                                 <label string="Tip % (Option 3)" for="pos_tip_percent3" class="col-lg-3 o_light_label"/>
                                 <field name="pos_tip_percent3"/>
                             </div>
+                            <!-- Versión de CR/MX: los valores por defecto (sin impuestos, 0 decimales)
+                                 reproducen el cálculo de la 17 (Math.round sobre el subtotal sin IVA). -->
+                            <div class="row mt16" id="tip_percent_base">
+                                <label string="Base del calculo" for="pos_tip_percent_base" class="col-lg-3 o_light_label"/>
+                                <field name="pos_tip_percent_base"/>
+                            </div>
+                            <div class="row mt16" id="tip_percent_decimals">
+                                <label string="Decimales" for="pos_tip_percent_decimals" class="col-lg-3 o_light_label"/>
+                                <field name="pos_tip_percent_decimals"/>
+                            </div>
                         </div>
                     </setting>
                 </xpath>

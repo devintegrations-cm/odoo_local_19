@@ -15,7 +15,6 @@ método, cada una con su propio voucher:
 
 Una vez validado el pedido, el número se consulta en *Punto de Venta >
 Pedidos*, pestaña **«Payments»**, columna **«Voucher Number»**. El mismo campo
-está en el formulario del pago del POS (*Punto de Venta > Pedidos > Pagos*) y
-como columna opcional en la conciliación bancaria:
+está en el formulario del pago del POS (*Punto de Venta > Pedidos > Pagos*):
 
 ![Pedido del POS en el backend con la columna Voucher Number](../static/description/04_backend_pedido.png)

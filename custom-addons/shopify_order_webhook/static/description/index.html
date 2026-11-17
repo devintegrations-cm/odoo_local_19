@@ -1,0 +1,585 @@
+<!-- ====================================================================== -->
+<!--  Shopify Order Webhook · Odoo 17 · App Store description                -->
+<!-- ====================================================================== -->
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="font-size: 42px; color: #714B67; margin-bottom: 8px;">
+                <b>Shopify Order Webhook</b>
+            </h2>
+            <h3 class="oe_slogan" style="font-size: 20px; color: #6c757d; margin-top: 0;">
+                Recibe webhooks de Shopify y crea órdenes, facturas y pagos en Odoo
+                — con configuración <b>por compañía</b>, consulta de pedidos y
+                productos vía <b>Admin API</b>, importación manual y mapeo de
+                productos.
+            </h3>
+            <p style="text-align: center; font-size: 14px; color: #888;">
+                Odoo 17 · Sales / Sales · v17.0.1.9.1
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Overview                                                                -->
+<!-- ====================================================================== -->
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align: center;">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>¿Qué hace?</b></h2>
+            <p style="font-size: 18px; max-width: 900px; margin: 0 auto;">
+                Expone un endpoint HTTP que Shopify llama cuando se crea una orden.
+                El módulo verifica la firma HMAC, busca o crea el cliente, los
+                productos y la lista de precios, crea una <b>orden de venta
+                confirmada</b>, opcionalmente <b>genera la factura</b> y
+                <b>registra el pago</b>, y notifica por email a los responsables
+                de almacén y contabilidad.
+            </p>
+            <p style="font-size: 18px; max-width: 900px; margin: 16px auto 0;">
+                Además, mediante la <b>Admin API de Shopify</b> (autenticación
+                <code>client_credentials</code>), permite <b>simular</b> el mapeo
+                de las últimas órdenes, <b>importar pedidos manualmente</b> desde
+                un menú dedicado, y <b>mapear los productos</b> de Shopify a sus
+                equivalentes en Odoo.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Screenshots                                                             -->
+<!-- ====================================================================== -->
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Capturas de pantalla</b></h2>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align:center;">
+            <h4 style="color: #714B67;">Ajustes · Shopify Connector (por compañía)</h4>
+            <img src="screenshot_settings.png" alt="Configuración Shopify Connector"
+                 style="max-width:100%; border:1px solid #e0e0e0; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.12);"/>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align:center;">
+            <h4 style="color: #714B67;">Ajustes · API de Shopify (Admin API + simulación)</h4>
+            <img src="screenshot_api.png" alt="Bloque API de Shopify"
+                 style="max-width:100%; border:1px solid #e0e0e0; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.12);"/>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align:center;">
+            <h4 style="color: #714B67;">Ventas → Pedidos de Shopify (consulta e importación)</h4>
+            <img src="screenshot_orders.png" alt="Listado de pedidos de Shopify"
+                 style="max-width:100%; border:1px solid #e0e0e0; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.12);"/>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align:center;">
+            <h4 style="color: #714B67;">Ventas → Productos → Mapeo de productos Shopify</h4>
+            <img src="screenshot_products.png" alt="Mapeo de productos Shopify"
+                 style="max-width:100%; border:1px solid #e0e0e0; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.12);"/>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Key features                                                            -->
+<!-- ====================================================================== -->
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Características principales</b></h2>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🏢 Configuración por compañía</h4>
+            <p style="font-size: 15px;">
+                Cada compañía tiene su propio secret, almacén, diario, mapeos y
+                responsables. Activar / desactivar el webhook en una compañía no
+                afecta a las demás.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🔒 Verificación HMAC-SHA256</h4>
+            <p style="font-size: 15px;">
+                Soporte para el header <code>X-Shopify-Hmac-SHA256</code> con
+                comparación timing-safe. Cada compañía configura su propio
+                secret.
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">⚡ Tres disparadores de facturación</h4>
+            <p style="font-size: 15px;">
+                Factura <b>al confirmar la orden</b>, <b>al validar la entrega</b>
+                de inventario, o <b>después de N horas</b> vía un cron horario.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🔁 Idempotencia integrada</h4>
+            <p style="font-size: 15px;">
+                Clave por <code>shopify_order_id</code> + <code>company_id</code>,
+                reforzada con <code>pg_advisory_xact_lock</code> y una constraint
+                UNIQUE: si Shopify reintenta el webhook (o se importa dos veces),
+                se devuelve <i>skipped</i> en lugar de duplicar la orden.
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🏷️ Mapeo de etiquetas configurable</h4>
+            <p style="font-size: 15px;">
+                Asocia patrones del campo <code>source_name</code> de Shopify
+                con etiquetas de Odoo. Reordenable por prioridad con drag &amp;
+                drop.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">💳 Mapeo de gateways de pago</h4>
+            <p style="font-size: 15px;">
+                Cada gateway de Shopify (<code>shopify_payments</code>,
+                <code>paypal</code>, <code>manual</code>…) puede dirigirse a un
+                diario bank/cash diferente en Odoo.
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🏷️ Etiqueta de entrega PDF</h4>
+            <p style="font-size: 15px;">
+                Genera una etiqueta de envío (formato 1/8 de carta) adjunta a la
+                notificación de almacén, con la dirección de entrega de Shopify.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🌎 Impuestos multi-compañía</h4>
+            <p style="font-size: 15px;">
+                Filtra <code>product.taxes_id</code> por la compañía de la orden,
+                evitando el clásico error <i>"Incompatible companies on records"</i>.
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">💲 Precios con o sin impuesto</h4>
+            <p style="font-size: 15px;">
+                Configura cómo vienen los precios desde Shopify (impuestos
+                incluidos o no) y el módulo ajusta el <code>price_unit</code> según
+                el <code>price_include</code> del impuesto en Odoo, de modo que el
+                total de la orden siempre coincide con el de Shopify.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🔌 Consulta vía Admin API</h4>
+            <p style="font-size: 15px;">
+                Autenticación <code>client_credentials</code> (Client ID + Secret
+                del Dev Dashboard) con token cacheado 24 h. Consulta órdenes y
+                productos por GraphQL sin depender del webhook.
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🧪 Simulación (dry-run)</h4>
+            <p style="font-size: 15px;">
+                Trae las últimas 10 órdenes y construye las ventas en una
+                transacción que se revierte: valida el mapeo de productos,
+                precios, impuestos y totales <b>sin guardar nada</b>.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">📥 Importación manual de pedidos</h4>
+            <p style="font-size: 15px;">
+                Menú <b>Ventas → Pedidos de Shopify</b>: sincroniza los pedidos
+                recientes y registra en Odoo los que elijas (individual o en
+                lote), respetando la idempotencia.
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🔗 Mapeo de productos</h4>
+            <p style="font-size: 15px;">
+                Menú <b>Ventas → Productos → Mapeo de productos Shopify</b>: asocia
+                cada variante de Shopify a su <code>product.product</code>. El
+                webhook y la importación resuelven el producto por variante o SKU
+                antes de crear placeholders.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">🚚 Descripción de Shopify en la entrega</h4>
+            <p style="font-size: 15px;">
+                La descripción del producto en la entrega (<code>description_picking</code>)
+                refleja la de la línea de venta tal como llegó de Shopify, no la
+                descripción genérica del producto.
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">👤 Defaults de venta</h4>
+            <p style="font-size: 15px;">
+                Vendedor, equipo de ventas y producto de envío por defecto
+                configurables por compañía, aplicados a las órdenes generadas.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">📧 Notificaciones por email</h4>
+            <p style="font-size: 15px;">
+                Notifica a los responsables de almacén y contabilidad, dejando
+                además traza en el chatter del registro correspondiente.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Flow                                                                    -->
+<!-- ====================================================================== -->
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Flujo de procesamiento</b></h2>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+<pre style="background:#fff; padding:20px; border-radius:6px; font-size:13px; line-height:1.6; max-width:900px; margin:0 auto; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+POST /shopify/order/&lt;company_id&gt;
+        │
+        ▼
+1.  Validar compañía y que enable_shopify_webhook = True
+2.  Verificar HMAC-SHA256 (si la compañía tiene secret)
+3.  Parsear JSON
+4.  Idempotencia: si shopify_order_id ya existe → 200 'skipped'
+        (advisory lock + UNIQUE como defensa en profundidad)
+5.  Cargar configuración desde res.company
+6.  Resolver almacén (fallback: primero de la compañía)
+7.  Buscar/crear partner (por VAT / email / teléfono)
+8.  Construir líneas de orden:
+        ├─ Resolver producto (mapeo por variante/SKU → SKU → placeholder)
+        ├─ Filtrar impuestos por compañía
+        ├─ Ajustar precio según "Precios de Shopify" + price_include
+        ├─ Línea de envío (producto de envío configurado)
+        └─ Aplicar cuenta analítica
+9.  Crear sale.order (vendedor/equipo por defecto), confirmar
+10. Si auto_invoice, según trigger:
+        ├─ on_confirm  → factura inmediata
+        ├─ on_delivery → factura cuando el picking se valida
+        └─ delayed     → cron horario factura tras N horas
+11. Si auto_delivery → notifica al equipo de almacén
+12. Responde 200 con {'status': 'success', 'order_id': N}
+</pre>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Configuration                                                           -->
+<!-- ====================================================================== -->
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Configuración</b></h2>
+            <p style="font-size: 16px; text-align: center;">
+                Toda la configuración vive en
+                <b>Settings → Sales → Shopify Connector</b> y se guarda por
+                compañía. Activa el master toggle y completa los campos.
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">General</h4>
+            <ul style="font-size: 15px;">
+                <li><b>Habilitar Shopify Webhook</b> — master switch.</li>
+                <li><b>Secreto del Webhook</b> — para verificar HMAC.</li>
+                <li><b>URL del Webhook</b> — calculada y copiable con un click.</li>
+            </ul>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">Ventas</h4>
+            <ul style="font-size: 15px;">
+                <li>Precios de Shopify (impuestos incluidos / no)</li>
+                <li>Lista de Precios por Defecto · Cuenta Analítica</li>
+                <li>Etiqueta por defecto · Mapeo de etiquetas por origen</li>
+                <li>Vendedor · Equipo de ventas · Producto de envío</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">Inventario</h4>
+            <ul style="font-size: 15px;">
+                <li>☐ Registro automático de entrega</li>
+                <li>Almacén · Responsable de Almacén</li>
+            </ul>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">Contabilidad</h4>
+            <ul style="font-size: 15px;">
+                <li>☐ Creación automática de facturas</li>
+                <li>Generar la factura: al confirmar / al entregar / diferido</li>
+                <li>Horas de retraso (solo si trigger = diferido)</li>
+                <li>Diario · Responsable de Contabilidad</li>
+                <li>☐ Registro automático de pago + Mapeo de métodos</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h4 style="color: #714B67;">API de Shopify <span style="font-size:13px; color:#888;">(bloque independiente)</span></h4>
+            <ul style="font-size: 15px;">
+                <li>☐ Activar consulta a la API de Shopify</li>
+                <li>Dominio de la tienda <code>*.myshopify.com</code></li>
+                <li>Client ID + Client Secret (Dev Dashboard) — token
+                    <code>client_credentials</code> automático y cacheado 24 h</li>
+                <li>Token manual (opcional, para apps custom heredadas)</li>
+                <li>Versión de la Admin API · botón <b>Simular últimas 10 órdenes</b></li>
+                <li>Scopes requeridos: <code>read_orders</code>, <code>read_products</code></li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Triggers detail                                                         -->
+<!-- ====================================================================== -->
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Disparadores de facturación</b></h2>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span4">
+            <div style="background:#fff; padding:20px; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1); min-height:180px;">
+                <h4 style="color: #714B67; margin-top:0;">▶ on_confirm</h4>
+                <p style="font-size: 14px;">
+                    La factura se genera, postea y notifica al recibir el
+                    webhook. Si <code>auto_payment</code> está activo, también
+                    se registra y reconcilia el pago entrante.
+                </p>
+            </div>
+        </div>
+        <div class="oe_span4">
+            <div style="background:#fff; padding:20px; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1); min-height:180px;">
+                <h4 style="color: #714B67; margin-top:0;">📦 on_delivery</h4>
+                <p style="font-size: 14px;">
+                    Cuando el picking pasa a estado <code>done</code>, el módulo
+                    dispara la facturación vía override de
+                    <code>stock.picking._action_done()</code>. Soporta entregas
+                    parciales.
+                </p>
+            </div>
+        </div>
+        <div class="oe_span4">
+            <div style="background:#fff; padding:20px; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1); min-height:180px;">
+                <h4 style="color: #714B67; margin-top:0;">⏰ delayed</h4>
+                <p style="font-size: 14px;">
+                    La orden se marca con un timestamp futuro
+                    (<code>shopify_invoice_scheduled_at</code>) y un cron
+                    horario factura las órdenes vencidas. Útil para dar
+                    período de gracia a cancelaciones.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Multi-company                                                           -->
+<!-- ====================================================================== -->
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Multi-compañía</b></h2>
+            <p style="font-size: 16px; text-align: center; max-width: 900px; margin: 0 auto;">
+                Todos los campos de configuración están en <code>res.company</code>
+                y se exponen en Settings vía <code>related=</code>. El switcher
+                de compañía de Odoo cambia la configuración mostrada sin
+                pisar las demás. Cada Shopify Store apunta a la URL de su
+                compañía:
+            </p>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align:center;">
+            <pre style="background:#f7f7f7; padding:16px 24px; border-radius:6px; display:inline-block; font-size:14px;">
+https://odoo.empresa.com/shopify/order/<b style="color:#714B67;">1</b>   ← Compañía A
+https://odoo.empresa.com/shopify/order/<b style="color:#714B67;">2</b>   ← Compañía B
+https://odoo.empresa.com/shopify/order/<b style="color:#714B67;">3</b>   ← Compañía C
+            </pre>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Mappings                                                                -->
+<!-- ====================================================================== -->
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Mapeos configurables</b></h2>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">Etiquetas por origen</h4>
+            <p style="font-size: 14px;">
+                Modelo <code>shopify.source.tag.mapping</code>. Itera por
+                <code>sequence</code> (drag &amp; drop para reordenar) y devuelve
+                la primera etiqueta cuyo patrón es substring case-insensitive
+                del <code>source_name</code>. Fallback a la etiqueta por defecto.
+            </p>
+            <pre style="background:#fff; padding:12px; border-radius:4px; font-size:12px;">
+sequence | source_pattern | tag_id
+---------|----------------|-------
+   10    | atria          | wsp
+   20    | web            | Web</pre>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">Métodos de pago</h4>
+            <p style="font-size: 14px;">
+                Modelo <code>shopify.payment.journal.mapping</code>. Busca un
+                mapping cuyo <code>shopify_gateway</code> esté entre los
+                <code>payment_gateway_names</code> de la orden, filtrado por
+                compañía. Fallback al primer diario bank/cash de la compañía.
+            </p>
+            <pre style="background:#fff; padding:12px; border-radius:4px; font-size:12px;">
+shopify_gateway   | journal_id
+------------------|-------------------
+shopify_payments  | Bancolombia
+paypal            | PayPal MXN
+manual            | Caja Principal</pre>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Architecture                                                            -->
+<!-- ====================================================================== -->
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Arquitectura técnica</b></h2>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+<pre style="background:#f7f7f7; padding:20px; border-radius:6px; font-size:13px; line-height:1.6; max-width:900px; margin:0 auto;">
+shopify_order_webhook/
+├── controllers/
+│   └── controllers.py          ShopifyOrderController (endpoint HTTP)
+├── data/
+│   └── ir_cron.xml             cron horario para trigger 'delayed'
+├── models/
+│   ├── res_company.py          config per-company + cliente Admin API
+│   ├── res_config_settings.py  related= + simulación (dry-run)
+│   ├── sale_order.py           _shopify_process_invoice y métodos asoc.
+│   ├── stock_picking.py        hook _action_done para trigger on_delivery
+│   ├── stock_move.py           descripción de Shopify en la entrega
+│   ├── shopify_order_import.py     consulta/importación manual de pedidos
+│   ├── shopify_product_mapping.py  mapeo variante Shopify → product.product
+│   ├── shopify_order_simulation.py wizard de resultado de la simulación
+│   ├── shopify_payment_mapping.py
+│   └── shopify_source_tag_mapping.py
+├── report/
+│   └── report_shopify_delivery_label.xml   etiqueta de entrega PDF
+├── security/
+│   └── ir.model.access.csv     ACLs para los modelos
+├── views/
+│   ├── res_config_settings_views.xml
+│   ├── shopify_order_import_views.xml      menú "Pedidos de Shopify"
+│   ├── shopify_product_mapping_views.xml   menú "Mapeo de productos"
+│   └── shopify_order_simulation_views.xml
+└── test/
+    └── send_test_order.py      script para invocar el endpoint
+</pre>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Dependencies                                                            -->
+<!-- ====================================================================== -->
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Dependencias y requisitos</b></h2>
+        </div>
+    </div>
+
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">Módulos Odoo</h4>
+            <ul style="font-size: 15px;">
+                <li><code>base</code> · <code>sale</code> · <code>sale_management</code></li>
+                <li><code>sale_stock</code> · <code>stock</code> · <code>account</code></li>
+                <li><code>mail</code> · <code>crm</code></li>
+                <li><code>l10n_co_edi_jorels</code> <i>(EDI Colombia)</i></li>
+            </ul>
+        </div>
+        <div class="oe_span6">
+            <h4 style="color: #714B67;">Versión y requisitos</h4>
+            <ul style="font-size: 15px;">
+                <li>Odoo <b>17.0</b> Community o Enterprise · <b>v17.0.1.9.1</b></li>
+                <li>Python <b>3.10+</b> · paquetes <code>dateutil</code>, <code>requests</code></li>
+                <li>Webhooks JSON estándar (<code>orders/create</code>, <code>orders/paid</code>)</li>
+                <li>Admin API: app del Dev Dashboard instalada en la tienda</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ====================================================================== -->
+<!--  Footer                                                                  -->
+<!-- ====================================================================== -->
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12" style="text-align: center;">
+            <h2 class="oe_slogan" style="color: #714B67;"><b>Soporte</b></h2>
+            <p style="font-size: 16px;">
+                Desarrollado por <b>Libertario Coffee Roasters</b><br/>
+                <a href="https://www.libertariocoffee.com">www.libertariocoffee.com</a>
+            </p>
+        </div>
+    </div>
+</section>

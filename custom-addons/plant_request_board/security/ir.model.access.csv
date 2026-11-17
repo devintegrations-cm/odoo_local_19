@@ -1,0 +1,20 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_plant_production_plan_user,plant.production.plan user,model_plant_production_plan,stock.group_stock_user,1,0,0,0
+access_plant_production_plan_manager,plant.production.plan manager,model_plant_production_plan,stock.group_stock_manager,1,1,1,1
+access_plant_kind_user,plant.kind user,model_plant_kind,stock.group_stock_user,1,0,0,0
+access_plant_kind_manager,plant.kind manager,model_plant_kind,stock.group_stock_manager,1,1,1,1
+access_plant_sheet_row_user,plant.sheet.row user,model_plant_sheet_row,stock.group_stock_user,1,0,0,0
+access_plant_sheet_row_manager,plant.sheet.row manager,model_plant_sheet_row,stock.group_stock_manager,1,1,1,1
+access_plant_sheet_column_user,plant.sheet.column user,model_plant_sheet_column,stock.group_stock_user,1,0,0,0
+access_plant_sheet_column_manager,plant.sheet.column manager,model_plant_sheet_column,stock.group_stock_manager,1,1,1,1
+access_plant_channel_user,plant.channel user,model_plant_channel,stock.group_stock_user,1,0,0,0
+access_plant_channel_manager,plant.channel manager,model_plant_channel,stock.group_stock_manager,1,1,1,1
+access_plant_coffee_line_user,plant.coffee.line user,model_plant_coffee_line,stock.group_stock_user,1,0,0,0
+access_plant_coffee_line_manager,plant.coffee.line manager,model_plant_coffee_line,stock.group_stock_manager,1,1,1,1
+access_plant_product_fill_wizard,plant.product.fill.wizard,model_plant_product_fill_wizard,stock.group_stock_manager,1,1,1,1
+access_plant_product_fill_wizard_line,plant.product.fill.wizard.line,model_plant_product_fill_wizard_line,stock.group_stock_manager,1,1,1,1
+access_plant_duplicate_wizard,plant.duplicate.wizard,model_plant_duplicate_wizard,stock.group_stock_manager,1,1,1,1
+access_plant_duplicate_wizard_line,plant.duplicate.wizard.line,model_plant_duplicate_wizard_line,stock.group_stock_manager,1,1,1,1
+access_plant_request_check_user,plant.request.check user,model_plant_request_check,stock.group_stock_user,1,1,0,0
+access_plant_request_check_manager,plant.request.check manager,model_plant_request_check,stock.group_stock_manager,1,1,1,1
+access_plant_validate_wizard_user,plant.validate.wizard user,model_plant_validate_wizard,stock.group_stock_user,1,1,1,1

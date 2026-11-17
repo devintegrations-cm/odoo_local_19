@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_picking_form_cost_check" model="ir.ui.view">
+        <field name="name">stock.picking.form.cost.validator</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <field name="cost_check_state" invisible="1"/>
+                <div class="alert alert-danger mb-0 py-2" role="alert" invisible="cost_check_state != 'danger' or state in ('done', 'cancel')">
+                    <i class="fa fa-exclamation-triangle me-1" title="Desfase de costo"/>
+                    Ey, en esta recepción <field name="cost_check_summary" class="d-inline fw-bold" readonly="1"/> trae un precio o una cantidad que no cuadra. Revisa la orden de compra antes de recibir; al validar se le avisa al revisor de compras.
+                </div>
+                <div class="alert alert-warning mb-0 py-2" role="status" invisible="not cost_approved_by">
+                    Recibida con desfase de costo, aprobada por <field name="cost_approved_by" class="d-inline fw-bold" readonly="1"/>.
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="vpicktree_cost_check" model="ir.ui.view">
+        <field name="name">stock.picking.tree.cost.validator</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">cost_alert and state not in ('done', 'cancel')</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="cost_alert" optional="show" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_picking_search_cost_check" model="ir.ui.view">
+        <field name="name">stock.picking.search.cost.validator</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[1]" position="before">
+                <filter name="cost_alert" string="Con desfase de costo" domain="[('cost_alert', '=', True)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Consolidado: item × store/customer matrix over the open order lines -->
+    <record id="view_plant_consolidation_pivot" model="ir.ui.view">
+        <field name="name">stock.move.plant.consolidation.pivot</field>
+        <field name="model">stock.move</field>
+        <field name="arch" type="xml">
+            <pivot string="Consolidado de pedidos" disable_linking="1" default_order="product_id asc">
+                <field name="plant_coffee_line" type="row"/>
+                <field name="product_id" type="row"/>
+                <field name="plant_counterparty" type="col"/>
+                <field name="plant_bags" type="measure"/>
+                <field name="plant_kg" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_plant_consolidation_tree" model="ir.ui.view">
+        <field name="name">stock.move.plant.consolidation.tree</field>
+        <field name="model">stock.move</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false" default_order="plant_coffee_line, product_id">
+                <field name="plant_channel_id" widget="badge"/>
+                <field name="plant_warehouse_id" optional="hide"/>
+                <field name="plant_counterparty"/>
+                <field name="picking_id" string="Pedido"/>
+                <field name="plant_coffee_line"/>
+                <field name="product_id"/>
+                <field name="plant_size" optional="show"/>
+                <field name="plant_grind" optional="show"/>
+                <field name="product_uom_qty" string="Cantidad" sum="Cantidad"/>
+                <field name="product_uom" string="Unidad"/>
+                <field name="plant_bags" sum="Bolsas"/>
+                <field name="plant_kg" sum="Kg"/>
+                <field name="plant_stage" widget="badge" optional="show"/>
+                <field name="date" string="Fecha" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_plant_consolidation_search" model="ir.ui.view">
+        <field name="name">stock.move.plant.consolidation.search</field>
+        <field name="model">stock.move</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="plant_counterparty"/>
+                <field name="plant_coffee_line"/>
+                <filter name="open" string="Por alistar" domain="[('plant_stage', 'in', ('new', 'preparing')), ('state', 'not in', ('done', 'cancel'))]"/>
+                <filter name="ready" string="Listos para despachar" domain="[('plant_stage', '=', 'ready')]"/>
+                <filter name="delivered" string="Despachados" domain="[('plant_stage', '=', 'delivered')]"/>
+                <separator/>
+                <filter name="coffee" string="Solo café" domain="[('plant_kind_code', 'in', ('prepare', 'packed'))]"/>
+                <filter name="ready" string="Listos para vender" domain="[('plant_kind_code', '=', 'ready')]"/>
+                <filter name="supply" string="Insumos" domain="[('plant_kind_code', '=', 'supply')]"/>
+                <separator/>
+                <filter name="week" string="Esta semana" date="date"/>
+                <group>
+                    <filter name="group_line" string="Línea de café" context="{'group_by': 'plant_coffee_line'}"/>
+                    <filter name="group_product" string="Producto" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_counterparty" string="Tienda / cliente" context="{'group_by': 'plant_counterparty'}"/>
+                    <filter name="group_channel" string="Canal" context="{'group_by': 'plant_channel_id'}"/>
+                    <filter name="group_plant" string="Planta" context="{'group_by': 'plant_warehouse_id'}"/>
+                </group>
+                <searchpanel>
+                    <field name="plant_warehouse_id" string="Planta" icon="fa-industry" enable_counters="1" expand="1"/>
+                    <field name="plant_channel_id" string="Canal" icon="fa-sitemap" enable_counters="1" expand="1"/>
+                    <field name="plant_kind_id" string="Tipo" icon="fa-tags" select="multi" enable_counters="1" expand="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+    <record id="action_plant_consolidation" model="ir.actions.act_window">
+        <field name="name">Consolidado</field>
+        <field name="res_model">stock.move</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="domain">[('plant_request', '=', True)]</field>
+        <field name="context" eval="{'search_default_open': 1, 'search_default_coffee': 1, 'searchpanel_default_plant_channel_id': ref('plant_request_board.channel_tiendas'), 'pivot_measures': ['plant_bags', 'plant_kg']}"/>
+        <field name="search_view_id" ref="view_plant_consolidation_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin líneas de pedido</p>
+            <p>Cada fila es un producto pedido a la planta; cada columna, la tienda o el cliente. Es la matriz de la hoja de pedidos, con datos vivos.</p>
+        </field>
+    </record>
+    <record id="action_plant_consolidation_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_plant_consolidation_pivot"/>
+        <field name="act_window_id" ref="action_plant_consolidation"/>
+    </record>
+    <record id="action_plant_consolidation_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_plant_consolidation_tree"/>
+        <field name="act_window_id" ref="action_plant_consolidation"/>
+    </record>
+
+    <!-- Plan de tostión: ordered − stock at the plant, kg to roast per coffee line -->
+    <record id="view_plant_production_plan_tree" model="ir.ui.view">
+        <field name="name">plant.production.plan.tree</field>
+        <field name="model">plant.production.plan</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false" edit="false" decoration-danger="to_produce > 0 and plant_kind_code in ('prepare', 'packed')" decoration-muted="to_produce == 0" decoration-warning="negative_stock">
+                <header>
+                    <button name="action_compare_with_sheet" type="object" string="Comparar con la hoja" display="always" class="btn-secondary" help="El total del plan junto al TOTAL NETO X TOSTAR de cada pestaña de la hoja, para los mismos pedidos abiertos, y por qué difieren."/>
+                </header>
+                <field name="plant_kind_code" column_invisible="1"/>
+                <field name="negative_stock" column_invisible="1"/>
+                <field name="plant_coffee_line"/>
+                <field name="product_id"/>
+                <field name="plant_warehouse_id" optional="show"/>
+                <field name="plant_size" optional="show"/>
+                <field name="plant_grind" optional="show"/>
+                <field name="plant_kind_id" optional="hide"/>
+                <field name="ordered" sum="Bolsas pedidas"/>
+                <field name="on_hand" sum="Bolsas en planta"/>
+                <field name="on_hand_raw" optional="hide"/>
+                <field name="to_produce" sum="Bolsas por fabricar"/>
+                <field name="kg_ordered" sum="Kg pedidos"/>
+                <field name="kg_on_hand" sum="Kg en planta"/>
+                <field name="kg_on_hand_raw" optional="hide"/>
+                <field name="kg_to_roast" sum="Kg a tostar" decoration-bf="1"/>
+                <field name="stock_note" optional="show"/>
+                <field name="orders"/>
+                <field name="counterparties" optional="show"/>
+                <field name="channels" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_plant_production_plan_search" model="ir.ui.view">
+        <field name="name">plant.production.plan.search</field>
+        <field name="model">plant.production.plan</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="plant_coffee_line"/>
+                <filter name="to_roast" string="Con café por tostar" domain="[('kg_to_roast', '>', 0)]"/>
+                <filter name="negative" string="Inventario negativo en Odoo" domain="[('negative_stock', '=', True)]"/>
+                <filter name="coffee" string="Solo café" domain="[('plant_kind_code', 'in', ('prepare', 'packed'))]"/>
+                <group>
+                    <filter name="group_line" string="Línea de café" context="{'group_by': 'plant_coffee_line'}"/>
+                    <filter name="group_kind" string="Tipo" context="{'group_by': 'plant_kind_id'}"/>
+                    <filter name="group_plant" string="Planta" context="{'group_by': 'plant_warehouse_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_plant_production_plan" model="ir.actions.act_window">
+        <field name="name">Plan de tostión</field>
+        <field name="res_model">plant.production.plan</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_coffee': 1, 'search_default_group_line': 1}</field>
+        <field name="search_view_id" ref="view_plant_production_plan_search"/>
+    </record>
+    <record id="server_action_plant_production_plan" model="ir.actions.server">
+        <field name="name">Plan de tostión</field>
+        <field name="model_id" ref="model_plant_production_plan"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open()</field>
+    </record>
+
+    <record id="action_plant_sheet" model="ir.actions.client">
+        <field name="name">Hoja de pedidos</field>
+        <field name="tag">plant_request_board.sheet</field>
+    </record>
+    <menuitem id="menu_plant_consolidation" name="Consolidado" parent="menu_plant_root" action="action_plant_sheet" sequence="2"/>
+    <menuitem id="menu_plant_production_plan" name="Plan de tostión" parent="menu_plant_root" action="server_action_plant_production_plan" sequence="3"/>
+</odoo>

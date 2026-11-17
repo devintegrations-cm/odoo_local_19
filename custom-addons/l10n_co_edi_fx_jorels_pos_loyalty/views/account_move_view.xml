@@ -1,0 +1,15 @@
+<odoo>
+  <data>
+    <record id="account_move_view_form_inherit_fx_jorels_pos_loyalty" model="ir.ui.view">
+        <field name="name">account.move.view.form.inherit.fx_jorels_pos_loyalty</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@id='invoice_tab']//field[@name='product_id']" position="after">
+                 <field name="invoice_reward_line" optional="show" />
+                <field name="invoice_reward_price" optional="show" />
+            </xpath>
+        </field>
+    </record>
+  </data>
+</odoo>

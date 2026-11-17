@@ -12,9 +12,9 @@
 - `rescue_parent_session_id` solo se completa si `rescue` llega en los valores de creación de la
   sesión; si una versión futura marca el rescate con una escritura posterior, el vínculo queda
   vacío.
-- El rol de responsable sale del usuario de Odoo, no del empleado de `pos_hr`. En una tienda donde
-  todos los empleados comparten un usuario con permisos de administrador del POS, las revisiones de
-  consistencia nunca bloquean.
+- El rol de responsable sale del usuario de Odoo, no del empleado de `pos_hr`. Solo decide quién
+  puede eliminar un movimiento: en una tienda donde todos comparten un usuario administrador del
+  POS, cualquiera puede eliminarlo (en 17 no había restricción alguna).
 - Los campos nuevos de la sesión (`rescue_parent_session_id`, `rescue_session_ids`) y de las líneas
   de extracto (`pos_cash_move`, `pos_cash_move_uuid`) no se muestran en ninguna vista.
 - Falta `static/description/icon.png`: en *Aplicaciones* se ve el ícono genérico de Odoo.

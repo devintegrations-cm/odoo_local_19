@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- Standard cost centre per cardholder and area, from "Consolidado de tarjetas Clara" (cut 2026-09-29).
+         The analytic account itself is linked at install time by name (post_init_hook) or with the
+         "Buscar cuentas por nombre" button, because its id differs on every database. -->
+    <record id="rule_alejandro_diaz" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Alejandro Diaz</field>
+        <field name="cardholder_email">businessdevelopercol@libertariocoffee.com</field>
+        <field name="area">COMERCIAL</field>
+        <field name="analytic_name">Institucional</field>
+    </record>
+    <record id="rule_andrea_reyes" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Andrea Reyes</field>
+        <field name="cardholder_email">andrea.reyes@libertariocoffee.com</field>
+        <field name="area">COMERCIAL</field>
+        <field name="analytic_name">Institucional</field>
+    </record>
+    <record id="rule_andres_bustos" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Andres Bustos</field>
+        <field name="cardholder_email">operacionescol@libertariocoffee.com</field>
+        <field name="area">OPERACIONES</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_catery_estefania_fonseca_duque" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Catery Estefania Fonseca Duque</field>
+        <field name="cardholder_email">brand.lead@libertariocoffee.com</field>
+        <field name="area">MERCADEO</field>
+        <field name="analytic_name">Mercadeo</field>
+    </record>
+    <record id="rule_diego_felipe_guerrero_porras" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Diego Felipe Guerrero Porras</field>
+        <field name="cardholder_email">architecturedesign@libertariocoffee.com</field>
+        <field name="area">EXPANSIÓN</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_felipe_sardi" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Felipe Sardi</field>
+        <field name="cardholder_email">fsardi@libertariocoffee.com</field>
+        <field name="area">FINANCIERA</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_henry_riano" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Henry Riaño</field>
+        <field name="cardholder_email">soporteit@libertariocoffee.com</field>
+        <field name="area">IT</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_johan_gonzalez" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Johan Gonzalez</field>
+        <field name="cardholder_email">soporte.eventos@libertariocoffee.com</field>
+        <field name="area">OPERACIONES</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_juan_felipe_triana_serrano" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Juan Felipe Triana Serrano</field>
+        <field name="cardholder_email">baristahospitality@libertariocoffee.com</field>
+        <field name="area">COMERCIAL</field>
+        <field name="analytic_name">Institucional</field>
+    </record>
+    <record id="rule_juan_pablo_castro_pena" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Juan Pablo Castro Peña</field>
+        <field name="cardholder_email">direccionexpansion@libertariocoffee.com</field>
+        <field name="area">EXPANSIÓN</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_juanita_higuera" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Juanita Higuera</field>
+        <field name="cardholder_email">businessdevelopercol2@libertariocoffee.com</field>
+        <field name="area">COMERCIAL</field>
+        <field name="analytic_name">Institucional</field>
+    </record>
+    <record id="rule_julieth_natalia_plazas" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Julieth Natalia Plazas</field>
+        <field name="cardholder_email">analistadigital@libertariocoffee.com</field>
+        <field name="area">MERCADEO</field>
+        <field name="analytic_name">Mercadeo</field>
+    </record>
+    <record id="rule_karen_martinez" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Karen Martinez</field>
+        <field name="cardholder_email">karen.martinez@libertariocoffee.com</field>
+        <field name="analytic_name">Institucional</field>
+    </record>
+    <record id="rule_laura_daniela_ladino_hernandez" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Laura Daniela Ladino Hernandez</field>
+        <field name="cardholder_email">coordinacionth@libertariocoffee.com</field>
+        <field name="area">RECURSOS HUMANOS</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_luis_daniel_esteban_gil" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Luis Daniel Esteban Gil</field>
+        <field name="cardholder_email">gerenciaoperaciones@libertariocoffee.com</field>
+        <field name="area">OPERACIONES</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_maria_isabel_montoya_duran" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Maria Isabel Montoya Duran</field>
+        <field name="cardholder_email">finance@libertariocoffee.com</field>
+        <field name="area">FINANCIERA</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_maria_paula_andrade" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Maria Paula Andrade</field>
+        <field name="cardholder_email">legal@libertariocoffee.com</field>
+        <field name="area">LEGAL</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_maria_paula_romero" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Maria Paula Romero</field>
+        <field name="cardholder_email">generalmarketing@libertariocoffee.com</field>
+        <field name="area">MERCADEO</field>
+        <field name="analytic_name">Mercadeo</field>
+    </record>
+    <record id="rule_miguel_ladino" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Miguel Ladino</field>
+        <field name="cardholder_email">mladino@libertariocoffee.com</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_osmar_toloza" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Osmar Toloza</field>
+        <field name="cardholder_email">regionalit@libertariocoffee.com</field>
+        <field name="area">IT</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_paula_mariana_rojas_merchan" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Paula Mariana Rojas Merchan</field>
+        <field name="cardholder_email">tesoreria@libertariocoffee.com</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_santiago_murillo_valencia" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Santiago Murillo Valencia</field>
+        <field name="cardholder_email">lidertransformacion@libertariocoffee.com</field>
+        <field name="area">PROCESOS</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_sebastian_tolosa" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Sebastian Tolosa</field>
+        <field name="cardholder_email">capacitacionservicio@libertariocoffee.com</field>
+        <field name="area">OPERACIONES</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_sofia_arrieta" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Sofia Arrieta</field>
+        <field name="cardholder_email">seniordesign@libertariocoffee.com</field>
+        <field name="area">MERCADEO</field>
+        <field name="analytic_name">Mercadeo</field>
+    </record>
+    <record id="rule_libertario_coffee_roasters_sas" model="clara.analytic.rule">
+        <field name="kind">cardholder</field>
+        <field name="name">Libertario Coffee Roasters SAS</field>
+        <field name="analytic_name">Administrativo</field>
+        <field name="note">Tarjeta virtual corporativa</field>
+    </record>
+    <record id="rule_area_comercial" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">COMERCIAL</field>
+        <field name="area">COMERCIAL</field>
+        <field name="analytic_name">Institucional</field>
+    </record>
+    <record id="rule_area_mercadeo" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">MERCADEO</field>
+        <field name="area">MERCADEO</field>
+        <field name="analytic_name">Mercadeo</field>
+    </record>
+    <record id="rule_area_financiera" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">FINANCIERA</field>
+        <field name="area">FINANCIERA</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_area_recursos_humanos" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">RECURSOS HUMANOS</field>
+        <field name="area">RECURSOS HUMANOS</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_area_legal" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">LEGAL</field>
+        <field name="area">LEGAL</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_area_procesos" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">PROCESOS</field>
+        <field name="area">PROCESOS</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_area_contabilidad" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">CONTABILIDAD</field>
+        <field name="area">CONTABILIDAD</field>
+        <field name="analytic_name">Administrativo</field>
+    </record>
+    <record id="rule_area_operaciones" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">OPERACIONES</field>
+        <field name="area">OPERACIONES</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_area_expansion" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">EXPANSIÓN</field>
+        <field name="area">EXPANSIÓN</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+    <record id="rule_area_it" model="clara.analytic.rule">
+        <field name="kind">area</field>
+        <field name="name">IT</field>
+        <field name="area">IT</field>
+        <field name="multi_cost_center" eval="True"/>
+    </record>
+</odoo>

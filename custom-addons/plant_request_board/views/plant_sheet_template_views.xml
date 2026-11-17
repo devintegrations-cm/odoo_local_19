@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Rows of the workbook: the plant edits labels, colours, grams and products in place -->
+    <record id="view_plant_sheet_row_tree" model="ir.ui.view">
+        <field name="name">plant.sheet.row.tree</field>
+        <field name="model">plant.sheet.row</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" default_order="sheet, sequence, id">
+                <header>
+                    <button name="action_link_products" type="object" string="Vincular productos por referencia" class="btn-secondary"/>
+                </header>
+                <field name="sequence" widget="handle"/>
+                <field name="sheet"/>
+                <field name="block"/>
+                <field name="is_auto"/>
+                <field name="line"/>
+                <field name="line_id" optional="hide"/>
+                <field name="name"/>
+                <field name="color" widget="color"/>
+                <field name="grams"/>
+                <field name="exception" widget="boolean_toggle"/>
+                <field name="product_ids" widget="many2many_tags" options="{'no_create': True}" domain="[('is_storable', '=', True)]"/>
+                <field name="product_codes" optional="hide"/>
+                <field name="parent_id" optional="hide" domain="[('sheet', '=', sheet), ('parent_id', '=', False)]"/>
+                <field name="factor" optional="hide"/>
+                <field name="units_per_box" optional="hide"/>
+                <field name="inventory_manual" optional="hide"/>
+                <field name="inventory_manual_date" optional="hide"/>
+                <field name="note" optional="hide"/>
+                <field name="active" widget="boolean_toggle" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_plant_sheet_row_search" model="ir.ui.view">
+        <field name="name">plant.sheet.row.search</field>
+        <field name="model">plant.sheet.row</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="line"/>
+                <field name="product_ids"/>
+                <filter name="tiendas" string="PEDIDOS TIENDAS" domain="[('sheet', '=', 'tiendas')]"/>
+                <filter name="otros" string="OTROS PEDIDOS" domain="[('sheet', '=', 'otros')]"/>
+                <filter name="attenza" string="ATTENZA" domain="[('sheet', '=', 'attenza')]"/>
+                <separator/>
+                <filter name="manual" string="Manuales: kits y excepciones" domain="[('is_auto', '=', False), '|', '|', ('exception', '=', True), ('parent_id', '!=', False), ('child_ids', '!=', False)]"/>
+                <filter name="inert" string="Manuales sin efecto (reemplazadas por filas automáticas)" domain="[('is_auto', '=', False), ('exception', '=', False), ('parent_id', '=', False), ('child_ids', '=', False)]"/>
+                <filter name="auto" string="Automáticas" domain="[('is_auto', '=', True)]"/>
+                <separator/>
+                <filter name="no_products" string="Sin productos vinculados" domain="[('is_auto', '=', False), ('product_ids', '=', False), ('child_ids', '=', False)]"/>
+                <filter name="manual" string="Inventario digitado" domain="[('inventory_manual_date', '!=', False)]"/>
+                <filter name="inactive" string="Archivadas" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_sheet" string="Pestaña" context="{'group_by': 'sheet'}"/>
+                    <filter name="group_line" string="Línea" context="{'group_by': 'line'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_plant_sheet_rows" model="ir.actions.act_window">
+        <field name="name">Filas de la hoja</field>
+        <field name="res_model">plant.sheet.row</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_group_sheet': 1, 'search_default_manual': 1}</field>
+        <field name="search_view_id" ref="view_plant_sheet_row_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin filas</p>
+            <p>Las filas de la hoja se generan solas desde los campos de planta de los productos (línea × gramos × molienda). Aquí quedan los kits (fila del kit con sus componentes y factor) y las excepciones: una fila manual con productos y la marca «Excepción» toma esos productos en vez de su fila automática.</p>
+        </field>
+    </record>
+
+    <!-- Store columns of PEDIDOS TIENDAS -->
+    <record id="view_plant_sheet_column_tree" model="ir.ui.view">
+        <field name="name">plant.sheet.column.tree</field>
+        <field name="model">plant.sheet.column</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" default_order="sheet, sequence, id">
+                <header>
+                    <button name="action_link_warehouses" type="object" string="Vincular almacenes por código" class="btn-secondary"/>
+                </header>
+                <field name="sequence" widget="handle"/>
+                <field name="sheet"/>
+                <field name="name"/>
+                <field name="warehouse_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="warehouse_codes" optional="hide"/>
+                <field name="header_color" widget="color" optional="hide"/>
+                <field name="hidden" widget="boolean_toggle"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_plant_sheet_columns" model="ir.actions.act_window">
+        <field name="name">Columnas de la hoja</field>
+        <field name="res_model">plant.sheet.column</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin columnas</p>
+            <p>Capa opcional sobre las columnas de PEDIDOS TIENDAS: el nombre corto que usa la planta, el orden, el color y si se oculta. Toda tienda (almacén marcado «Es tienda», marcado solo con su primera solicitud) y todo almacén que pida tienen columna aunque no estén aquí. EVENTO agrupa los almacenes de eventos.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_plant_sheet_rows" name="Filas de la hoja" parent="menu_plant_root" action="action_plant_sheet_rows" sequence="80" groups="stock.group_stock_manager"/>
+    <menuitem id="menu_plant_sheet_columns" name="Columnas de la hoja" parent="menu_plant_root" action="action_plant_sheet_columns" sequence="81" groups="stock.group_stock_manager"/>
+</odoo>

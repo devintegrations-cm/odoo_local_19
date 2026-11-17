@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_sos" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.sos</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block title="Soporte de operaciones" name="sos_settings">
+
+                    <setting string="Tolerancia de cantidades"
+                             help="Diferencia admitida entre el comprobante y la operacion. Pasa si esta dentro del porcentaje O dentro de las unidades. En 0 no se admite ninguna diferencia.">
+                        <div class="content-group">
+                            <div class="row">
+                                <label for="sos_qty_tolerance_pct" class="col-lg-4 o_light_label"/>
+                                <field name="sos_qty_tolerance_pct"/>
+                            </div>
+                            <div class="row">
+                                <label for="sos_qty_tolerance_abs" class="col-lg-4 o_light_label"/>
+                                <field name="sos_qty_tolerance_abs"/>
+                            </div>
+                        </div>
+                    </setting>
+
+                    <setting string="Verificar quien entrega y quien recibe"
+                             help="Compara NIT y razon social del comprobante con la compania y el contacto de la operacion, segun sea entrada o salida.">
+                        <field name="sos_party_check"/>
+                    </setting>
+
+                    <setting string="NIT de la compania"
+                             help="Vacio = NIT de la compania activa.">
+                        <field name="sos_company_nit" placeholder="901234567"/>
+                    </setting>
+
+                    <setting string="Exigir constancia de recibido"
+                             help="Revisa que el comprobante tenga una marca de recibido escrita a mano (firma, nombre, fecha u orden de compra). Si falta: error en remisiones, observacion en facturas; los tiquetes de caja no la necesitan.">
+                        <field name="sos_signature_check"/>
+                    </setting>
+
+                    <setting string="Validar la recepcion si el soporte cuadra exacto"
+                             help="Soporte aprobado y cantidades exactamente iguales a lo pedido: la recepcion se valida sola. Nunca con lote o serie, ni con diferencias dentro de la tolerancia.">
+                        <field name="sos_auto_validate"/>
+                    </setting>
+
+                    <setting string="Leer el comprobante con IA de vision"
+                             help="La mayoria de los comprobantes son fotos de remisiones firmadas: la IA las transcribe a datos. Sin esto, el comprobante se adjunta y se captura a mano.">
+                        <field name="sos_vision_enabled"/>
+                        <div class="content-group" invisible="not sos_vision_enabled">
+                            <div class="row" invisible="sos_vision_cli_enabled">
+                                <label for="sos_vision_provider" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_provider"/>
+                            </div>
+                            <div class="row" invisible="sos_vision_cli_enabled or sos_vision_provider != 'http'">
+                                <label for="sos_vision_url" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_url" placeholder="https://..."/>
+                            </div>
+                            <div class="row" invisible="sos_vision_cli_enabled">
+                                <label for="sos_vision_api_key" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_api_key" password="True"/>
+                            </div>
+                            <div class="row" invisible="sos_vision_cli_enabled or sos_vision_provider != 'anthropic'">
+                                <label for="sos_vision_model" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_model"/>
+                            </div>
+                            <div class="row" invisible="sos_vision_cli_enabled">
+                                <label for="sos_vision_timeout" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_timeout"/>
+                            </div>
+                        </div>
+                    </setting>
+
+                    <setting string="Conexion de prueba por CLI local"
+                             help="Solo para desarrollo: usa el puente anthropic_cli_bridge y una CLI con sesion iniciada, sin API key. Mientras este activa, el proveedor y la API key de arriba no se usan."
+                             invisible="not sos_vision_enabled">
+                        <field name="sos_vision_cli_enabled"/>
+                        <div class="content-group" invisible="not sos_vision_cli_enabled">
+                            <div class="row">
+                                <label for="sos_vision_cli_tool" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_cli_tool"/>
+                            </div>
+                            <div class="row">
+                                <label for="sos_vision_cli_url" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_cli_url"/>
+                            </div>
+                            <div class="row">
+                                <label for="sos_vision_cli_api_key" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_cli_api_key" password="True"/>
+                            </div>
+                            <div class="row">
+                                <label for="sos_vision_cli_timeout" class="col-lg-4 o_light_label"/>
+                                <field name="sos_vision_cli_timeout"/>
+                            </div>
+                        </div>
+                    </setting>
+
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -426,6 +426,51 @@ class TestPortalAccount(SprCase, HttpCase):
         self.assertFalse(feedback.get("redirectUrl"))
         self.assertFalse(self.supplier.spr_doc_rut_id)
 
+    def _post_address(self, data):
+        """POST a /my/address/submit como el formulario de /my/addresses: solo
+        csrf y los campos de direccion, sin nada de "Mi cuenta"."""
+        page = self.url_open("/my/account")
+        self.assertEqual(page.status_code, 200)
+        csrf = next(
+            dict(ATTR_RE.findall(tag)).get("value", "")
+            for tag in INPUT_RE.findall(page.text) if 'name="csrf_token"' in tag
+        )
+        return self.url_open("/my/address/submit", data=dict(data, csrf_token=csrf))
+
+    def test_other_addresses_are_not_blocked(self):
+        """K3: crear una direccion de entrega o editar el contacto desde
+        /my/addresses no pide los datos de facturacion ni los documentos de "Mi
+        cuenta" (en 19 todo pasa por _validate_address_values)."""
+        self.authenticate("ana_account", "ana_account_pw_2026")
+        if self.jorels_values:
+            # Sin datos de Jorels: en "Mi cuenta" seria error, aqui no aplica.
+            self.supplier.write({"email_edi": False, "type_regime_id": False})
+        address = {
+            "name": "Bodega Pitalito",
+            "email": "bodega@cafesdelsur.example",
+            "phone": "3005550000",
+            "street": "Calle 9 # 1-2",
+            "city": "Pitalito",
+            "zip": "190001",
+            "country_id": str(self.country.id),
+        }
+        feedback = self._feedback(self._post_address(dict(
+            address, address_type="delivery", use_delivery_as_billing="false",
+            callback="/my/addresses")))
+        self.assertEqual(feedback.get("redirectUrl"), "/my/addresses", feedback)
+        self.assertTrue(self.env["res.partner"].search(
+            [("name", "=", "Bodega Pitalito"), ("type", "=", "delivery")]))
+
+        # El propio contacto, editado desde /my/addresses (otro formulario: no
+        # trae los campos de Jorels ni los documentos).
+        own = {key: value for key, value in self._form(self.contact, phone="3107776655").items()
+               if key not in self.jorels_values}
+        feedback = self._feedback(self._post_address(dict(
+            own, partner_id=str(self.contact.id), address_type="billing",
+            use_delivery_as_billing="true", callback="/my/addresses")))
+        self.assertEqual(feedback.get("redirectUrl"), "/my/addresses", feedback)
+        self.assertIn("3107776655", re.sub(r"\D", "", self.contact.phone))
+
     def test_cannot_write_other_partner(self):
         self.authenticate("ana_account", "ana_account_pw_2026")
         # Un partner ajeno: Odoo 19 levanta Forbidden en /my/address/submit

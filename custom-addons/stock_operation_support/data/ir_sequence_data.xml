@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Sin compania: el modulo se instala tambien en bases de una sola
+             compania y una secuencia por compania complica sin dar nada. -->
+        <record id="seq_stock_operation_support" model="ir.sequence">
+            <field name="name">Soporte de operacion de inventario</field>
+            <field name="code">stock.operation.support</field>
+            <field name="prefix">SOP/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

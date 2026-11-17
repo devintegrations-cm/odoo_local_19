@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Channels of the board and their rules: records of this database, edited in place -->
+    <record id="view_plant_channel_tree" model="ir.ui.view">
+        <field name="name">plant.channel.tree</field>
+        <field name="model">plant.channel</field>
+        <field name="arch" type="xml">
+            <list default_order="sequence, id">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="sheet"/>
+                <field name="fallback"/>
+                <field name="rule_summary"/>
+                <field name="color" widget="color_picker"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_plant_channel_form" model="ir.ui.view">
+        <field name="name">plant.channel.form</field>
+        <field name="model">plant.channel</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Nombre del canal"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="sequence"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="sheet"/>
+                            <field name="fallback"/>
+                        </group>
+                    </group>
+                    <group string="Reglas: la solicitud entra en este canal si cumple cualquiera de ellas">
+                        <field name="warehouse_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="pricelist_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="team_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="partner_tag_ids" widget="many2many_tags" options="{'no_create': True, 'color_field': 'color'}"/>
+                        <field name="partner_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="shopify"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_plant_channels" model="ir.actions.act_window">
+        <field name="name">Canales</field>
+        <field name="res_model">plant.channel</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin canales</p>
+            <p>Cada solicitud toma el primer canal, en orden, cuyas reglas la reconocen: almacén destino, lista de precios o equipo de la venta, etiqueta o cliente. Un cambio aplica de inmediato a las solicitudes abiertas.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_plant_channels" name="Canales" parent="menu_plant_root" action="action_plant_channels" sequence="83" groups="stock.group_stock_manager"/>
+</odoo>

@@ -1,6 +1,6 @@
 {
     'name': 'POS - Información adicional en el ticket',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.1.1',
     'category': 'Sales/Point of Sale',
     'summary': 'Bloques configurables por tienda en el ticket del POS: texto, QR, códigos de barras, WiFi, reseñas, vCard.',
     'description': """
@@ -32,6 +32,7 @@ el teléfono...) en lugar de dejar un hueco en blanco.
     'assets': {
         'point_of_sale._assets_pos': [
             'pos_ticket_customization/static/src/utils/receipt_block_utils.js',
+            'pos_ticket_customization/static/src/app/models/data_service_options.js',
             'pos_ticket_customization/static/src/app/services/pos_store.js',
             'pos_ticket_customization/static/src/app/services/printer_service.js',
             'pos_ticket_customization/static/src/app/screens/receipt_screen/receipt_screen.js',

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- The five kinds of order line, with the labels, icons and keywords the plant uses today. Edited in
+         Planta › Tipos de línea; an update of the module never overwrites what the plant changed. -->
+    <record id="kind_prepare" model="plant.kind">
+        <field name="code">prepare</field>
+        <field name="sequence">10</field>
+        <field name="name">Café para preparar</field>
+        <field name="icon">fa-fire</field>
+        <field name="keywords">CAFE EN GRANO PARA PREPARAR,CAFE TOSTADO</field>
+    </record>
+    <record id="kind_packed" model="plant.kind">
+        <field name="code">packed</field>
+        <field name="sequence">20</field>
+        <field name="name">Café empacado</field>
+        <field name="icon">fa-archive</field>
+        <field name="category_keywords">PRODUCTO TERMINADO</field>
+    </record>
+    <record id="kind_ready" model="plant.kind">
+        <field name="code">ready</field>
+        <field name="sequence">30</field>
+        <field name="name">Cápsulas, drip y listos</field>
+        <field name="icon">fa-check-circle-o</field>
+        <field name="keywords">CAPSULA,DRIP,COLD BREW,NITRO</field>
+    </record>
+    <record id="kind_supply" model="plant.kind">
+        <field name="code">supply</field>
+        <field name="sequence">40</field>
+        <field name="name">Insumos y empaque</field>
+        <field name="icon">fa-cube</field>
+        <field name="keywords">VASO,TAPA,BOLSA,CAJA,ETIQUETA,SERVILLETA,PITILLO,MEZCLADOR,STICKER,CINTA,PORTAVASO,SOBRE,ROLLO,EMPAQUE,INFUSION,PAPEL</field>
+    </record>
+    <record id="kind_green" model="plant.kind">
+        <field name="code">green</field>
+        <field name="sequence">50</field>
+        <field name="name">Café verde</field>
+        <field name="icon">fa-leaf</field>
+        <field name="keywords">CAFE VERDE</field>
+        <field name="category_keywords">CAFE VERDE</field>
+    </record>
+</odoo>

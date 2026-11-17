@@ -14,8 +14,17 @@ class TestStockQuantityHistoryLocation(TestCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.supplier_location = cls.env.ref("stock.stock_location_suppliers")
-        cls.main_company = cls.env.ref("base.main_company")
-        cls.product = cls.env.ref("product.product_product_3")
+        # Sin datos demo (A8): la base de producción y co19_base no los tienen, y
+        # product.product_product_3 no existe ahí. Se usan la compañía del usuario y un
+        # producto almacenable propio (Odoo 19: type "consu" + is_storable).
+        cls.main_company = cls.env.company
+        cls.product = cls.env["product.product"].create(
+            {
+                "name": "Producto prueba historial por ubicación",
+                "type": "consu",
+                "is_storable": True,
+            }
+        )
         cls.test_stock_loc = cls.env["stock.location"].create(
             {
                 "usage": "internal",

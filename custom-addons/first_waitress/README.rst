@@ -4,7 +4,7 @@ First Waitress
 
 ..
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   !! Generado a partir de los fragmentos de readme/      !!
+   !! Generado por .claude/scripts/gen_readme.py          !!
    !! Los cambios se sobrescriben: editar readme/*.md     !!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -73,4 +73,3 @@ Contributors
 ------------
 
 - Osmar Toloza
-- Miguel Bolivar

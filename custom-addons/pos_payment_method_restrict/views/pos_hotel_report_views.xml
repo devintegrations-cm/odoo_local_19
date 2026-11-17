@@ -50,13 +50,13 @@
                     ]"/>
                 <filter string="Esta semana" name="this_week"
                     domain="[
-                        ('date_order', '&gt;=', datetime.datetime.combine(context_today() - relativedelta(days=context_today().weekday()), datetime.time(0,0,0))),
-                        ('date_order', '&lt;',  datetime.datetime.combine(context_today() - relativedelta(days=context_today().weekday()) + relativedelta(weeks=1), datetime.time(0,0,0)))
+                        ('date_order', '&gt;=', datetime.datetime.combine(context_today() + relativedelta(weeks=-1, days=1, weekday=0), datetime.time(0,0,0))),
+                        ('date_order', '&lt;',  datetime.datetime.combine(context_today() + relativedelta(days=1, weekday=0), datetime.time(0,0,0)))
                     ]"/>
                 <filter string="Este mes" name="this_month"
                     domain="[
-                        ('date_order', '&gt;=', datetime.datetime.combine(context_today().replace(day=1), datetime.time(0,0,0))),
-                        ('date_order', '&lt;',  datetime.datetime.combine(context_today().replace(day=1) + relativedelta(months=1), datetime.time(0,0,0)))
+                        ('date_order', '&gt;=', datetime.datetime.combine(context_today() + relativedelta(day=1), datetime.time(0,0,0))),
+                        ('date_order', '&lt;',  datetime.datetime.combine(context_today() + relativedelta(day=1, months=1), datetime.time(0,0,0)))
                     ]"/>
 
                 <separator/>
@@ -163,13 +163,13 @@
                     ]"/>
                 <filter string="Esta semana" name="this_week"
                     domain="[
-                        ('order_id.date_order', '&gt;=', datetime.datetime.combine(context_today() - relativedelta(days=context_today().weekday()), datetime.time(0,0,0))),
-                        ('order_id.date_order', '&lt;',  datetime.datetime.combine(context_today() - relativedelta(days=context_today().weekday()) + relativedelta(weeks=1), datetime.time(0,0,0)))
+                        ('order_id.date_order', '&gt;=', datetime.datetime.combine(context_today() + relativedelta(weeks=-1, days=1, weekday=0), datetime.time(0,0,0))),
+                        ('order_id.date_order', '&lt;',  datetime.datetime.combine(context_today() + relativedelta(days=1, weekday=0), datetime.time(0,0,0)))
                     ]"/>
                 <filter string="Este mes" name="this_month"
                     domain="[
-                        ('order_id.date_order', '&gt;=', datetime.datetime.combine(context_today().replace(day=1), datetime.time(0,0,0))),
-                        ('order_id.date_order', '&lt;',  datetime.datetime.combine(context_today().replace(day=1) + relativedelta(months=1), datetime.time(0,0,0)))
+                        ('order_id.date_order', '&gt;=', datetime.datetime.combine(context_today() + relativedelta(day=1), datetime.time(0,0,0))),
+                        ('order_id.date_order', '&lt;',  datetime.datetime.combine(context_today() + relativedelta(day=1, months=1), datetime.time(0,0,0)))
                     ]"/>
 
                 <group>

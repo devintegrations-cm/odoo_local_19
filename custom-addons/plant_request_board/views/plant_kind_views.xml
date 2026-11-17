@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Kinds of order line: the plant edits the label, the icon and the keywords in place -->
+    <record id="view_plant_kind_tree" model="ir.ui.view">
+        <field name="name">plant.kind.tree</field>
+        <field name="model">plant.kind</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" create="false" delete="false" default_order="sequence, id">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="icon"/>
+                <field name="keywords"/>
+                <field name="category_keywords"/>
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_plant_kinds" model="ir.actions.act_window">
+        <field name="name">Tipos de línea</field>
+        <field name="res_model">plant.kind</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin tipos de línea</p>
+            <p>Cada línea de un pedido es de uno de estos tipos, según las palabras de su nombre. Aquí se cambian la etiqueta, el icono y las palabras clave; el cambio aplica de inmediato a los pedidos abiertos.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_plant_kinds" name="Tipos de línea" parent="menu_plant_root" action="action_plant_kinds" sequence="82" groups="stock.group_stock_manager"/>
+</odoo>

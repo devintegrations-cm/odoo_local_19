@@ -20,8 +20,8 @@ QR de propina cuya leyenda usa `{order_name}` y un texto legal.
 
 ## Casos especiales
 
-- **Reimpresión**: la frecuencia se calcula con el número de pedido dentro de la sesión de caja,
-  que se guarda con el pedido. Una reimpresión muestra los mismos bloques que el ticket original.
+- **Reimpresión**: la frecuencia se calcula con el número de pedido del punto de venta, que asigna
+  el servidor y se guarda con el pedido. Una reimpresión muestra los mismos bloques que el ticket original.
 - **Sin conexión**: los códigos que no dependen del pedido se descargan al abrir la sesión y quedan
   en memoria. Los que llevan marcadores se generan al imprimir; si en ese momento no hay conexión,
   el bloque imprime la información en texto (SSID y clave del WiFi, la URL, el teléfono…).
@@ -36,8 +36,10 @@ QR de propina cuya leyenda usa `{order_name}` y un texto legal.
 - **Un bloque no aparece en el ticket.** Revisar que esté activo, que la fecha de hoy esté dentro
   de la vigencia, que el total alcance el importe mínimo y que *Cada N pedidos* sea 1 (o que le
   toque a ese pedido). Después de cambiar algo, recargar el POS.
-- **Un bloque con *Cada N pedidos* no sale nunca.** El conteo se reinicia en cada sesión de caja: si
-  la tienda hace menos de N pedidos por turno, el bloque no llega a imprimirse. Bajar N.
+- **Un bloque con *Cada N pedidos* no sale en un turno.** El conteo sigue la secuencia del punto de
+  venta y no se reinicia al abrir caja: sale uno de cada N pedidos, repartidos entre turnos.
+- **Un bloque archivado sigue saliendo.** Volver a entrar al POS desde el backend (*Continuar
+  vendiendo* / *Abrir caja*): al cargar la sesión el POS borra de su memoria los bloques archivados.
 - **Aparece `{algo}` literal en el ticket.** El marcador está mal escrito; ver la lista en
   *Configuración*.
 - **Sale el texto en lugar del código.** El código no se pudo generar (sin conexión con el

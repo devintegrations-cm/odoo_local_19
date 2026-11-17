@@ -1,54 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
+
+    <!--
+        En 19 el boton de propina del core vive en point_of_sale.PaymentScreenButtons
+        (point_of_sale/static/src/app/screens/payment_screen/payment_screen.xml:133) y ya no
+        tiene la clase 'js_tip' con la que lo ubicaba la version 17: se lo identifica por
+        t-on-click="addTip".
+
+        En vez de duplicar el markup del core, se lo oculta cuando hay porcentajes
+        configurados y se agregan los botones de porcentaje a continuacion.
+    -->
     <t t-name="pos_tip_percent.PaymentScreenButtons" t-inherit="point_of_sale.PaymentScreenButtons" t-inherit-mode="extension">
-        <xpath expr="//button[@t-on-click='addTip']" position="replace">
-            <t t-set="tippercent" t-value="pos.config.iface_tippercent"/>
-            <t t-set="tip1" t-value="pos.config.tip_percent1"/>
-            <t t-set="tip2" t-value="pos.config.tip_percent2"/>
-            <t t-set="tip3" t-value="pos.config.tip_percent3"/>
 
-            <div t-if="pos.config.tip_product_id and tippercent and (!tip1 and !tip2 and !tip3)"
-                 class="d-flex flex-column gap-1 w-100">
-                <button class="button btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
-                        t-att-class="{ 'highlight active text-action': currentOrder.getTip() }"
-                        t-on-click="addTip">
-                    <span t-attf-class="{{ currentOrder.getTip() ? 'me-auto' : 'mx-auto' }}">
-                        <i class="fa fa-heart me-2" />Tip
-                    </span>
-                    <t t-if="currentOrder.getTip() != 0">
-                        <t t-esc="env.utils.formatCurrency(currentOrder.getTip())" />
-                    </t>
-                </button>
-            </div>
-
-            <div t-if="pos.config.tip_product_id and tippercent and (tip1 or tip2 or tip3)"
-                 class="d-flex flex-column gap-1 w-100">
-                <button t-if="tip1" class="button btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
-                        t-att-class="{ 'highlight active text-action': this.shouldHighlight(tip1) }"
-                        t-on-click="addTip1">
-                    <span class="me-auto"><i class="fa fa-percent me-2" />Tip <t t-esc="tip1"/> %</span>
-                    <t t-if="currentOrder.getTip() != 0">
-                        <t t-esc="env.utils.formatCurrency(this.getTipX(tip1))" />
-                    </t>
-                </button>
-                <button t-if="tip2" class="button btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
-                        t-att-class="{ 'highlight active text-action': this.shouldHighlight(tip2) }"
-                        t-on-click="addTip2">
-                    <span class="me-auto"><i class="fa fa-percent me-2" />Tip <t t-esc="tip2"/> %</span>
-                    <t t-if="currentOrder.getTip() != 0">
-                        <t t-esc="env.utils.formatCurrency(this.getTipX(tip2))" />
-                    </t>
-                </button>
-                <button t-if="tip3" class="button btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
-                        t-att-class="{ 'highlight active text-action': this.shouldHighlight(tip3) }"
-                        t-on-click="addTip3">
-                    <span class="me-auto"><i class="fa fa-percent me-2" />Tip <t t-esc="tip3"/> %</span>
-                    <t t-if="currentOrder.getTip() != 0">
-                        <t t-esc="env.utils.formatCurrency(this.getTipX(tip3))" />
-                    </t>
-                </button>
-            </div>
-
+        <xpath expr="//button[@t-on-click='addTip']" position="attributes">
+            <attribute name="t-if">pos.config.iface_tipproduct and pos.config.tip_product_id and !(pos.config.iface_tippercent and (pos.config.tip_percent1 or pos.config.tip_percent2 or pos.config.tip_percent3))</attribute>
         </xpath>
+
+        <xpath expr="//button[@t-on-click='addTip']" position="after">
+            <t t-if="pos.config.iface_tippercent and pos.config.tip_product_id">
+                <button t-if="pos.config.tip_percent1"
+                        class="button js_tip_percent btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
+                        t-att-class="{ 'highlight active text-action': shouldHighlight(pos.config.tip_percent1) }"
+                        t-on-click="addTip1">
+                    <span><i class="fa fa-percent me-2"/>Tip <t t-out="pos.config.tip_percent1"/> %</span>
+                    <t t-out="env.utils.formatCurrency(getTipX(pos.config.tip_percent1))"/>
+                </button>
+                <button t-if="pos.config.tip_percent2"
+                        class="button js_tip_percent btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
+                        t-att-class="{ 'highlight active text-action': shouldHighlight(pos.config.tip_percent2) }"
+                        t-on-click="addTip2">
+                    <span><i class="fa fa-percent me-2"/>Tip <t t-out="pos.config.tip_percent2"/> %</span>
+                    <t t-out="env.utils.formatCurrency(getTipX(pos.config.tip_percent2))"/>
+                </button>
+                <button t-if="pos.config.tip_percent3"
+                        class="button js_tip_percent btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100 lh-lg"
+                        t-att-class="{ 'highlight active text-action': shouldHighlight(pos.config.tip_percent3) }"
+                        t-on-click="addTip3">
+                    <span><i class="fa fa-percent me-2"/>Tip <t t-out="pos.config.tip_percent3"/> %</span>
+                    <t t-out="env.utils.formatCurrency(getTipX(pos.config.tip_percent3))"/>
+                </button>
+            </t>
+        </xpath>
+
     </t>
+
 </templates>

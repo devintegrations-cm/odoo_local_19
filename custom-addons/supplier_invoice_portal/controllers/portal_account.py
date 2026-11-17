@@ -103,10 +103,32 @@ class SupplierAccountPortal(CustomerPortal):
             address_values, partner_sudo, address_type, use_delivery_as_billing,
             required_fields, **kwargs,
         )
-        if self._spr_account_partner():
+        if self._spr_account_partner() and self._spr_is_account_form(partner_sudo):
             self._spr_validate_billing(invalid_fields, error_messages)
             self._spr_validate_documents(invalid_fields, error_messages)
         return invalid_fields, missing_fields, error_messages
+
+    def _spr_is_account_form(self, partner_sudo):
+        """True si el envio viene del formulario de "Mi cuenta" del proveedor.
+
+        En 19 /my/address/submit (y el checkout de website_sale) pasan por
+        ``_validate_address_values`` para cualquier direccion: crear o editar
+        una direccion de entrega o de facturacion desde /my/addresses no lleva
+        los campos de este modulo y, sin esta guarda, la obligatoriedad de
+        DECISIONS.md #53 la bloqueaba. Se reconoce "Mi cuenta" porque edita el
+        contacto del usuario conectado y trae al menos un campo del modulo (el
+        formulario siempre envia los selects, el correo y los inputs de
+        archivo, aunque esten vacios). Quitar todos los campos del formulario a
+        mano deja el comportamiento de 17: no se valida ni se escribe nada de
+        este modulo (``_handle_extra_form_data`` solo escribe lo que llega).
+        """
+        if not partner_sudo or partner_sudo.id != request.env.user.partner_id.id:
+            return False
+        form = request.httprequest.form
+        files = request.httprequest.files
+        names = [name for name, _label, _field in self._spr_jorels_fields()]
+        names += [name for name, _label in SPR_DOCUMENTS]
+        return any(name in form or name in files for name in names)
 
     def _spr_validate_billing(self, invalid_fields, error_messages):
         form = request.httprequest.form

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Edit pos_order_form -->
+    <data>
+        <record id="ipcam_point_of_sale_view_pos_pos_form" model="ir.ui.view">
+            <field name="name">pos.order.ipcam.inh</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='extra']" position="after">
+                    <page name="cam_response" string="CAM Response">
+                        <group>
+                            <group string="AWS Reponse">
+                                <field name="face_details"/>
+                                <!--<field name="img_bounding" optional='hide'/>
+                                <field name="img_raw" optional='hide'/> -->
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+        <!-- action for updating facce details -->
+        <record id="action_update_face_details" model="ir.actions.server">
+            <field name="name">Actualizar Face Details</field>
+            <field name="model_id" ref="point_of_sale.model_pos_order"/>
+            <field name="binding_model_id" ref="point_of_sale.model_pos_order"/>
+            <field name="state">code</field>
+            <field name="code">records.update_face_details_action()</field>
+        </record>
+    </data>
+</odoo>

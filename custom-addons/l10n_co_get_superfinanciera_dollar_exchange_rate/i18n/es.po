@@ -1,0 +1,37 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_co_get_superfinanciera_dollar_exchange_rate
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-05 21:48+0000\n"
+"PO-Revision-Date: 2024-01-05 21:48+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_co_get_superfinanciera_dollar_exchange_rate
+#: model:ir.model.fields,field_description:l10n_co_get_superfinanciera_dollar_exchange_rate.field_res_company__url_superfinancial_service
+msgid "Url superfinancial service"
+msgstr "Url servicio superfinanciera"
+
+#. module: l10n_co_get_superfinanciera_dollar_exchange_rate
+#: model:ir.model.fields,field_description:l10n_co_get_superfinanciera_dollar_exchange_rate.field_res_company__body_superfinancial_request
+msgid "Body superfinancial request"
+msgstr "Cuerpo solicitud superfinanciera"
+
+#. module: l10n_co_get_superfinanciera_dollar_exchange_rate
+#: model_terms:ir.ui.view,arch_db:l10n_co_get_superfinanciera_dollar_exchange_rate.l10n_co_get_superfinanciera_dollar_exchange_rate_inherit_view_company_form
+msgid "Superfinancial Api data"
+msgstr "Datos Api Superfinanciera"
+
+#. module: l10n_co_get_superfinanciera_dollar_exchange_rate
+#: model:ir.actions.server,name:l10n_co_get_superfinanciera_dollar_exchange_rate.ir_cron_get_currency_rate_cop_to_usd_ir_actions_server
+#: model:ir.cron,cron_name:l10n_co_get_superfinanciera_dollar_exchange_rate.ir_cron_get_currency_rate_cop_to_usd
+msgid "Currency Rate: Get dollar to Colombian peso exchange rate"
+msgstr "Tipo de cambio: Obtener el tipo de cambio de dólar a peso colombiano"

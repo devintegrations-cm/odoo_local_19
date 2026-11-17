@@ -6,8 +6,8 @@ En el POS, cargar la orden y pulsar **Pago**. Debajo de los métodos de pago apa
 ![Pantalla de pago con los tres botones de porcentaje](../static/description/02_botones_pago.png)
 
 Pulsar el porcentaje que pide el cliente. El POS agrega la propina a la orden y el total a pagar
-sube en ese valor. El botón elegido queda resaltado y, desde ese momento, cada botón muestra cuánto
-sería la propina con su porcentaje, para comparar antes de cambiar.
+sube en ese valor. El botón elegido queda resaltado; cada botón muestra cuánto sería la propina con
+su porcentaje.
 
 ![Propina del 10 % aplicada: botón resaltado, valor de cada opción y total con propina](../static/description/03_propina_aplicada.png)
 
@@ -22,12 +22,10 @@ orden, con el producto de propina, y se ve al volver a la pantalla de productos 
   sola línea de propina. En la prueba: 10 % ($ 5.600), luego 20 % ($ 11.200), luego 5 % ($ 2.800).
 - **Pulsar dos veces el mismo botón** no suma nada: la propina se calcula sin la anterior y da el
   mismo valor.
-- **Con una línea de pago ya cargada.** Si la línea seleccionada es de efectivo u otro método no
-  electrónico, o un pago electrónico todavía pendiente, su monto se ajusta por la diferencia de
-  propina. En la captura, la línea de efectivo tenía el total con 20 % ($ 77.840) y bajó a
-  $ 69.440 al cambiar a 5 %. Un pago electrónico ya enviado no se toca.
-
-![Cambio de 20 % a 5 % con una línea de efectivo cargada: la línea se ajusta sola](../static/description/04_ajuste_pago.png)
+- **Con una línea de pago ya cargada.** El botón no modifica la línea de pago (como en la 17). Si
+  el cliente entregó más efectivo que el total, el cambio baja en el valor de la propina; si la
+  línea quedó corta, la orden muestra el saldo pendiente y el cajero ajusta el monto. Ejemplo:
+  total $ 10.000, efectivo $ 20.000, propina 10 % ($ 1.000): pago $ 20.000 y cambio $ 9.000.
 
 - **Orden sin productos o porcentaje que da 0**: el botón no hace nada.
 - **Quitar la propina.** El módulo no trae un botón para quitarla. Hay que borrar la línea del
@@ -44,5 +42,3 @@ orden, con el producto de propina, y se ve al volver a la pantalla de productos 
 - **Falta uno de los botones.** Ese porcentaje está en 0.
 - **La propina parece menor de lo esperado.** Se calcula sobre el subtotal **sin impuestos**, no
   sobre el total que ve el cliente.
-- **Los botones no muestran el valor.** Es normal antes de aplicar la primera propina: los valores
-  aparecen cuando la orden ya tiene propina.

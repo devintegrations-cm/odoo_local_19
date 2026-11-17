@@ -1,0 +1,141 @@
+<odoo>
+
+  <!-- ───────────────────────────── List ───────────────────────────── -->
+  <record id="shopify_order_import_view_tree" model="ir.ui.view">
+    <field name="name">shopify.order.import.tree</field>
+    <field name="model">shopify.order.import</field>
+    <field name="arch" type="xml">
+      <list create="0" delete="0"
+            decoration-muted="state == 'imported'">
+        <header>
+          <button name="action_sync_from_shopify" type="object"
+                  string="Sincronizar desde Shopify"
+                  class="btn-primary" icon="fa-refresh"
+                  display="always"/>
+          <button name="action_register" type="object"
+                  string="Registrar en Odoo" class="btn-secondary"/>
+        </header>
+        <field name="name"/>
+        <field name="order_date"/>
+        <field name="partner_name"/>
+        <field name="email" optional="hide"/>
+        <field name="amount_total" sum="Total"/>
+        <field name="currency_code" string="Mon."/>
+        <field name="state" widget="badge"
+               decoration-success="state == 'imported'"
+               decoration-warning="state == 'pending'"/>
+        <field name="sale_order_id" optional="show"/>
+        <button name="action_register" type="object"
+                string="Registrar" class="btn-link"
+                icon="fa-download"
+                invisible="state == 'imported'"/>
+        <button name="action_open_sale_order" type="object"
+                string="Ver orden" class="btn-link"
+                icon="fa-external-link"
+                invisible="state != 'imported'"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ───────────────────────────── Form ───────────────────────────── -->
+  <record id="shopify_order_import_view_form" model="ir.ui.view">
+    <field name="name">shopify.order.import.form</field>
+    <field name="model">shopify.order.import</field>
+    <field name="arch" type="xml">
+      <form string="Pedido de Shopify" create="0" edit="0">
+        <header>
+          <button name="action_register" type="object"
+                  string="Registrar en Odoo" class="btn-primary"
+                  invisible="state == 'imported'"/>
+          <field name="state" widget="statusbar"
+                 statusbar_visible="pending,imported"/>
+        </header>
+        <sheet>
+          <div class="oe_button_box" name="button_box">
+            <button name="action_open_sale_order" type="object"
+                    class="oe_stat_button" icon="fa-file-text-o"
+                    invisible="state != 'imported'">
+              <div class="o_stat_info">
+                <span class="o_stat_text">Orden de venta</span>
+              </div>
+            </button>
+          </div>
+          <div class="oe_title">
+            <h1><field name="name" readonly="1"/></h1>
+          </div>
+          <group>
+            <group>
+              <field name="company_id"/>
+              <field name="order_date"/>
+              <field name="sale_order_id"/>
+            </group>
+            <group>
+              <field name="partner_name"/>
+              <field name="email"/>
+              <field name="phone"/>
+              <label for="amount_total"/>
+              <div>
+                <field name="amount_total" class="oe_inline"/>
+                <field name="currency_code" class="oe_inline" nolabel="1"/>
+              </div>
+            </group>
+          </group>
+          <notebook>
+            <page string="Payload (Shopify)" name="payload">
+              <field name="payload_json" nolabel="1"/>
+            </page>
+          </notebook>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- ──────────────────────────── Search ──────────────────────────── -->
+  <record id="shopify_order_import_view_search" model="ir.ui.view">
+    <field name="name">shopify.order.import.search</field>
+    <field name="model">shopify.order.import</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="name"/>
+        <field name="partner_name"/>
+        <field name="shopify_order_id"/>
+        <filter name="pending" string="Pendientes"
+                domain="[('state', '=', 'pending')]"/>
+        <filter name="imported" string="Registrados"
+                domain="[('state', '=', 'imported')]"/>
+        <group>
+          <filter name="group_state" string="Estado"
+                  context="{'group_by': 'state'}"/>
+          <filter name="group_company" string="Compañía"
+                  context="{'group_by': 'company_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- ──────────────────────────── Action ──────────────────────────── -->
+  <record id="shopify_order_import_action" model="ir.actions.act_window">
+    <field name="name">Pedidos de Shopify</field>
+    <field name="res_model">shopify.order.import</field>
+    <field name="view_mode">list,form</field>
+    <field name="search_view_id" ref="shopify_order_import_view_search"/>
+    <field name="context">{'search_default_pending': 1}</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        Aún no has traído pedidos de Shopify
+      </p>
+      <p>
+        Pulsa <b>«Sincronizar desde Shopify»</b> para traer los pedidos
+        más recientes de la tienda y registrarlos en Odoo desde aquí.
+      </p>
+    </field>
+  </record>
+
+  <!-- ───────────────────────────── Menu ───────────────────────────── -->
+  <menuitem id="menu_shopify_order_import"
+            name="Pedidos de Shopify"
+            parent="sale.sale_order_menu"
+            action="shopify_order_import_action"
+            sequence="20"/>
+
+</odoo>

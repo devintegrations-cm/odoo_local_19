@@ -12,22 +12,26 @@ Al pulsar **Enviar a Datafono**:
   *Cancelar* no envía nada; *Continuar* envía la venta al datáfono.
 - El cliente pasa la tarjeta y aprueba en el datáfono. Mientras tanto la línea muestra *Solicitud
   enviada*.
-- Si el datáfono aprueba, la línea queda pagada con el **monto que cobró el terminal** (valor total
-  más la propina que devuelve en la posición 80), el número de aprobación y el identificador de la
+- Si el datáfono aprueba, la línea queda pagada con el **monto que cobró el terminal** (posición 40
+  de la respuesta, como en Odoo 17), el número de aprobación y el identificador de la
   transacción. En el recibo sale *Aprob.:* seguido del número de aprobación. Si con eso el pedido queda pagado y el punto de
   venta tiene activo *Validar órdenes de forma automática* (opción estándar de *Ajustes*, activa por defecto), el
   pedido se valida solo.
 - Si el datáfono rechaza, se muestra el motivo según su código (02 rechazada, 05 problema de
-  comunicación, 06 error de trama, 09 a 12 errores de formato, 13 tiempo agotado, 99 puerto
-  ocupado). La línea queda en *Transacción cancelada* y se puede volver a enviar.
+  comunicación, 06 error de trama, 09 a 12 errores de formato, 99 puerto ocupado). La línea queda
+  en *Transacción cancelada* y se puede volver a enviar. El código 13 (tiempo agotado en el
+  datáfono) no es un rechazo: la venta queda pendiente de recuperar, como se explica abajo.
 
-**Propina**: si el pedido tiene propina (producto de propina del POS) y la línea cubre el pedido
-entero, el TOTAL se envía sin la propina y la propina viaja aparte en la posición 81.
+**Propina**: si el pedido tiene propina (producto de propina del POS), viaja aparte en la posición
+81 y el TOTAL (40) es el monto de la línea menos esa propina, así que el datáfono cobra exactamente
+el monto de la línea. En un pago parcial la propina se prorratea por la parte del pedido que cubre
+el cobro (pedido de 110.000 con 10.000 de propina, dos pagos de 55.000: cada uno envía 50.000 + 5.000).
+El pago que cubre el pedido completo lleva la propina completa. Igual que en Odoo 17.
 
 ## Venta sin respuesta y recuperación
 
 Si el datáfono no contesta dentro de la espera configurada, se corta la conexión o responde con el
-código 03 (sin respuesta final), la venta **puede haber quedado aprobada** en el terminal. Por eso:
+código 03 (sin respuesta final) o 13 (tiempo agotado), la venta **puede haber quedado aprobada** en el terminal. Por eso:
 
 - El POS guarda en la línea la venta enviada. Sin respuesta, avisa *Sin respuesta del datáfono*;
   con el código 03 abre directamente el diálogo **Recuperar** (en el datáfono: TECLA 3 y luego
@@ -80,7 +84,7 @@ concepto a mano con **Agregar información**.
 - **"El número de caja excede el protocolo".** La sesión y el cajero forman un número de más de 10
   caracteres. No se puede cobrar con el datáfono en esa sesión; avisar a IT.
 - **"Impuestos no reconocidos".** Algún producto tiene impuestos de un grupo que no empieza por
-  `IVA` ni `INC`. Corregir el grupo del impuesto en contabilidad.
+  `IVA`, `INC` ni `Impoconsumo`. Corregir el grupo del impuesto en contabilidad.
 - **"Sin números de transacción disponibles".** Se agotó el bloque reservado y no hay conexión con
   el servidor. Esperar a recuperar la conexión; no se repiten números.
 - **"Falta el cajero"** o **"Sesión no disponible".** Iniciar sesión con un empleado o recargar el

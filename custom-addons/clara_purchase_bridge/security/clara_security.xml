@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- The two Clara groups live here, in the base module, so the cardholder table and the connector's
+             models share them. "Clara / Lectura" reads everything and writes nothing; "Clara / Administrador"
+             configures the API, runs the sync and edits the cardholder table. -->
+        <record model="ir.module.category" id="module_category_clara">
+            <field name="name">Clara</field>
+            <field name="description">Tarjetas corporativas Clara: lectura del dashboard y administración de la sincronización</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record model="res.groups.privilege" id="privilege_clara">
+            <field name="name">Clara</field>
+            <field name="category_id" ref="module_category_clara"/>
+        </record>
+
+        <record id="group_clara_reader" model="res.groups">
+            <field name="name">Lectura</field>
+            <field name="privilege_id" ref="privilege_clara"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="comment">Ve el menú Clara (tarjetas, transacciones, trazabilidad y sincronizaciones) sin crear, editar ni borrar nada.</field>
+        </record>
+
+        <record id="group_clara_admin" model="res.groups">
+            <field name="name">Administrador</field>
+            <field name="privilege_id" ref="privilege_clara"/>
+            <field name="implied_ids" eval="[(4, ref('group_clara_reader'))]"/>
+            <field name="comment">Configura la API de Clara, ejecuta «Sincronizar ahora» y edita la tabla de titulares.</field>
+        </record>
+
+        <!-- system administrators administer Clara -->
+        <record id="base.group_system" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_clara_admin'))]"/>
+        </record>
+
+        <!-- Accounting and Finance read the dashboard: every accounting role implies the Billing group -->
+        <record id="account.group_account_invoice" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_clara_reader'))]"/>
+        </record>
+        <record id="account.group_account_readonly" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_clara_reader'))]"/>
+        </record>
+    </data>
+</odoo>

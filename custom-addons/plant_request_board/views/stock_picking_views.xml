@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Kanban board: one card per store request -->
+    <record id="view_plant_request_kanban" model="ir.ui.view">
+        <field name="name">stock.picking.plant.request.kanban</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <kanban js_class="plant_request_kanban" default_group_by="plant_counterparty" class="o_kanban_small_column" quick_create="false" records_draggable="false" sample="1">
+                <field name="name"/>
+                <field name="plant_store_id"/>
+                <field name="plant_warehouse_id"/>
+                <field name="plant_counterparty"/>
+                <field name="plant_channel_id"/>
+                <field name="partner_id"/>
+                <field name="plant_stage"/>
+                <field name="plant_days_waiting"/>
+                <field name="plant_line_count"/>
+                <field name="plant_coffee_kg"/>
+                <field name="plant_pack_units"/>
+                <field name="plant_requested_by"/>
+                <field name="plant_briefing_state"/>
+                <field name="scheduled_date"/>
+                <field name="state"/>
+                <field name="plant_card_html"/>
+                <field name="plant_progress"/>
+                <field name="plant_check_count"/>
+                <field name="plant_check_done"/>
+                <field name="plant_green_alert_html"/>
+                <field name="plant_green_status"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click oe_kanban_card plant-stage-#{record.plant_stage.raw_value}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <strong class="o_kanban_record_title"><field name="plant_counterparty"/></strong>
+                                <span t-attf-class="badge rounded-pill plant-badge-#{record.plant_stage.raw_value}"><field name="plant_stage"/></span>
+                            </div>
+                            <div class="text-muted small"><span class="plant-channel"><field name="plant_channel_id"/></span> · <field name="name"/> · <field name="plant_requested_by"/></div>
+                            <div class="mt-2">
+                                <span class="me-3"><i class="fa fa-list-ul" title="Líneas"/> <field name="plant_line_count"/></span>
+                                <span class="me-3"><i class="fa fa-coffee" title="Café"/> <field name="plant_coffee_kg"/> kg</span>
+                                <span><i class="fa fa-cube" title="Empaque"/> <field name="plant_pack_units"/></span>
+                            </div>
+                            <div class="mt-2 small" t-out="record.plant_card_html.raw_value"/>
+                            <div class="mt-1 small" t-if="record.plant_green_alert_html.raw_value" t-out="record.plant_green_alert_html.raw_value"/>
+                            <div class="mt-2 plant-progress" t-if="record.plant_check_count.raw_value and !['delivered','cancelled'].includes(record.plant_stage.raw_value)" t-attf-title="#{record.plant_check_done.raw_value} de #{record.plant_check_count.raw_value} líneas alistadas">
+                                <div class="progress" style="height: 8px;"><div t-attf-class="progress-bar #{record.plant_progress.raw_value >= 100 ? 'bg-success' : 'bg-primary'}" t-attf-style="width: #{record.plant_progress.raw_value}%;"/></div>
+                                <small class="text-muted"><field name="plant_check_done"/>/<field name="plant_check_count"/> alistadas · <field name="plant_progress"/> %</small>
+                            </div>
+                            <div class="mt-1 small d-flex justify-content-between align-items-center">
+                                <span>
+                                    <span t-attf-class="#{record.plant_days_waiting.raw_value >= 3 &amp;&amp; !['delivered','cancelled'].includes(record.plant_stage.raw_value) ? 'text-danger fw-bold' : 'text-muted'}"><i class="fa fa-clock-o" title="Días esperando"/> <field name="plant_days_waiting"/> días</span>
+                                    <span class="ms-2" t-if="record.plant_briefing_state.raw_value == 'done'"><i class="fa fa-file-text-o text-success" title="Análisis listo"/></span>
+                                </span>
+                                <span>
+                                    <button name="action_plant_print_delivery_note" type="object" class="btn btn-sm btn-light me-1" title="Remisión en PDF (una hoja carta)"><i class="fa fa-print"/></button>
+                                    <button name="action_plant_validate" type="object" class="btn btn-sm btn-success" t-if="!['delivered','cancelled'].includes(record.plant_stage.raw_value)" title="Validar la transferencia en Odoo y pasar a Entregada"><i class="fa fa-check"/> Validar entrega</button>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_plant_request_tree" model="ir.ui.view">
+        <field name="name">stock.picking.plant.request.tree</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <list js_class="plant_request_list" decoration-warning="plant_stage == 'new'" decoration-info="plant_stage == 'preparing'" decoration-success="plant_stage == 'ready'" decoration-muted="plant_stage in ('delivered','cancelled')">
+                <field name="name"/>
+                <field name="plant_channel_id" widget="badge"/>
+                <field name="plant_warehouse_id" optional="hide"/>
+                <field name="plant_counterparty"/>
+                <field name="plant_store_id" optional="hide"/>
+                <field name="plant_stage" widget="badge" decoration-warning="plant_stage == 'new'" decoration-info="plant_stage == 'preparing'" decoration-success="plant_stage == 'ready'" decoration-muted="plant_stage == 'delivered'" decoration-danger="plant_stage == 'cancelled'"/>
+                <field name="plant_progress" widget="progressbar" string="Alistamiento"/>
+                <field name="create_date" string="Solicitada"/>
+                <field name="plant_requested_by"/>
+                <field name="plant_days_waiting"/>
+                <field name="plant_line_count" sum="Líneas"/>
+                <field name="plant_coffee_kg" sum="Café"/>
+                <field name="plant_pack_units" sum="Unidades"/>
+                <field name="plant_briefing_state" optional="hide"/>
+                <field name="date_done" optional="hide"/>
+                <button name="action_plant_validate" type="object" string="Validar entrega" icon="fa-check" invisible="plant_stage in ('delivered', 'cancelled')"/>
+                <button name="action_plant_print_delivery_note" type="object" string="Remisión" icon="fa-print"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_plant_request_search" model="ir.ui.view">
+        <field name="name">stock.picking.plant.request.search</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="plant_counterparty"/>
+                <field name="plant_store_id"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="plant_channel_id"/>
+                <field name="plant_warehouse_id"/>
+                <filter name="open" string="Por alistar" domain="[('plant_stage', 'in', ('new', 'preparing'))]"/>
+                <filter name="new" string="Nuevas" domain="[('plant_stage', '=', 'new')]"/>
+                <filter name="preparing" string="En alistamiento" domain="[('plant_stage', '=', 'preparing')]"/>
+                <filter name="ready" string="Listas para despachar" domain="[('plant_stage', '=', 'ready')]"/>
+                <filter name="delivered" string="Despachadas" domain="[('plant_stage', '=', 'delivered')]"/>
+                <filter name="active" string="Abiertas (sin despachar)" domain="[('plant_stage', 'in', ('new', 'preparing', 'ready'))]"/>
+                <separator/>
+                <filter name="late" string="Más de 3 días" domain="[('plant_stage', 'in', ('new', 'preparing', 'ready')), ('create_date', '&lt;=', (context_today() - relativedelta(days=3)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="this_week" string="Esta semana" date="create_date"/>
+                <group>
+                    <filter name="group_counterparty" string="Tienda / cliente" context="{'group_by': 'plant_counterparty'}"/>
+                    <filter name="group_channel" string="Canal" context="{'group_by': 'plant_channel_id'}"/>
+                    <filter name="group_plant" string="Planta" context="{'group_by': 'plant_warehouse_id'}"/>
+                    <filter name="group_store" string="Tienda" context="{'group_by': 'plant_store_id'}"/>
+                    <filter name="group_stage" string="Etapa" context="{'group_by': 'plant_stage'}"/>
+                    <filter name="group_day" string="Día de solicitud" context="{'group_by': 'create_date:day'}"/>
+                </group>
+                <searchpanel>
+                    <field name="plant_warehouse_id" string="Planta" icon="fa-industry" enable_counters="1" expand="1"/>
+                    <field name="plant_channel_id" string="Canal" icon="fa-sitemap" enable_counters="1" expand="1"/>
+                    <field name="plant_stage" string="Etapa" icon="fa-tasks" select="multi" enable_counters="1" expand="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_plant_requests" model="ir.actions.act_window">
+        <field name="name">Solicitudes de tiendas</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('plant_request', '=', True)]</field>
+        <field name="context" eval="{'search_default_active': 1, 'search_default_group_counterparty': 1, 'searchpanel_default_plant_channel_id': ref('plant_request_board.channel_tiendas'), 'max_number_opened_groups': 500}"/>
+        <field name="search_view_id" ref="view_plant_request_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin solicitudes de tiendas</p>
+            <p>Cada transferencia interna o entrega que sale de una planta aparece aquí como una tarjeta, clasificada por canal según las reglas de Planta › Canales.</p>
+        </field>
+    </record>
+    <record id="action_plant_requests_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_plant_request_kanban"/>
+        <field name="act_window_id" ref="action_plant_requests"/>
+    </record>
+    <record id="action_plant_requests_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_plant_request_tree"/>
+        <field name="act_window_id" ref="action_plant_requests"/>
+    </record>
+    <!-- Clicking a card opens the real transfer in Inventory (the standard form, with its "Planta" tab) -->
+    <record id="action_plant_requests_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="stock.view_picking_form"/>
+        <field name="act_window_id" ref="action_plant_requests"/>
+    </record>
+
+    <!-- Top-level "Planta" app for plant staff, plus a shortcut inside Inventory -->
+    <menuitem id="menu_plant_root" name="Planta" sequence="45" web_icon="plant_request_board,static/description/icon.png" groups="stock.group_stock_user"/>
+    <menuitem id="menu_plant_requests" name="Solicitudes de tiendas" parent="menu_plant_root" action="action_plant_requests" sequence="1"/>
+    <menuitem id="menu_plant_settings" name="Configuración" parent="menu_plant_root" action="stock.action_stock_config_settings" sequence="90" groups="stock.group_stock_manager"/>
+    <menuitem id="menu_plant_requests_in_stock" name="Solicitudes de tiendas a planta" parent="stock.menu_stock_warehouse_mgmt" action="action_plant_requests" sequence="30"/>
+
+    <!-- "Planta" tab on the transfer form -->
+    <record id="view_picking_form_inherit_plant" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.plant.request</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <field name="plant_request" invisible="1"/>
+                <button name="action_plant_validate" type="object" string="Validar entrega" class="btn-success" invisible="not plant_request or plant_stage in ('delivered', 'cancelled')" help="Valida la transferencia en Odoo con tus permisos, deja nota en el chatter y pasa la solicitud a Entregada."/>
+                <button name="action_plant_print_delivery_note" type="object" string="Remisión" icon="fa-print" class="btn-secondary" invisible="not plant_request" help="Remisión de la solicitud en PDF, una hoja carta: detalle completo, dirección de entrega y firmas."/>
+                <button name="action_plant_briefing" type="object" string="Analizar para planta" class="btn-secondary" invisible="not plant_request"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Planta" name="plant" invisible="not plant_request">
+                    <div class="d-flex align-items-center mb-2">
+                        <field name="plant_stage" widget="statusbar" options="{'clickable': '1'}" statusbar_visible="new,preparing,ready,delivered" readonly="plant_stage in ('delivered', 'cancelled')"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="plant_warehouse_id"/>
+                            <field name="plant_channel_id"/>
+                            <field name="plant_counterparty"/>
+                            <field name="plant_store_id" invisible="not plant_store_id"/>
+                            <field name="plant_requested_by"/>
+                            <field name="plant_days_waiting"/>
+                        </group>
+                        <group>
+                            <field name="plant_line_count"/>
+                            <field name="plant_coffee_kg"/>
+                            <field name="plant_pack_units"/>
+                            <field name="plant_progress" widget="progressbar"/>
+                            <field name="plant_green_status"/>
+                            <field name="plant_briefing_state"/>
+                            <field name="plant_briefing_date"/>
+                        </group>
+                    </group>
+                    <field name="plant_green_alert_html" nolabel="1" invisible="not plant_green_alert_html"/>
+                    <separator string="Chuleos de alistamiento"/>
+                    <div class="text-muted small mb-1">Guía visual del alistamiento por línea × presentación. No cambia cantidades, movimientos ni inventario. Con el primer chuleo la solicitud pasa a En alistamiento; con todos, a Lista para despachar.</div>
+                    <field name="plant_check_ids" nolabel="1" readonly="plant_stage in ('delivered', 'cancelled')">
+                        <list editable="bottom" create="false" delete="false" decoration-success="done" default_order="sequence, id">
+                            <field name="sequence" column_invisible="1"/>
+                            <field name="done" widget="boolean_toggle"/>
+                            <field name="name" readonly="1"/>
+                            <field name="qty_text" readonly="1"/>
+                            <field name="kind_code" column_invisible="1"/>
+                            <field name="done_by" readonly="1"/>
+                            <field name="done_date" readonly="1"/>
+                        </list>
+                    </field>
+                    <field name="plant_briefing" readonly="1" nolabel="1"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

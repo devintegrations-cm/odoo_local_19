@@ -21,8 +21,12 @@ para que cargue los archivos nuevos.
   `pos_cash_move` de los movimientos ya registrados.
 - Se agrega la columna `pos_cash_move_uuid` con una restricción única por sesión. Los movimientos
   históricos quedan con el valor vacío, que no viola la restricción.
-- Se eliminó la auditoría de continuidad del saldo de apertura de la 17 (campo
-  `expected_opening_balance` y validación en `set_cashbox_pos`). La columna queda huérfana en la
-  base y no se usa.
+- Se conserva la auditoría de continuidad del saldo de apertura de la 17: el campo
+  `expected_opening_balance` mantiene su nombre y tipo, así que los valores de producción no se
+  pierden en el upgrade y no hace falta script. La validación que en 17 vivía en
+  `set_cashbox_pos` pasa a `_set_opening_control_data`, el gancho que Odoo 19 indica heredar en
+  lugar de `set_opening_control`.
+- Las revisiones de consistencia del cierre bloquean a todos los roles, como en 17 (sin
+  excepción para el responsable del Punto de Venta).
 - En Odoo 19 el control de efectivo del punto de venta se calcula a partir de los métodos de pago;
   la validación de la 17 que lo exigía junto con un método de caja ya no hace falta.

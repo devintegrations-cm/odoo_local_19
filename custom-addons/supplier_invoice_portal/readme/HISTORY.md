@@ -1,3 +1,14 @@
+## 19.0.1.3.1 (2026-11-13)
+
+Correcciones de la auditoría de staging (K3). Solo código: no cambia datos.
+
+- **Eventos RADIAN solo para Facturación.** `action_spr_generate_radian_events` exige en el
+  servidor el mismo grupo que el botón (`account.group_account_invoice`); antes una llamada RPC
+  de cualquier usuario que leyera la factura emitía los eventos con `sudo` (#75).
+- **Otras direcciones del portal ya no se bloquean.** Los datos de facturación electrónica y los
+  documentos obligatorios (#50, #53) se validan solo en el formulario de *Mi cuenta*; crear o
+  editar una dirección desde */my/addresses* vuelve a funcionar para el proveedor habilitado (#75).
+
 ## 19.0.1.3.0 (2026-10-28)
 
 Funciones que la v17 tenía y la 19 no, más ajustes de producción (DECISIONS.md #62 a #74).

@@ -1,0 +1,492 @@
+<odoo>
+  <data>
+    <record model="ir.ui.view" id="sale_res_config_settings_view_form_shopify_config">
+      <field name="name">res.config.settings.view.form.inherit.shopify.webhook</field>
+      <field name="model">res.config.settings</field>
+      <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+      <field name="arch" type="xml">
+        <!-- 17 anclaba antes de //div[@id='sale_ebay'] (justo después del bloque
+             Connectors); 19 eliminó ese div: se ancla después del bloque. -->
+        <xpath expr="//block[@id='connectors_setting_container']" position="after">
+
+          <block title="Shopify Connector" id="shopify_connector_setting_container">
+
+            <!-- Contenedor full-width que imita el styling de <setting> -->
+            <div class="o_setting_box col-12"
+                 style="flex: 0 0 100%; max-width: 100%;">
+              <div class="o_setting_left_pane">
+                <field name="enable_shopify_webhook"/>
+              </div>
+              <div class="o_setting_right_pane">
+                <label for="enable_shopify_webhook"
+                       class="o_form_label"
+                       string="Habilitar Shopify Webhook"/>
+                <div class="text-muted">
+                  Activa o desactiva la integración con el webhook de
+                  órdenes de Shopify.
+                </div>
+
+                <!-- ══ Nivel 2: todo se indenta bajo el master toggle ══ -->
+                <div class="content-group mt16"
+                     invisible="not enable_shopify_webhook">
+
+                  <!-- General (full-width antes del split) -->
+                  <div class="row mt8">
+                    <label class="col-lg-3 o_light_label"
+                           for="shopify_webhook_secret"
+                           string="Secreto del Webhook"/>
+                    <div class="col-lg-9">
+                      <field name="shopify_webhook_secret" password="True"/>
+                    </div>
+                  </div>
+                  <div class="row mt8">
+                    <label class="col-lg-3 o_light_label"
+                           for="shopify_webhook_url"
+                           string="URL del Webhook"/>
+                    <div class="col-lg-9">
+                      <field name="shopify_webhook_url"
+                             widget="CopyClipboardChar"
+                             readonly="1"/>
+                    </div>
+                  </div>
+
+                  <!-- Debug logging -->
+                  <div class="d-flex align-items-start gap-2 mt16">
+                    <field name="shopify_debug" nolabel="1"/>
+                    <div>
+                      <label for="shopify_debug"
+                             class="fw-bold mb-0"
+                             string="Activar logging de depuración"/>
+                      <p class="text-muted small mt-1 mb-0">
+                        Cuando está activo, el payload completo del webhook
+                        se registra en los logs del servidor. Útil para
+                        depurar integraciones nuevas; manténgalo desactivado
+                        en producción ya que el payload contiene datos
+                        personales del cliente (nombre, dirección,
+                        teléfono, correo).
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Split en dos columnas -->
+                  <div class="row mx-0 mt16">
+
+                    <!-- ── Columna izquierda: Ventas + Inventario ─── -->
+                    <div class="col-md-6 ps-0 pe-3">
+
+                      <!-- Ventas -->
+                      <div>
+                        <span class="text-muted small fw-bold text-uppercase"
+                              style="letter-spacing:.06em;">Ventas</span>
+                        <hr style="margin: 4px 0 8px;"/>
+                      </div>
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_price_tax_mode"
+                               string="Precios de Shopify"/>
+                        <field name="shopify_price_tax_mode"/>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <p class="text-muted small mb-2">
+                            Cómo vienen los precios de las líneas desde Shopify.
+                            Si los impuestos vienen incluidos pero el impuesto
+                            en Odoo está configurado como <em>no incluido</em>
+                            (o viceversa), el conector ajusta el precio para que
+                            el total de la orden coincida con el de Shopify.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_default_price_list"
+                               string="Lista de Precios por Defecto"/>
+                        <field name="shopify_default_price_list"
+                               domain="[('company_id', 'in', [False, company_id])]"/>
+                      </div>
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_account_analytic_id"
+                               string="Cuenta Analítica"/>
+                        <field name="shopify_account_analytic_id"
+                               domain="[('company_id', 'in', [False, company_id])]"/>
+                      </div>
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_default_tag_id"
+                               string="Etiqueta por defecto"/>
+                        <field name="shopify_default_tag_id"/>
+                      </div>
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_default_user_id"
+                               string="Vendedor por defecto"/>
+                        <field name="shopify_default_user_id"
+                               domain="[('share', '=', False), ('company_ids', 'in', company_id)]"/>
+                      </div>
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_default_team_id"
+                               string="Equipo de ventas por defecto"/>
+                        <field name="shopify_default_team_id"
+                               domain="[('company_id', 'in', [False, company_id])]"/>
+                      </div>
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_shipping_product_id"
+                               string="Producto de envío por defecto"/>
+                        <field name="shopify_shipping_product_id"
+                               domain="[('sale_ok', '=', True), ('company_id', 'in', [False, company_id])]"/>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <p class="text-muted small mb-2">
+                            Producto con el que se agrega el costo de envío de
+                            la orden como una línea adicional. El importe se
+                            toma de <code>shipping_lines</code> del payload de
+                            Shopify. Si se deja vacío, el envío no se agrega.
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Mapeo de etiquetas -->
+                      <div class="mt8">
+                        <p class="fw-bold mb-1">Mapeo de etiquetas por origen</p>
+                        <p class="text-muted small mb-2">
+                          Substring case-insensitive del campo
+                          <code>source_name</code>. El primer patrón
+                          contenido gana; si ninguno coincide se aplica
+                          la etiqueta por defecto.
+                        </p>
+                        <field name="shopify_source_tag_mapping_ids" nolabel="1">
+                          <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="source_pattern"
+                                   string="Patrón"
+                                   placeholder="ej: atria, web"/>
+                            <field name="tag_id" string="Etiqueta"/>
+                          </list>
+                        </field>
+                      </div>
+
+                      <!-- Inventario -->
+                      <div class="mt16">
+                        <span class="text-muted small fw-bold text-uppercase"
+                              style="letter-spacing:.06em;">Inventario</span>
+                        <hr style="margin: 4px 0 8px;"/>
+                      </div>
+
+                      <!-- Toggle: registro automático de entrega -->
+                      <div class="d-flex align-items-start gap-2 mt8">
+                        <field name="shopify_auto_delivery" nolabel="1"/>
+                        <div>
+                          <label for="shopify_auto_delivery"
+                                 class="fw-bold mb-0"
+                                 string="Registro automático de entrega de inventario"/>
+                          <p class="text-muted small mt-1 mb-0">
+                            Cuando está activo, las entregas generadas
+                            por las órdenes de Shopify se registran
+                            contra el almacén configurado y se notifica
+                            a los responsables.
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Hijos de auto_delivery (Nivel 3 — ms-4) -->
+                      <div class="content-group ms-4 mt8"
+                           invisible="not shopify_auto_delivery">
+                        <div class="row mt8">
+                          <label class="col-lg-5 o_light_label"
+                                 for="shopify_warehouse_id"
+                                 string="Almacén"/>
+                          <field name="shopify_warehouse_id"
+                                 domain="[('company_id', '=', company_id)]"/>
+                        </div>
+                        <div class="row mt8">
+                          <label class="col-lg-5 o_light_label"
+                                 for="shopify_warehouse_responsible_ids"
+                                 string="Responsable de Almacén"/>
+                          <field name="shopify_warehouse_responsible_ids"
+                                 widget="many2many_tags"
+                                 domain="[('company_ids', 'in', company_id)]"/>
+                        </div>
+                      </div>
+
+                      <!-- ── Configuración de etiquetas de entrega ── -->
+                      <div class="mt12">
+                        <span class="text-muted small fw-bold text-uppercase"
+                              style="letter-spacing:.06em;">Etiqueta de entrega (PDF)</span>
+                        <hr style="margin: 4px 0 8px;"/>
+                      </div>
+
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_label_page_width"
+                               string="Tamaño de la hoja"/>
+                        <div class="col-lg-7">
+                          <div class="d-flex gap-2 align-items-center">
+                            <field name="shopify_label_page_width"
+                                   style="width:64px;"
+                                   placeholder="140"/>
+                            <span class="text-muted">×</span>
+                            <field name="shopify_label_page_height"
+                                   style="width:64px;"
+                                   placeholder="216"/>
+                            <span class="text-muted small">mm</span>
+                          </div>
+                          <div class="text-muted small mt-1">
+                            Media carta: 140×216 · Carta: 216×279 · A4: 210×297
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row mt8">
+                        <label class="col-lg-5 o_light_label"
+                               for="shopify_label_rows"
+                               string="Distribución (F × C)"/>
+                        <div class="col-lg-7">
+                          <div class="d-flex gap-2 align-items-center">
+                            <field name="shopify_label_rows"
+                                   style="width:52px;"
+                                   placeholder="3"/>
+                            <span class="text-muted small">filas ×</span>
+                            <field name="shopify_label_cols"
+                                   style="width:52px;"
+                                   placeholder="1"/>
+                            <span class="text-muted small">columnas</span>
+                          </div>
+                          <div class="text-muted small mt-1">
+                            Ej: 3×1 = 3 verticales · 2×2 = cuadrícula · 1×1 = una por hoja
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <!-- ── Columna derecha: Contabilidad ─── -->
+                    <div class="col-md-6 ps-3 pe-0">
+
+                      <div>
+                        <span class="text-muted small fw-bold text-uppercase"
+                              style="letter-spacing:.06em;">Contabilidad</span>
+                        <hr style="margin: 4px 0 8px;"/>
+                      </div>
+
+                      <!-- Toggle: creación automática de facturas -->
+                      <div class="d-flex align-items-start gap-2 mt8">
+                        <field name="shopify_auto_invoice" nolabel="1"/>
+                        <div>
+                          <label for="shopify_auto_invoice"
+                                 class="fw-bold mb-0"
+                                 string="Creación automática de facturas"/>
+                          <p class="text-muted small mt-1 mb-0">
+                            Cuando está activo, se crea y contabiliza
+                            automáticamente una factura por cada orden
+                            de Shopify.
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Hijos de auto_invoice (Nivel 3 — ms-4) -->
+                      <div class="content-group ms-4 mt8"
+                           invisible="not shopify_auto_invoice">
+
+                        <div class="row mt8">
+                          <label class="col-lg-5 o_light_label"
+                                 for="shopify_invoice_trigger"
+                                 string="Generar la factura"/>
+                          <field name="shopify_invoice_trigger"/>
+                        </div>
+                        <div class="row mt8"
+                             invisible="shopify_invoice_trigger != 'delayed'">
+                          <label class="col-lg-5 o_light_label"
+                                 for="shopify_invoice_delay_hours"
+                                 string="Horas de retraso"/>
+                          <field name="shopify_invoice_delay_hours"/>
+                        </div>
+
+                        <div class="row mt8">
+                          <label class="col-lg-5 o_light_label"
+                                 for="shopify_account_journal_id"
+                                 string="Diario de Facturas"/>
+                          <field name="shopify_account_journal_id"
+                                 domain="[('company_id', '=', company_id)]"/>
+                        </div>
+                        <div class="row mt8">
+                          <label class="col-lg-5 o_light_label"
+                                 for="shopify_accounting_responsible_ids"
+                                 string="Responsable de Contabilidad"/>
+                          <field name="shopify_accounting_responsible_ids"
+                                 widget="many2many_tags"
+                                 domain="[('company_ids', 'in', company_id)]"/>
+                        </div>
+
+                        <!-- Toggle: registro automático de pago -->
+                        <div class="d-flex align-items-start gap-2 mt16">
+                          <field name="shopify_auto_payment" nolabel="1"/>
+                          <div>
+                            <label for="shopify_auto_payment"
+                                   class="fw-bold mb-0"
+                                   string="Registro automático de pago"/>
+                            <p class="text-muted small mt-1 mb-0">
+                              Cuando está activo se crea y reconcilia
+                              automáticamente un pago entrante por cada
+                              orden de Shopify.
+                            </p>
+                          </div>
+                        </div>
+
+                        <!-- Hijos de auto_payment (Nivel 4 — ms-4) -->
+                        <div class="content-group ms-4 mt8"
+                             invisible="not shopify_auto_payment">
+                          <p class="fw-bold mb-1">Mapeo de métodos de pago</p>
+                          <p class="text-muted small mb-2">
+                            Asocia cada gateway de Shopify con el
+                            diario de Odoo. Si no hay coincidencia se
+                            usa el primer diario banco/caja de la
+                            compañía.
+                          </p>
+                          <field name="shopify_payment_mapping_ids" nolabel="1">
+                            <list editable="bottom">
+                              <field name="company_id" column_invisible="True"/>
+                              <field name="shopify_gateway"
+                                     string="ID de pago"
+                                     placeholder="ej: shopify_payments, paypal"/>
+                              <field name="journal_id"
+                                     string="Diario"
+                                     domain="[('type', 'in', ['bank', 'cash']), ('company_id', '=', company_id)]"/>
+                            </list>
+                          </field>
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- ══ API de Shopify (bloque independiente del webhook) ══ -->
+            <div class="o_setting_box col-12"
+                 style="flex: 0 0 100%; max-width: 100%;">
+              <div class="o_setting_left_pane">
+                <field name="shopify_enable_api"/>
+              </div>
+              <div class="o_setting_right_pane">
+                <label for="shopify_enable_api"
+                       class="o_form_label"
+                       string="API de Shopify"/>
+                <div class="text-muted">
+                  Credenciales de la Admin API (distintas del secreto del
+                  webhook) para consultar órdenes y productos de Shopify desde
+                  Odoo: simulación, importación manual de pedidos y mapeo de
+                  productos.
+                </div>
+
+                <!-- Config: visible solo al activar la API -->
+                <div class="content-group mt16"
+                     invisible="not shopify_enable_api">
+
+                  <div class="row mt8">
+                    <label class="col-lg-3 o_light_label"
+                           for="shopify_shop_url"
+                           string="Dominio de la tienda"/>
+                    <div class="col-lg-9">
+                      <field name="shopify_shop_url"
+                             placeholder="mitienda.myshopify.com"/>
+                      <div class="text-muted small">
+                        Dominio interno *.myshopify.com de la tienda
+                        (Shopify Admin → Settings → Domains).
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row mt8">
+                    <label class="col-lg-3 o_light_label"
+                           for="shopify_client_id"
+                           string="Client ID"/>
+                    <div class="col-lg-9">
+                      <field name="shopify_client_id"
+                             placeholder="ej: 1a2b3c..."/>
+                      <div class="text-muted small">
+                        Dev Dashboard → tu app → API credentials → Client ID.
+                        La app debe tener el scope <code>read_orders</code>
+                        (y <code>read_products</code> para el mapeo) e
+                        instalarse en esta tienda.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row mt8">
+                    <label class="col-lg-3 o_light_label"
+                           for="shopify_client_secret"
+                           string="Client Secret"/>
+                    <div class="col-lg-9">
+                      <field name="shopify_client_secret"
+                             password="True"
+                             placeholder="Client secret de la app"/>
+                      <div class="text-muted small">
+                        Dev Dashboard → tu app → API credentials → Client
+                        Secret. Se usa junto al Client ID para generar el
+                        token (grant <code>client_credentials</code>).
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row mt8">
+                    <label class="col-lg-3 o_light_label"
+                           for="shopify_admin_api_token"
+                           string="Token manual (opcional)"/>
+                    <div class="col-lg-9">
+                      <field name="shopify_admin_api_token"
+                             password="True"
+                             placeholder="shpat_..."/>
+                      <div class="text-muted small">
+                        Solo si usas una app custom heredada con token fijo.
+                        Si hay Client ID y Client Secret, este campo se ignora.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row mt8">
+                    <label class="col-lg-3 o_light_label"
+                           for="shopify_api_version"
+                           string="Versión de la Admin API"/>
+                    <div class="col-lg-9">
+                      <field name="shopify_api_version"
+                             placeholder="2024-10"/>
+                      <div class="text-muted small">
+                        Formato AAAA-MM. Usa una versión estable vigente
+                        (ver shopify.dev → API versioning).
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt16">
+                    <button type="object"
+                            name="action_shopify_simulate_last_orders"
+                            string="Simular últimas 10 órdenes"
+                            class="btn-primary"
+                            icon="fa-flask"/>
+                    <p class="text-muted small mt-1 mb-0">
+                      Trae las 10 órdenes más recientes vía GraphQL y construye
+                      las órdenes de venta en una transacción que se revierte
+                      (dry-run): <b>no se guarda ningún registro</b>. Valida el
+                      mapeo de productos, precios, impuestos y totales antes de
+                      operar en vivo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </block>
+
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo>

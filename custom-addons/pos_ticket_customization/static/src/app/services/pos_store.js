@@ -156,9 +156,10 @@ patch(PosStore.prototype, {
         const today = DateTime.now().startOf("day");
         const total = order.priceIncl;
         const context = this.getCustomReceiptBlockContext(order);
-        // `sequence_number` es único dentro de la sesión de caja, se asigna una sola
-        // vez y se persiste en el pedido: al reimprimir un ticket salen exactamente
-        // los mismos bloques que se imprimieron la primera vez.
+        // `sequence_number` lo asigna el servidor una sola vez (secuencia
+        // `order_seq_id` del punto de venta, que en Odoo 19 NO se reinicia al abrir
+        // caja; en 17 era un contador por sesión) y se persiste en el pedido: al
+        // reimprimir un ticket salen exactamente los mismos bloques.
         const sequenceNumber = order.sequence_number;
 
         // El loader ya devuelve los bloques ordenados por `sequence, id`, pero
@@ -199,7 +200,7 @@ patch(PosStore.prototype, {
      * ¿Le toca a este pedido dentro del ciclo "cada N pedidos"?
      *
      * @param {Object} block
-     * @param {number} sequenceNumber Número del pedido dentro de la sesión de caja
+     * @param {number} sequenceNumber Número del pedido en la secuencia del punto de venta
      * @returns {boolean}
      */
     _matchesCustomReceiptBlockFrequency(block, sequenceNumber) {
@@ -209,7 +210,12 @@ patch(PosStore.prototype, {
         }
         // Sin número de pedido no se puede decidir el ciclo. Se imprime, porque
         // omitir un bloque configurado es peor que repetirlo alguna vez de más.
-        if (!Number.isInteger(sequenceNumber)) {
+        // En Odoo 19 el POS crea el pedido con `sequence_number = 0` y es el
+        // servidor quien lo numera al sincronizar (`pos.order._update_sequence_number`,
+        // con la secuencia `order_seq_id` del punto de venta): un 0 es "aún sin
+        // número" (p. ej. caja sin conexión) y no el pedido cero del ciclo, que con
+        // desplazamiento distinto de 0 haría desaparecer el bloque de esos tickets.
+        if (!Number.isInteger(sequenceNumber) || sequenceNumber <= 0) {
             return true;
         }
         // La doble suma normaliza el resto: en JS `-4 % 10` es -4, no 6, así que

@@ -1,0 +1,16 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h2 class="oe_slogan">Clara – Tarjetas corporativas (solo lectura)</h2>
+        <h3 class="oe_slogan">Dashboard de tarjetas y transacciones Clara, con la trazabilidad contra las órdenes de compra</h3>
+        <div class="oe_span12">
+            <p>El conector lee de Clara (solo llamadas GET) y nunca escribe en Clara ni crea órdenes de compra. Una acción planificada,
+            los domingos a las 10:00 p. m. (hora de Bogotá), trae las transacciones creadas o modificadas desde la corrida anterior y las tarjetas.</p>
+            <ul>
+                <li><b>Tarjetas</b>: titular, últimos 4 dígitos, tipo, estado, límite mensual, área y cuenta analítica de la tabla de titulares.</li>
+                <li><b>Transacciones</b>: titular, fecha, comercio, monto, estado en Clara, orden ligada y estado de conciliación.</li>
+                <li><b>Trazabilidad</b>: pivote de titular por mes con el conteo y el monto por estado de conciliación; gráfica del porcentaje conciliado por mes.</li>
+            </ul>
+            <p>Grupos: <b>Clara / Lectura</b> ve todo el menú sin crear, editar ni borrar nada; <b>Clara / Administrador</b> configura la API y ejecuta «Sincronizar ahora».</p>
+        </div>
+    </div>
+</section>

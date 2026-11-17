@@ -10,9 +10,10 @@ línea de propina y el total quedan igual que con el botón estándar.
 
 Cómo se calcula, según el código (`static/src/js/pos_payment.js`):
 
-- **Base: subtotal sin impuestos y sin la propina actual.** Total con impuestos, menos impuestos,
-  menos la propina que ya tenga la orden. En la captura de *Uso*, dos hamburguesas suman $ 66.640
+- **Base: subtotal sin impuestos y sin la propina actual** (configurable: *Total con impuestos*).
+  Total sin impuestos de la orden menos la propina que ya tenga. En la captura de *Uso*, dos hamburguesas suman $ 66.640
   con $ 10.640 de impuestos; la base es $ 56.000 y el 10 % da $ 5.600.
-- **Redondeo a unidades enteras** de la moneda (`Math.round`). En pesos colombianos no se nota; en
-  una moneda con centavos, la propina pierde los decimales.
+- **Redondeo a unidades enteras** por defecto (`tip_percent_decimals` = 0), como en la 17.
 - **Un solo valor de propina por orden.** Pulsar otro porcentaje reemplaza el anterior; no se suman.
+- **No toca las líneas de pago**, igual que en la 17: si ya hay efectivo cargado, el cambio baja en el
+  valor de la propina; si falta plata, la orden muestra el saldo pendiente.

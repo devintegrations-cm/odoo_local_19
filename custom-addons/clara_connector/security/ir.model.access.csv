@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_clara_transaction_reader,clara.transaction reader,model_clara_transaction,clara_purchase_bridge.group_clara_reader,1,0,0,0
+access_clara_transaction_admin,clara.transaction admin,model_clara_transaction,clara_purchase_bridge.group_clara_admin,1,1,1,1
+access_clara_card_reader,clara.card reader,model_clara_card,clara_purchase_bridge.group_clara_reader,1,0,0,0
+access_clara_card_admin,clara.card admin,model_clara_card,clara_purchase_bridge.group_clara_admin,1,1,1,1
+access_clara_sync_log_reader,clara.sync.log reader,model_clara_sync_log,clara_purchase_bridge.group_clara_reader,1,0,0,0
+access_clara_sync_log_admin,clara.sync.log admin,model_clara_sync_log,clara_purchase_bridge.group_clara_admin,1,1,1,1

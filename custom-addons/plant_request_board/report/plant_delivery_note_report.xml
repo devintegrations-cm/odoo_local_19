@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- US Letter, portrait, tight margins: the delivery note of a request fits in one sheet -->
+    <record id="paperformat_plant_delivery_note" model="report.paperformat">
+        <field name="name">Remisión de planta (carta)</field>
+        <field name="format">Letter</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- The report: one page per request, printable from the form, the card and the list (several at once) -->
+    <record id="action_report_plant_delivery_note" model="ir.actions.report">
+        <field name="name">Remisión de solicitud</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">plant_request_board.report_plant_delivery_note</field>
+        <field name="report_file">plant_request_board.report_plant_delivery_note</field>
+        <field name="print_report_name">'Remision - %s' % (object.name or '').replace('/', '-')</field>
+        <field name="paperformat_id" ref="paperformat_plant_delivery_note"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_plant_delivery_note">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="o">
+                <t>
+                    <t t-set="r" t-value="o._plant_delivery_note_data()"/>
+                    <div t-attf-class="page plant-note plant-note-#{r['layout']['name']} #{r['cancelled'] and 'plant-note-cancelled' or ''}" t-attf-style="--plant-color: #{r['color']}; --plant-color-2: #{r['color2']}; font-size: #{r['layout']['font']}; position: relative; #{not o_last and 'page-break-after: always;' or ''}">
+                        <style>
+                            .plant-note { font-family: 'DejaVu Sans', Arial, sans-serif; color: #222; }
+                            .plant-note .pn-head { display: table; width: 100%; border-bottom: 3px solid var(--plant-color); padding-bottom: 5px; margin-bottom: 6px; }
+                            .plant-note .pn-head > div { display: table-cell; vertical-align: middle; }
+                            .plant-note .pn-logo img { max-height: 54px; max-width: 170px; }
+                            .plant-note .pn-title { text-align: right; }
+                            .plant-note .pn-title h1 { margin: 0; font-size: 20px; color: var(--plant-color); letter-spacing: 1px; }
+                            .plant-note .pn-title .pn-ref { font-size: 15px; font-weight: bold; }
+                            .plant-note .pn-cancel-band { background: #C00000; color: #fff; text-align: center; font-size: 16px; font-weight: bold; letter-spacing: 4px; padding: 4px; margin-bottom: 6px; }
+                            .plant-note .pn-watermark { position: absolute; top: 38%; left: 4%; width: 92%; text-align: center; font-size: 110px; font-weight: bold; color: rgba(192, 0, 0, 0.16); letter-spacing: 10px; transform: rotate(-28deg); -webkit-transform: rotate(-28deg); pointer-events: none; z-index: 0; }
+                            .plant-note .pn-meta { display: table; width: 100%; margin-bottom: 6px; border-spacing: 0; }
+                            .plant-note .pn-meta > div { display: table-cell; width: 25%; padding: 3px 6px; border-left: 2px solid var(--plant-color-2); vertical-align: top; }
+                            .plant-note .pn-meta .pn-label { font-size: 8px; text-transform: uppercase; color: #666; letter-spacing: 0.5px; }
+                            .plant-note .pn-meta .pn-value { font-weight: bold; font-size: 11px; }
+                            .plant-note .pn-cols { display: table; width: 100%; border-spacing: 6px 0; margin: 0 -6px 6px -6px; }
+                            .plant-note .pn-cols > div { display: table-cell; vertical-align: top; }
+                            .plant-note table.pn-lines { width: 100%; border-collapse: collapse; }
+                            .plant-note table.pn-lines th { background: var(--plant-color); color: #fff; padding: 3px 4px; text-align: left; font-size: 0.9em; text-transform: uppercase; }
+                            .plant-note table.pn-lines td { padding: 2px 4px; border-bottom: 1px solid #ddd; vertical-align: top; line-height: 1.2; }
+                            .plant-note-normal table.pn-lines td { padding: 3px 5px; }
+                            .plant-note table.pn-lines tr.pn-kind td { background: #F2F2F2; font-weight: bold; color: var(--plant-color); padding: 1px 4px; font-size: 0.9em; text-transform: uppercase; }
+                            .plant-note .pn-sub { color: #666; font-size: 0.9em; }
+                            .plant-note .pn-totals { display: table; width: 100%; border-top: 2px solid var(--plant-color); margin-bottom: 6px; border-spacing: 0; }
+                            .plant-note .pn-totals > div { display: table-cell; padding: 4px 6px; font-weight: bold; }
+                            .plant-note .pn-totals .pn-label { font-weight: normal; font-size: 8px; text-transform: uppercase; color: #666; display: block; }
+                            .plant-note .num { text-align: right; white-space: nowrap; }
+                            .plant-note .pn-bottom { display: table; width: 100%; margin-top: 4px; border-spacing: 0; }
+                            .plant-note .pn-bottom > div { display: table-cell; vertical-align: top; padding: 0 4px; }
+                            .plant-note .pn-box { border: 1px solid var(--plant-color-2); border-radius: 4px; padding: 5px 8px; min-height: 64px; }
+                            .plant-note .pn-box h3 { margin: 0 0 3px 0; font-size: 9px; text-transform: uppercase; color: var(--plant-color); letter-spacing: 0.5px; }
+                            .plant-note .pn-address { font-size: 10px; line-height: 1.3; }
+                            .plant-note .pn-sign { display: table; width: 100%; margin-top: 8px; border-spacing: 8px 0; }
+                            .plant-note .pn-sign > div { display: table-cell; width: 50%; border-top: 1px solid #333; padding-top: 3px; text-align: center; font-size: 9px; color: #444; }
+                            .plant-note .pn-sign .pn-sign-space { height: 36px; }
+                            .plant-note .pn-foot { margin-top: 6px; font-size: 8px; color: #777; text-align: right; }
+                        </style>
+                        <div t-if="r['cancelled']" class="pn-watermark">CANCELADA</div>
+                        <div class="pn-head">
+                            <div class="pn-logo"><img t-if="r['logo']" t-att-src="r['logo']" alt="Logo"/><strong t-else="" t-esc="r['company']"/></div>
+                            <div class="pn-title">
+                                <h1>REMISIÓN DE SOLICITUD</h1>
+                                <div class="pn-ref" t-esc="o.name"/>
+                                <div><span t-esc="r['company']"/> · <span t-esc="r['date']"/></div>
+                            </div>
+                        </div>
+                        <div t-if="r['cancelled']" class="pn-cancel-band">SOLICITUD CANCELADA · NO DESPACHAR</div>
+                        <div class="pn-meta">
+                            <div><div class="pn-label">Tienda / cliente</div><div class="pn-value" t-esc="o.plant_counterparty or ''"/><div t-if="r['store']" t-esc="r['store']"/></div>
+                            <div><div class="pn-label">Canal</div><div class="pn-value" t-esc="o.plant_channel_id.name or ''"/><div t-if="o.plant_warehouse_id">desde <t t-esc="o.plant_warehouse_id.name"/></div></div>
+                            <div><div class="pn-label">Venta</div><div class="pn-value" t-esc="r['sale'] or '—'"/><div t-if="r['external_ref']">Ref. externa: <t t-esc="r['external_ref']"/></div></div>
+                            <div><div class="pn-label">Etapa</div><div class="pn-value" t-esc="r['stage']"/><div>Solicitada por <t t-esc="o.plant_requested_by or ''"/></div></div>
+                        </div>
+                        <div class="pn-cols">
+                            <div t-foreach="r['chunks']" t-as="chunk" t-attf-style="width: #{100 // len(r['chunks'])}%;">
+                                <table class="pn-lines">
+                                    <thead>
+                                        <tr t-if="not r['layout']['compact']"><th>Referencia</th><th>Producto</th><th>Línea</th><th>Gramaje</th><th>Molienda</th><th class="num">Cantidad</th><th>Unidad</th><th class="num">Kg café</th></tr>
+                                        <tr t-else=""><th>Referencia</th><th>Producto · línea · gramaje · molienda</th><th class="num">Cant.</th><th>Ud.</th><th class="num">Kg</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="chunk" t-as="row">
+                                            <tr t-if="row.get('header')" class="pn-kind"><td t-att-colspan="r['layout']['compact'] and 5 or 8" t-esc="row['header']"/></tr>
+                                            <tr t-elif="not r['layout']['compact']">
+                                                <td t-esc="row['code']"/>
+                                                <td t-esc="row['name']"/>
+                                                <td t-esc="row['line']"/>
+                                                <td t-esc="row['size']"/>
+                                                <td t-esc="row['grind']"/>
+                                                <td class="num" t-esc="row['qty']"/>
+                                                <td t-esc="row['uom']"/>
+                                                <td class="num" t-esc="row['kg']"/>
+                                            </tr>
+                                            <tr t-else="">
+                                                <td t-esc="row['code']"/>
+                                                <td><t t-esc="row['name']"/><span class="pn-sub" t-if="row['line'] or row['size'] or row['grind']"> · <t t-esc="' · '.join(x for x in (row['line'], row['size'], row['grind']) if x)"/></span></td>
+                                                <td class="num" t-esc="row['qty']"/>
+                                                <td t-esc="row['uom']"/>
+                                                <td class="num" t-esc="row['kg']"/>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="pn-totals">
+                            <div><span class="pn-label">Líneas</span><t t-esc="r['line_count']"/></div>
+                            <div><span class="pn-label">Café</span><t t-esc="r['kg']"/> kg · <t t-esc="r['bags']"/> bolsas</div>
+                            <div><span class="pn-label">Listos (cápsulas, drips, bebidas)</span><t t-esc="r['ready_units']"/> unid.</div>
+                            <div><span class="pn-label">Insumos</span><t t-esc="r['supply_units']"/> unid.</div>
+                        </div>
+                        <div class="pn-bottom">
+                            <div style="width: 45%;">
+                                <div class="pn-box">
+                                    <h3>Dirección de entrega</h3>
+                                    <div class="pn-address">
+                                        <div t-foreach="r['address']" t-as="line" t-esc="line"/>
+                                        <div t-if="not r['address']" style="color: #999;">Sin dirección registrada</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="width: 55%;">
+                                <div class="pn-box">
+                                    <h3>Observaciones</h3>
+                                    <div t-if="r['note']" t-out="r['note']"/>
+                                    <div t-if="r['store_comment']" style="margin-top: 3px;"><i>Tienda:</i> <t t-esc="r['store_comment']"/></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pn-sign">
+                            <div><div class="pn-sign-space"/>Despacha (nombre, firma y fecha)</div>
+                            <div><div class="pn-sign-space"/>Recibe (nombre, firma y fecha)</div>
+                        </div>
+                        <div class="pn-foot">Generada desde Odoo · Planta · <t t-esc="r['printed']"/></div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

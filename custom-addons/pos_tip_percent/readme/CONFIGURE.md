@@ -11,14 +11,17 @@ buscar el bloque **Pago**. El ajuste del módulo está justo después del ajuste
 - **Tip % (Option 1)**, **(Option 2)** y **(Option 3)** (campos `tip_percent1`, `tip_percent2` y
   `tip_percent3`). Opcionales; 0 por defecto. Cada porcentaje distinto de 0 es un botón en la
   pantalla de pago. Un porcentaje en 0 no muestra botón.
+- **Base del calculo** (campo `tip_percent_base`). *Total sin impuestos* (por defecto, igual que en
+  la 17) o *Total con impuestos*. En ambos casos se descuenta la propina ya cargada.
+- **Decimales** (campo `tip_percent_decimals`, 0 a 6). 0 por defecto: redondea a la unidad, igual que
+  en la 17.
 
 A tener en cuenta:
 
-- **Con el módulo instalado, *Propinas* solo no alcanza.** El módulo reemplaza el botón estándar
-  **Propina** de la pantalla de pago. Si *Propinas* está activado pero *Add buttons with percentage
-  for tip* no, la pantalla de pago queda **sin ningún botón de propina**.
-- Si la casilla está marcada y los tres porcentajes están en 0, se ve un único botón **Propina** que
-  abre el teclado de Odoo, como el estándar.
+- El botón estándar **Propina** de Odoo (teclado para escribir el valor) se oculta solo cuando la
+  casilla del módulo está marcada y hay al menos un porcentaje distinto de 0. En cualquier otro caso
+  se ve el botón estándar. En la 17, con *Propinas* activado y la casilla desmarcada, no quedaba
+  ningún botón de propina; en staging las 16 cajas con *Propinas* tienen también la casilla marcada.
 - Al desmarcar *Propinas* en Ajustes, Odoo deja vacío el producto de propina y los botones del
   módulo desaparecen, aunque su casilla siga marcada.
 - La configuración es **por punto de venta**. Hay que repetirla en cada tienda.

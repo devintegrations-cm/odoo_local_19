@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Classify products: proposal from the names, reviewed before it is written -->
+    <record id="view_plant_product_fill_wizard_form" model="ir.ui.view">
+        <field name="name">plant.product.fill.wizard.form</field>
+        <field name="model">plant.product.fill.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="state" invisible="1"/>
+                <div invisible="state != 'choose'">
+                    <p>El clasificador lee el nombre de cada producto con el vocabulario de <b>Planta › Tipos de línea</b> y de Ajustes, y propone tipo planta, línea de café, gramos netos, molienda y si cuenta en el consolidado. Nada se guarda hasta que apliques la vista previa.</p>
+                    <group>
+                        <field name="scope" widget="radio"/>
+                        <field name="product_tmpl_ids" widget="many2many_tags" invisible="scope != 'selected'"/>
+                        <field name="only_changes"/>
+                    </group>
+                </div>
+                <div invisible="state != 'preview'">
+                    <p><field name="line_count" class="oe_inline"/> productos, <field name="change_count" class="oe_inline"/> cambiarían. Corrige lo que haga falta y aplica; desmarca «Aplicar» en los que no quieras tocar.</p>
+                    <field name="line_ids">
+                        <list editable="bottom" create="false" decoration-muted="not apply" decoration-info="changed">
+                            <field name="apply" widget="boolean_toggle"/>
+                            <field name="changed" column_invisible="1"/>
+                            <field name="default_code"/>
+                            <field name="product_tmpl_id"/>
+                            <field name="current_kind_id" optional="show"/>
+                            <field name="kind_id" options="{'no_create': True}"/>
+                            <field name="current_line_id" optional="hide"/>
+                            <field name="line_id"/>
+                            <field name="line_name"/>
+                            <field name="current_grams" optional="hide"/>
+                            <field name="grams"/>
+                            <field name="current_grind" optional="hide"/>
+                            <field name="grind"/>
+                            <field name="in_sheet" widget="boolean_toggle"/>
+                        </list>
+                    </field>
+                </div>
+                <div invisible="state != 'done'">
+                    <p><b><field name="applied_count" class="oe_inline"/></b> productos clasificados. Las líneas de pedido abiertas ya usan los campos nuevos.</p>
+                </div>
+                <footer>
+                    <button name="action_preview" type="object" string="Vista previa" class="btn-primary" invisible="state != 'choose'"/>
+                    <button name="action_apply" type="object" string="Aplicar" class="btn-primary" invisible="state != 'preview'"/>
+                    <button name="action_back" type="object" string="Volver" invisible="state != 'preview'"/>
+                    <button string="Cerrar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_plant_product_fill_wizard" model="ir.actions.act_window">
+        <field name="name">Clasificar productos</field>
+        <field name="res_model">plant.product.fill.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <record id="server_action_plant_product_fill" model="ir.actions.server">
+        <field name="name">Planta: clasificar productos</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="group_ids" eval="[(4, ref('stock.group_stock_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = env["plant.product.fill.wizard"].create({"scope": "selected", "only_changes": False, "product_tmpl_ids": [(6, 0, records.ids)]}).action_preview()</field>
+    </record>
+
+    <!-- Duplicated references: groups, proposed master, confirmation -->
+    <record id="view_plant_duplicate_wizard_form" model="ir.ui.view">
+        <field name="name">plant.duplicate.wizard.form</field>
+        <field name="model">plant.duplicate.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="state" invisible="1"/>
+                <div invisible="state != 'choose'">
+                    <p>Agrupa los productos que parecen la misma referencia: misma línea de café, gramos y molienda, o el mismo nombre una vez quitadas las palabras ignoradas (código de barras, copia). Propone una referencia maestra por grupo; al aplicar, las demás suman en ella. No se elimina ni se archiva nada.</p>
+                    <group>
+                        <field name="scope" widget="radio"/>
+                    </group>
+                </div>
+                <div invisible="state != 'preview'">
+                    <p><field name="group_count" class="oe_inline"/> grupos, <field name="product_count" class="oe_inline"/> referencias. Marca la maestra de cada grupo si no es la propuesta; desmarca «Aplicar» en lo que no sea un duplicado. Los grupos «Revisar a mano» coinciden solo por el nombre: sus referencias internas o sus listas de materiales indican productos distintos, así que no traen maestra propuesta.</p>
+                    <field name="line_ids">
+                        <list editable="bottom" create="false" decoration-bf="is_master" decoration-muted="not apply" decoration-warning="review">
+                            <field name="group_seq"/>
+                            <field name="group"/>
+                            <field name="default_code"/>
+                            <field name="product_tmpl_id"/>
+                            <field name="product_active" optional="show"/>
+                            <field name="moves"/>
+                            <field name="in_boms" optional="hide"/>
+                            <field name="review" widget="boolean_toggle" readonly="1"/>
+                            <field name="review_reason" optional="show"/>
+                            <field name="current_master_id" optional="show"/>
+                            <field name="is_master" widget="boolean_toggle"/>
+                            <field name="master_id" options="{'no_create': True}"/>
+                            <field name="apply" widget="boolean_toggle"/>
+                        </list>
+                    </field>
+                </div>
+                <div invisible="state != 'done'">
+                    <p><b><field name="applied_count" class="oe_inline"/></b> referencias ahora suman en su maestra.</p>
+                </div>
+                <footer>
+                    <button name="action_scan" type="object" string="Buscar duplicados" class="btn-primary" invisible="state != 'choose'"/>
+                    <button name="action_apply" type="object" string="Asignar referencias maestras" class="btn-primary" invisible="state != 'preview'"/>
+                    <button name="action_back" type="object" string="Volver" invisible="state != 'preview'"/>
+                    <button string="Cerrar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_plant_duplicate_wizard" model="ir.actions.act_window">
+        <field name="name">Referencias duplicadas</field>
+        <field name="res_model">plant.duplicate.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Explicit confirmation of "Validar entrega" -->
+    <record id="view_plant_validate_wizard_form" model="ir.ui.view">
+        <field name="name">plant.validate.wizard.form</field>
+        <field name="model">plant.validate.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="picking_id" invisible="1"/>
+                <field name="has_missing" invisible="1"/>
+                <field name="has_shortage" invisible="1"/>
+                <p>Alistamiento: <field name="progress_text" class="oe_inline"/>.</p>
+                <div class="alert alert-warning" role="alert" invisible="not has_missing">
+                    <b>Estas líneas no tienen cantidad hecha y se entregarían completas:</b>
+                    <field name="missing_html" nolabel="1"/>
+                    <div class="small">Si no es así, cierra, pon las cantidades en la transferencia (o chulea todas las líneas) y vuelve a validar.</div>
+                </div>
+                <div class="alert alert-danger" role="alert" invisible="not has_shortage">
+                    <b>Sin stock suficiente en la planta:</b>
+                    <field name="shortage_html" nolabel="1"/>
+                    <div class="small">Al validar, el inventario de esas referencias quedará negativo en Odoo hasta que se registre la producción o el empaque.</div>
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Entregar y validar de todas formas" class="btn-primary"/>
+                    <button string="Volver" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_plant_product_fill" name="Clasificar productos" parent="menu_plant_root" action="action_plant_product_fill_wizard" sequence="72" groups="stock.group_stock_manager"/>
+    <menuitem id="menu_plant_duplicates" name="Referencias duplicadas" parent="menu_plant_root" action="action_plant_duplicate_wizard" sequence="73" groups="stock.group_stock_manager"/>
+</odoo>

@@ -1,6 +1,7 @@
 ## Enviar a cocina
 
-Al pulsar **Enviar** (o **Pago**, ver *Casos especiales*), el POS guarda la cantidad actual de cada
+Al enviar el pedido a cocina (botón **Enviar**, o **Pedido** en el aviso que Odoo muestra al pulsar
+**Pago** con cambios sin enviar), el POS guarda la cantidad actual de cada
 línea como **cantidad ordenada**. Al volver a la mesa, cada línea muestra esa cantidad entre los
 botones de restar y sumar, con el distintivo *En preparación*.
 
@@ -34,25 +35,27 @@ actualiza con la cantidad nueva.
 - **Cambio de empleado**: la regla se evalúa con el empleado que tiene la caja en ese momento. Al
   bloquear la caja y entrar con otro PIN, el mismo pedido queda permitido o bloqueado según el
   nuevo empleado.
-- **Pago**: el botón **Pago** también marca todas las líneas como ordenadas, antes de que Odoo
-  pregunte si se quiere enviar el pedido a preparación. Aunque se elija *Descartar* y no se envíe
-  nada a cocina, al volver a la mesa las líneas aparecen *En preparación* y quedan protegidas.
+- **Pago**: el botón **Pago** no marca líneas por sí solo. En restaurante, si Odoo pregunta si se
+  envía el pedido a preparación y se elige **Pedido**, las líneas quedan ordenadas; con *Descartar*
+  no. En una caja sin restaurante (retail) nunca se marcan, como en Odoo 17.
+- **Propina**: la línea de propina nunca queda *En preparación*.
 - **Dividir cuenta**: al confirmar la división, las cantidades de las dos órdenes resultantes pasan
-  a ser las cantidades ordenadas.
+  a ser las cantidades ordenadas y se guardan en el servidor (sobreviven a recargar).
+- **Unir y separar mesas**: al unir, lo enviado de las dos mesas se suma en la línea resultante; al
+  separar, se reparte entre las dos mesas sin que ninguna línea quede con más enviado que cantidad.
 - **Combos**: si alguna línea del combo tiene cantidad ordenada, el empleado no autorizado no puede
   borrar el combo.
-- **Transferir o fusionar mesas, Cancelar orden, Liberar la mesa**: no pasan por este control (ver
-  *Limitaciones conocidas*).
+- **Cancelar orden, Liberar la mesa**: no pasan por este control; los restringe `pos_del_order`.
 
 ## Solución de problemas
 
 - **No aparece el campo en Ajustes.** Marcar *Iniciar sesión como empleado*, guardar y volver a la
   página: el campo está dentro de ese bloque.
-- **La línea no muestra el distintivo *En preparación*.** Solo aparece después de **Enviar** o
-  **Pago**, en las pantallas de productos y de pago, y nunca en líneas de recompensa. Si el módulo
+- **La línea no muestra el distintivo *En preparación*.** Solo aparece después de enviar a cocina
+  (**Enviar** o **Pedido** en el aviso de **Pago**), en las pantallas de productos y de pago, y nunca en líneas de recompensa. Si el módulo
   se acaba de instalar, volver a entrar al POS desde el backend.
 - **Un empleado no autorizado puede reducir la línea.** Verificar que la lista esté guardada en el
   punto de venta correcto, volver a entrar al POS y revisar qué empleado tiene la caja (avatar arriba
   a la derecha). Si la reducción no baja de la cantidad ordenada, está permitida.
-- **Un empleado no puede quitar un producto que nunca se envió a cocina.** Probablemente se pulsó
-  **Pago** antes (ver *Casos especiales*). Lo puede quitar un empleado autorizado.
+- **Un empleado no puede quitar un producto que nunca se envió a cocina.** Revisar si se eligió
+  **Pedido** en el aviso de **Pago** (eso sí lo envía). Lo puede quitar un empleado autorizado.

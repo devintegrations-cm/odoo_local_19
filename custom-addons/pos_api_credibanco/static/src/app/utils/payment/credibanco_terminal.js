@@ -10,6 +10,7 @@ import {
     ANSWER,
     CODE_APPROVED,
     CODE_NO_FINAL_ANSWER,
+    CODE_TERMINAL_TIMEOUT,
     TRANSACTION,
     FIELD_LIMITS,
     buildPacket,
@@ -295,6 +296,16 @@ export class PaymentCredibanco extends PaymentInterface {
             return this._runRecover(line, this._positions(references, fields));
         }
 
+        if (result.code === CODE_TERMINAL_TIMEOUT) {
+            // "13": the terminal itself gave up waiting, so the outcome of the sale
+            // is unknown. Keep the marker, exactly like a missing answer: the next
+            // press of the same button recovers instead of charging again, and the
+            // order can not be validated while it is pending.
+            line.credibanco_pending_sale = JSON.stringify(this._positions(references, fields));
+            this._alert(result.title, result.body);
+            return false;
+        }
+
         line.credibanco_pending_sale = "";
         this._alert(result.title, result.body);
         return false;
@@ -303,8 +314,8 @@ export class PaymentCredibanco extends PaymentInterface {
     _applyApprovedSale(line, values) {
         const charged = getChargedAmount(values);
         if (charged !== null) {
-            // The terminal is the authority: the customer may have added a tip on
-            // the device after the amount was sent.
+            // The terminal is the authority: the line takes position 40 of the
+            // approved answer, exactly as Odoo 17 did (see getChargedAmount).
             line.setAmount(charged);
         }
         const approval = values[ANSWER.AUTHORIZATION_CODE];
@@ -341,7 +352,11 @@ export class PaymentCredibanco extends PaymentInterface {
                 this._applyApprovedSale(line, recovered.values);
                 return true;
             }
-            if (recovered && recovered.code !== CODE_NO_FINAL_ANSWER) {
+            if (
+                recovered &&
+                recovered.code !== CODE_NO_FINAL_ANSWER &&
+                recovered.code !== CODE_TERMINAL_TIMEOUT
+            ) {
                 line.credibanco_pending_sale = "";
                 this._alert(recovered.title, recovered.body);
                 return false;
@@ -424,18 +439,16 @@ export class PaymentCredibanco extends PaymentInterface {
             return taxes;
         }
 
-        // The datáfono siempre cobra 40 (TOTAL) + 81 (PROPINA): el TOTAL es la
-        // venta sin propina y la propina se envía por su lado. En Odoo 19 la
-        // propina es una línea del pedido, así que `priceIncl` y el monto de la
-        // línea de pago (remainingDue) ya la incluyen. Pero una propina
-        // elegida antes de que exista una línea pendiente seleccionada no se
-        // pliega en la línea, y ahí `monto - propina` restaría la propina dos
-        // veces (el datáfono cobraría la venta sin propina). Solo se resta la
-        // propina del TOTAL cuando la línea ya la incluye, i.e. cuando cubre el
-        // pedido completo.
-        const tip = order.getTip() || 0;
-        const orderTotal = order.priceIncl || 0;
-        const total = amount >= orderTotal - 1 ? amount - tip : amount;
+        // El datáfono cobra 40 (TOTAL) + 81 (PROPINA). Contrato de Odoo 17
+        // (origin/main payment_screen.js, getValueToPay): 40 + 81 = monto de la
+        // línea, siempre; la propina se prorratea por la fracción del pedido que
+        // cubre este cobro (`propina × monto / total del pedido`) y el TOTAL es
+        // el monto menos esa parte. Así un pago parcial nunca arrastra la propina
+        // entera (C1 / POS-API-CREDIBANCO-INT-0003): cada cobro lleva su parte y
+        // el que cubre el pedido completo lleva la propina completa. En Odoo 19
+        // la propina es una línea del pedido, así que `priceIncl` ya la incluye.
+        const tip = this._tipShare(order.getTip() || 0, amount, order.priceIncl || 0);
+        const total = amount - tip;
         const fields = {
             total: protocolAmount(_t("total"), total, FIELD_LIMITS.total),
             iva: protocolAmount(_t("IVA"), taxes.vat, FIELD_LIMITS.iva),
@@ -444,7 +457,10 @@ export class PaymentCredibanco extends PaymentInterface {
             cashier: references.operator,
             cashRegister: references.cashRegister,
             numberTransaction: references.numberTransaction,
-            fieldFiller84: protocolField(_t("relleno 84"), "", FIELD_LIMITS.cashRegister),
+            // Odoo 17 enviaba "0" en la 84 (trama certificada:
+            // `…,<cajero>,0,` + LRC). Un vacío cambia la trama
+            // (POS-API-CREDIBANCO-INT-0004).
+            fieldFiller84: protocolField(_t("relleno 84"), "0", FIELD_LIMITS.filler),
         };
 
         const overflow = Object.values(fields).filter((field) => field.overflow);
@@ -481,6 +497,26 @@ export class PaymentCredibanco extends PaymentInterface {
         }
 
         return { ok: true, fields, references };
+    }
+
+    /**
+     * Share of the order tip that travels in position 81 for a charge of
+     * `amount` on an order of `orderTotal` (tip included).
+     *
+     * A charge that covers the whole order (or more) carries the whole tip; a
+     * partial one carries its proportion, rounded to whole pesos as Odoo 17 did
+     * (`toFixed(0)`). The share is clamped to [0, tip] and never exceeds the
+     * charge, so `40 = amount - share` can not go negative.
+     */
+    _tipShare(tip, amount, orderTotal) {
+        if (!(tip > 0) || !(amount > 0)) {
+            return 0;
+        }
+        if (!(orderTotal > 0) || amount >= orderTotal - 1) {
+            return Math.min(tip, amount);
+        }
+        const share = Math.round((tip * amount) / orderTotal);
+        return Math.max(0, Math.min(share, tip, amount));
     }
 
     /**
@@ -668,7 +704,7 @@ export class PaymentCredibanco extends PaymentInterface {
             [ANSWER.TRANSACTION_NUMBER]: numberTransaction,
             [ANSWER.CASHIER]: line.credibanco_operator || pending[ANSWER.CASHIER] || "",
         };
-        for (const position of [ANSWER.REFERENCE, "87", "88", ANSWER.TOTAL, ANSWER.TIP]) {
+        for (const position of [ANSWER.REFERENCE, "87", "88", ANSWER.TOTAL, ANSWER.NET_PURCHASE]) {
             const value = answer[position] ?? pending[position];
             if (value !== undefined && value !== null && value !== "") {
                 positions[position] = value;
@@ -727,7 +763,7 @@ export class PaymentCredibanco extends PaymentInterface {
                 body: _t(
                     "El pedido tiene impuestos por %s en grupos que el datáfono no " +
                         "sabe reportar (%s). Solo se reconocen los grupos cuyo nombre " +
-                        "empieza por IVA o INC. Avise a IT.",
+                        "empieza por IVA, INC o Impoconsumo. Avise a IT.",
                     this.env.utils.formatCurrency(breakdown.other),
                     this._groupLabels(perLineTaxes)
                 ),

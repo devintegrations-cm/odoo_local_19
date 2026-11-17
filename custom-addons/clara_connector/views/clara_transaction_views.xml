@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Transactions are a mirror of Clara: nobody creates, edits or deletes them by hand -->
+    <record id="view_clara_transaction_tree" model="ir.ui.view">
+        <field name="name">clara.transaction.tree</field>
+        <field name="model">clara.transaction</field>
+        <field name="arch" type="xml">
+            <list string="Transacciones" create="false" edit="false" delete="false"
+                  decoration-success="reconciliation_state == 'reconciled'" decoration-warning="reconciliation_state == 'approved_no_order'"
+                  decoration-danger="reconciliation_state == 'rejected'" decoration-muted="not reconciliation_state">
+                <header>
+                    <button name="action_sync_now" type="object" string="Sincronizar ahora" display="always" class="btn-primary" icon="fa-refresh"
+                            groups="clara_purchase_bridge.group_clara_admin"/>
+                </header>
+                <field name="cardholder_name"/>
+                <field name="transaction_date"/>
+                <field name="merchant_name"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="approval_status"/>
+                <field name="purchase_order_id"/>
+                <field name="reconciliation_state" widget="badge" decoration-success="reconciliation_state == 'reconciled'" decoration-warning="reconciliation_state == 'approved_no_order'"
+                       decoration-info="reconciliation_state == 'pending'" decoration-danger="reconciliation_state == 'rejected'"/>
+                <field name="area" optional="show"/>
+                <field name="card_last_four" optional="hide"/>
+                <field name="merchant_category" optional="hide"/>
+                <field name="tx_type" optional="hide"/>
+                <field name="status" optional="hide"/>
+                <field name="has_receipt" optional="hide"/>
+                <field name="analytic_account_id" optional="hide"/>
+                <field name="last_update_date" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clara_transaction_form" model="ir.ui.view">
+        <field name="name">clara.transaction.form</field>
+        <field name="model">clara.transaction</field>
+        <field name="arch" type="xml">
+            <form string="Transacción" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_open_order" type="object" string="Abrir orden" class="btn-secondary" invisible="not purchase_order_id"/>
+                    <field name="reconciliation_state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Compra">
+                            <field name="merchant_name"/>
+                            <field name="merchant_category"/>
+                            <field name="amount"/>
+                            <field name="currency_id"/>
+                            <field name="transaction_date"/>
+                            <field name="posting_date"/>
+                            <field name="tx_type"/>
+                            <field name="status"/>
+                        </group>
+                        <group string="Titular y tarjeta">
+                            <field name="cardholder_name"/>
+                            <field name="card_id"/>
+                            <field name="card_last_four"/>
+                            <field name="area"/>
+                            <field name="analytic_rule_id"/>
+                            <field name="analytic_account_id"/>
+                        </group>
+                        <group string="Legalización en Clara">
+                            <field name="approval_status"/>
+                            <field name="approval_comment"/>
+                            <field name="has_receipt"/>
+                            <field name="clara_comment"/>
+                        </group>
+                        <group string="Conciliación con Odoo">
+                            <field name="purchase_order_id"/>
+                            <field name="purchase_state"/>
+                            <field name="reconciliation_state"/>
+                        </group>
+                        <group string="Sincronización">
+                            <field name="clara_uuid"/>
+                            <field name="last_update_date"/>
+                            <field name="last_sync_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Payload" name="payload" groups="base.group_no_one">
+                            <field name="raw_payload" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_clara_transaction_search" model="ir.ui.view">
+        <field name="name">clara.transaction.search</field>
+        <field name="model">clara.transaction</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="cardholder_name"/>
+                <field name="merchant_name"/>
+                <field name="area"/>
+                <field name="purchase_order_id"/>
+                <field name="clara_comment"/>
+                <field name="clara_uuid"/>
+                <filter name="purchases" string="Compras" domain="[('tx_type', '=', 'PURCHASE')]" help="Solo compras con tarjeta (sin pagos, cuotas de manejo ni intentos declinados)"/>
+                <separator/>
+                <filter name="filter_date" string="Mes" date="transaction_date"/>
+                <separator/>
+                <filter name="reconciled" string="Conciliadas" domain="[('reconciliation_state', '=', 'reconciled')]"/>
+                <filter name="approved_no_order" string="Aprobadas sin orden" domain="[('reconciliation_state', '=', 'approved_no_order')]"/>
+                <filter name="pending" string="Pendientes" domain="[('reconciliation_state', '=', 'pending')]"/>
+                <filter name="rejected" string="Rechazadas" domain="[('reconciliation_state', '=', 'rejected')]"/>
+                <separator/>
+                <filter name="clara_approved" string="Aprobadas en Clara" domain="[('approval_status', '=ilike', 'approved')]"/>
+                <filter name="clara_needs_approval" string="Pendientes de legalizar" domain="[('approval_status', '=ilike', 'needs approval')]"/>
+                <filter name="clara_rejected" string="Rechazadas en Clara" domain="[('approval_status', '=ilike', 'rejected')]"/>
+                <separator/>
+                <filter name="with_receipt" string="Con comprobante" domain="[('has_receipt', '=', True)]"/>
+                <group name="group_by">
+                    <filter name="group_cardholder" string="Titular" context="{'group_by': 'cardholder_name'}"/>
+                    <filter name="group_area" string="Área" context="{'group_by': 'area'}"/>
+                    <filter name="group_month" string="Mes" context="{'group_by': 'transaction_date:month'}"/>
+                    <filter name="group_reconciliation" string="Conciliación" context="{'group_by': 'reconciliation_state'}"/>
+                    <filter name="group_approval" string="Estado en Clara" context="{'group_by': 'approval_status'}"/>
+                    <filter name="group_order" string="Orden ligada" context="{'group_by': 'purchase_order_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Traceability: cardholder x month, count and amount per reconciliation state; reconciled percentage per month -->
+    <record id="view_clara_transaction_pivot" model="ir.ui.view">
+        <field name="name">clara.transaction.pivot</field>
+        <field name="model">clara.transaction</field>
+        <field name="arch" type="xml">
+            <pivot string="Trazabilidad" disable_linking="0">
+                <field name="cardholder_name" type="row"/>
+                <field name="transaction_date" interval="month" type="col"/>
+                <field name="reconciliation_state" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_clara_transaction_graph" model="ir.ui.view">
+        <field name="name">clara.transaction.graph</field>
+        <field name="model">clara.transaction</field>
+        <field name="arch" type="xml">
+            <graph string="Porcentaje conciliado por mes" type="line" stacked="0">
+                <field name="transaction_date" interval="month"/>
+                <field name="reconciled_ratio" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_clara_transactions" model="ir.actions.act_window">
+        <field name="name">Transacciones</field>
+        <field name="res_model">clara.transaction</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_clara_transaction_search"/>
+        <field name="context">{'search_default_purchases': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin transacciones de Clara todavía</p>
+            <p>La acción planificada las lee de Clara cada domingo a las 10:00 p. m.; un administrador puede pulsar «Sincronizar ahora».</p>
+        </field>
+    </record>
+
+    <record id="action_clara_traceability" model="ir.actions.act_window">
+        <field name="name">Trazabilidad</field>
+        <field name="res_model">clara.transaction</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_clara_transaction_search"/>
+        <field name="context">{'search_default_purchases': 1}</field>
+    </record>
+</odoo>

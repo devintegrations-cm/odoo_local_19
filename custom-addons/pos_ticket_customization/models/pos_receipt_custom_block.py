@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.barcode import check_barcode_encoding
 
 # Tipos de bloque que necesitan `content` obligatoriamente para poder renderizarse.
@@ -45,6 +45,24 @@ class PosReceiptCustomBlock(models.Model):
     @api.model
     def _load_pos_data_fields(self, config):
         return POS_LOADED_FIELDS
+
+    def _unrelevant_records(self, config):
+        """Bloques que el POS debe borrar de su IndexedDB al cargar la sesión.
+
+        El núcleo ya descarta los archivados (`pos.load.mixin._unrelevant_records`).
+        Se añaden los que ya no pertenecen a este punto de venta (se cambió el
+        `config_id`): el loader no los vuelve a enviar, pero la caja que los tenía
+        guardados los seguiría imprimiendo. Lo llama `pos.session.filter_local_data`
+        para los modelos de `cleanupModels` (ver `data_service_options.js`).
+        """
+        unrelevant_ids = set(super()._unrelevant_records(config))
+        for block in self:
+            try:
+                if block.config_id != config:
+                    unrelevant_ids.add(block.id)
+            except AccessError:
+                unrelevant_ids.add(block.id)
+        return list(unrelevant_ids)
 
     config_id = fields.Many2one(
         'pos.config',
@@ -169,8 +187,10 @@ class PosReceiptCustomBlock(models.Model):
         default=1,
         required=True,
         help='1 = en todos los pedidos. 10 = en uno de cada diez.\n'
-             'Se cuenta con el número de pedido dentro de la sesión de caja, que se '
-             'reinicia al abrir caja: con 10, sale en los pedidos 10, 20, 30... del turno.',
+             'Se cuenta con el número de pedido del punto de venta, que asigna el '
+             'servidor al sincronizar y NO se reinicia al abrir caja: con 10, sale en '
+             'los pedidos 10, 20, 30... de la secuencia del punto de venta. Un pedido '
+             'que aún no se ha sincronizado (caja sin conexión) imprime el bloque.',
     )
     frequency_offset = fields.Integer(
         string='Desplazamiento',

@@ -4,7 +4,7 @@ import logging
 import requests
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from ..services import dian_catalog, dian_xml_parser
 
@@ -299,6 +299,14 @@ class AccountMove(models.Model):
         notificacion.
         """
         self.ensure_one()
+        # El boton es del grupo Facturacion, pero el metodo es publico y crea los
+        # eventos con sudo: sin esta guarda, cualquier usuario que lea la factura
+        # (un interno sin Facturacion, o el proveedor portal dueno de la factura)
+        # podria emitir la aceptacion expresa por RPC. Mismo grupo que el boton;
+        # el superusuario (env.su, tests y scripts) no pasa por RPC.
+        if not self.env.su and not self.env.user.has_group("account.group_account_invoice"):
+            raise AccessError(_("Solo los usuarios de Facturacion pueden generar los "
+                                "eventos RADIAN de una factura de proveedor."))
         # No basta con que el boton este visible: se valida otra vez.
         reason = self._spr_radian_blocking_reason()
         if reason:

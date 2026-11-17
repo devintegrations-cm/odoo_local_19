@@ -501,11 +501,15 @@ class TestCredibancoTaxMap(TransactionCase):
         cls.inc_group = cls.tax_group.create({"name": "INC TEST 7%"})
         cls.rica_group = cls.tax_group.create({"name": "R ICA TEST 0.5%"})
         cls.cree_group = cls.tax_group.create({"name": "CREE TEST"})
+        # Production name of the group of tax 61 ("Impoconsumo 8%"), the IAC
+        # that Odoo 17 sent in position 82.
+        cls.impoconsumo_group = cls.tax_group.create({"name": "Impoconsumo"})
         cls.iva_tax = cls._tax("18% IVA TEST", cls.iva_group, 18)
         cls.inc_tax = cls._tax("7% INC TEST", cls.inc_group, 7)
         cls.rica_tax = cls._tax("0.5% RteICA TEST", cls.rica_group, -0.5)
         cls.cree_tax = cls._tax("4% CREE TEST", cls.cree_group, 4)
         cls.negative_iva_tax = cls._tax("-18% IVA TEST", cls.iva_group, -18)
+        cls.impoconsumo_tax = cls._tax("Impoconsumo 8% TEST", cls.impoconsumo_group, 8)
 
     @classmethod
     def _tax(cls, name, group, amount, type_tax_use="sale", company=None):
@@ -529,6 +533,12 @@ class TestCredibancoTaxMap(TransactionCase):
 
         self.assertEqual(tax_map[self.iva_tax.id], "vat")
         self.assertEqual(tax_map[self.inc_tax.id], "iac")
+
+    def test_impoconsumo_group_is_iac_as_in_17(self):
+        """Odoo 17 sent tax 61 (group "Impoconsumo") in position 82."""
+        tax_map = self.method.get_credibanco_tax_map()
+
+        self.assertEqual(tax_map[self.impoconsumo_tax.id], "iac")
 
     def test_withholdings_and_unrelated_groups_never_travel(self):
         tax_map = self.method.get_credibanco_tax_map()

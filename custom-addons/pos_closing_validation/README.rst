@@ -4,7 +4,7 @@ Pos Closing Validation
 
 ..
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   !! Generado a partir de los fragmentos de readme/      !!
+   !! Generado por .claude/scripts/gen_readme.py          !!
    !! Los cambios se sobrescriben: editar readme/*.md     !!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -34,8 +34,10 @@ Al cerrar la caja:
 - Bloquea el cierre cuando la diferencia entre el efectivo contado y el esperado supera la
   **diferencia máxima autorizada** de Odoo, para cualquier rol, con un mensaje configurable.
 - Revisa la consistencia de la sesión (movimientos por encima del límite, órdenes pagadas sin pagos,
-  sesiones de rescate pendientes): bloquea al cajero y solo advierte al responsable, que puede
-  cerrar dejando constancia en el historial de la sesión.
+  sesiones de rescate pendientes) y bloquea el cierre para cualquier rol, como en Odoo 17.
+- Audita la continuidad del saldo de apertura: guarda el saldo esperado (conteo del cierre
+  anterior) y no deja abrir la caja si el efectivo digitado se aparta más que la diferencia
+  autorizada.
 - Toma un bloqueo acotado sobre la sesión para que dos terminales no cierren ni muevan caja a la vez
   sin que ninguna quede colgada.
 
@@ -75,9 +77,13 @@ Migración desde Odoo 17
   ``pos_cash_move`` de los movimientos ya registrados.
 - Se agrega la columna ``pos_cash_move_uuid`` con una restricción única por sesión. Los movimientos
   históricos quedan con el valor vacío, que no viola la restricción.
-- Se eliminó la auditoría de continuidad del saldo de apertura de la 17 (campo
-  ``expected_opening_balance`` y validación en ``set_cashbox_pos``). La columna queda huérfana en la
-  base y no se usa.
+- Se conserva la auditoría de continuidad del saldo de apertura de la 17: el campo
+  ``expected_opening_balance`` mantiene su nombre y tipo, así que los valores de producción no se
+  pierden en el upgrade y no hace falta script. La validación que en 17 vivía en
+  ``set_cashbox_pos`` pasa a ``_set_opening_control_data``, el gancho que Odoo 19 indica heredar en
+  lugar de ``set_opening_control``.
+- Las revisiones de consistencia del cierre bloquean a todos los roles, como en 17 (sin
+  excepción para el responsable del Punto de Venta).
 - En Odoo 19 el control de efectivo del punto de venta se calcula a partir de los métodos de pago;
   la validación de la 17 que lo exigía junto con un método de caja ya no hace falta.
 
@@ -106,7 +112,7 @@ máxima*, que es de Odoo.
   del módulo.
 - **Validar sesiones de rescate** (``enable_rescue_session_validation``). Opcional; desmarcada por
   defecto. Impide abrir una sesión nueva mientras haya sesiones de rescate sin cerrar, y bloquea al
-  cajero (advierte al responsable) al cerrar si hay rescates pendientes con datos.
+  cierre (para cualquier rol) si hay rescates pendientes con datos.
 
 A tener en cuenta:
 
@@ -115,8 +121,11 @@ A tener en cuenta:
   que un cambio en el límite rige desde el siguiente movimiento, sin volver a entrar al POS.
 - **No bajar el límite con sesiones abiertas.** Si una sesión ya tiene más movimientos que el nuevo
   límite, el cajero no podrá cerrarla (ver *Solución de problemas*).
-- La diferencia de efectivo se valida para todos los roles, incluidos los responsables.
-- Quién es "responsable" se decide por el grupo de administrador del Punto de Venta
+- La diferencia de efectivo, la continuidad de apertura y las revisiones de consistencia se
+  validan para todos los roles, incluidos los responsables.
+- **Diferencia máxima** (``set_maximum_difference``, de Odoo) activa también la auditoría de
+  apertura con el mismo monto autorizado.
+- Quién es "responsable" (solo cuenta para eliminar movimientos) se decide por el grupo de administrador del Punto de Venta
   (``point_of_sale.group_pos_manager``) del **usuario de Odoo** con el que se abrió el POS. El
   empleado elegido con PIN en ``pos_hr`` no cambia ese rol.
 
@@ -177,9 +186,12 @@ Casos especiales
 ----------------
 
 - **Responsable del Punto de Venta**: las revisiones de consistencia (movimientos por encima del
-  límite, órdenes pagadas sin pagos, rescates pendientes) no lo bloquean. Si cierra con alguna
-  activa, queda una nota *Validación de caja superada por un responsable* en el historial de la
-  sesión. La diferencia autorizada sí lo bloquea.
+  límite, órdenes pagadas sin pagos, rescates pendientes) y la diferencia autorizada lo bloquean
+  igual que al cajero, como en Odoo 17.
+- **Apertura**: si *Diferencia máxima* está activa, la sesión nueva guarda el saldo contado al
+  cerrar la anterior (*Saldo de apertura esperado*). Si el efectivo de apertura que se digita se
+  aparta de ese valor más que la diferencia autorizada, la caja no se abre y aparece el aviso
+  *Inconsistencia de continuidad de caja*.
 - **Quién ve el aviso de diferencia**: la ventana de cierre de Odoo ya compara el conteo con la
   diferencia autorizada. A un usuario que no es responsable, Odoo le muestra su propio aviso y no
   lo deja continuar; a un responsable le ofrece seguir de todos modos. En ese caso el servidor
@@ -205,14 +217,17 @@ Solución de problemas
   movimiento.
 - **"Existe una inconsistencia en los movimientos de efectivo"**: la sesión tiene más movimientos
   que el límite, normalmente porque el límite se bajó con la sesión abierta o por movimientos
-  sincronizados después de un corte. Un responsable puede cerrar la sesión; queda registrado en el
-  historial.
+  sincronizados después de un corte. La sesión no se cierra desde el POS hasta corregirlo (por
+  ejemplo, un responsable elimina el movimiento sobrante o sube el límite).
+- **"Inconsistencia de continuidad de caja"** al abrir: el efectivo de apertura no coincide con el
+  conteo del cierre anterior. Volver a contar; si la diferencia es real, la debe revisar un
+  responsable antes de abrir.
 - **"La diferencia de efectivo supera la diferencia máxima autorizada"** (o el mensaje
   configurado): volver a contar con *Cancelar*, o revisar si falta registrar una orden. Si la
   diferencia es real, la regla no se salta con un rol: hay que corregir el conteo o ajustar la
   diferencia autorizada.
 - **"Hay N órdenes pagadas sin pagos registrados"**: una orden pagada con total distinto de cero
-  no tiene líneas de pago. Revisarla antes de cerrar o pedir a un responsable que cierre.
+  no tiene líneas de pago. Revisarla y corregirla antes de cerrar.
 - **"No se pudo registrar el movimiento... Otro terminal está utilizando la caja"**: otra terminal
   está cerrando o moviendo caja. Comprobar el conteo que trae el mensaje antes de repetir el
   movimiento.
@@ -241,9 +256,9 @@ Limitaciones conocidas
 - ``rescue_parent_session_id`` solo se completa si ``rescue`` llega en los valores de creación de la
   sesión; si una versión futura marca el rescate con una escritura posterior, el vínculo queda
   vacío.
-- El rol de responsable sale del usuario de Odoo, no del empleado de ``pos_hr``. En una tienda donde
-  todos los empleados comparten un usuario con permisos de administrador del POS, las revisiones de
-  consistencia nunca bloquean.
+- El rol de responsable sale del usuario de Odoo, no del empleado de ``pos_hr``. Solo decide quién
+  puede eliminar un movimiento: en una tienda donde todos comparten un usuario administrador del
+  POS, cualquiera puede eliminarlo (en 17 no había restricción alguna).
 - Los campos nuevos de la sesión (``rescue_parent_session_id``, ``rescue_session_ids``) y de las líneas
   de extracto (``pos_cash_move``, ``pos_cash_move_uuid``) no se muestran en ninguna vista.
 - Falta ``static/description/icon.png``: en *Aplicaciones* se ve el ícono genérico de Odoo.
@@ -306,7 +321,7 @@ Notas para mantenimiento
 Changelog
 =========
 
-19.0.1.0.1
+19.0.1.1.1
 ----------
 
 - Corregido: la fila **Movimientos de efectivo X/N** no aparecía en la ventana de cierre en los
@@ -316,6 +331,15 @@ Changelog
   subplantilla ``pos_closing_validation.CashMoveCounterRow``, y ``pos_hr`` pasa a ``depends`` para que
   su plantilla se aplique antes que la de este módulo. Solo cambia la vista: el límite de
   movimientos y la diferencia autorizada ya se validaban en el servidor.
+
+19.0.1.1.0
+----------
+
+- Vuelve ``pos.session.expected_opening_balance`` con la definición de 17: el upgrade ya no borra la
+  columna.
+- La apertura captura el saldo esperado; la validación de continuidad pasa a
+  ``_set_opening_control_data`` (19).
+- Las revisiones de consistencia del cierre bloquean a todos los roles, como en 17.
 
 19.0.1.0.0
 ----------

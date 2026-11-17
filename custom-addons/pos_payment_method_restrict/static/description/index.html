@@ -100,6 +100,9 @@ valor de <em>Crear factura</em> de la restricción:</p>
 obligatorios: <em>Confirmar</em> no avanza mientras estén vacíos. <em>Cancelar</em>, la X o la tecla Esc cierran
 el popup sin agregar el pago.</p>
 <div class="lc-fig"><img alt="Popup con los datos del huésped antes de agregar el pago" src="05_popup_datos.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Popup con los datos del huésped antes de agregar el pago</p></div>
+<p style="margin:0 0 12px;">Al confirmar, los datos quedan visibles debajo de la línea de pago, con las etiquetas configuradas,
+para revisarlos antes de validar. También se ven después de recargar el POS.</p>
+<div class="lc-fig"><img alt="Línea de pago con el dato del popup debajo" src="10_dato_bajo_linea.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Línea de pago con el dato del popup debajo</p></div>
 <p style="margin:0 0 12px;">Al confirmar, el POS busca órdenes de <strong>hoy</strong> con la misma restricción y algún valor igual (sin
 distinguir mayúsculas). Si encuentra alguna, muestra el aviso con el número y la hora de cada
 orden. <strong>Registrar igualmente</strong> sigue con el pago; <strong>Cancelar</strong> lo descarta. El aviso no bloquea:
@@ -211,6 +214,9 @@ tiene tres informes de órdenes con restricción:</p>
   modelo no está cargado en el POS).</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/payment_restriction_popup.js</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.xml</code>: el popup, un componente sobre <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Dialog</code> que
   se abre con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">makeAwaitable</code>.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/payment_line_restriction_data.js</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">.xml</code>: los datos del popup debajo de la línea
+  de pago (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">restrictionDataDisplay</code> en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PaymentScreenPaymentLines</code>). En 19 el dato vive solo en el
+  pedido, así que se muestra bajo la línea cuyo método corresponde a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order.restriction_id</code>.</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_config_views.xml</code>: el bloque de <em>Ajustes</em>, las vistas de la restricción y el menú de
   configuración. <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_hotel_report_views.xml</code>: la pestaña de la orden y los informes.</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">data/pos_order_server_actions.xml</code>: la acción <em>Crear factura agrupada</em>.</li>
@@ -237,6 +243,6 @@ tiene tres informes de órdenes con restricción:</p>
 </ul></div>
 <div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Libertario Coffee</b><ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">Libertario Coffee</li>
-<li style="margin-bottom:7px;">Miguel Bolivar (migración a Odoo 19)</li>
+<li style="margin-bottom:7px;">Cristian Mira (migración a Odoo 19)</li>
 </ul></div>
 </div>

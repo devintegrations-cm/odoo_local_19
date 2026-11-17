@@ -646,11 +646,12 @@ class TestClosingValidation(TransactionCase):
         self.assertFalse(result["successful"])
         self.assertIn("inconsistencia", result["message"].lower())
 
-    def test_manager_bypasses_consistency_checks_with_audit_note(self):
-        """A manager can close over an internal inconsistency, and it is recorded.
+    def test_manager_is_blocked_by_consistency_checks_too(self):
+        """As in 17, a POS manager cannot close over an internal inconsistency.
 
-        A false positive in a heuristic check must never trap a store with its
-        register open at the end of the day.
+        Decision recorded in ESTADO.md (2026-09-24): the manager exemption is
+        removed. In production every store user belongs to the POS manager
+        group, so the exemption would switch the checks off for everyone.
         """
         session = self._create_session(opening=1000.0)
         self._create_cash_move(session, 100.0)
@@ -660,29 +661,25 @@ class TestClosingValidation(TransactionCase):
         session.invalidate_recordset()
         result = session.with_user(self.manager).post_closing_cash_details(1075.0)
 
-        self.assertTrue(result["successful"])
-        notes = session.message_ids.filtered(
-            lambda m: "Validación de caja superada" in (m.body or "")
-        )
-        self.assertTrue(notes, "the bypass must leave an audit trail")
+        self.assertFalse(result["successful"])
+        self.assertIn("inconsistencia", result["message"].lower())
+        self.assertNotEqual(session.state, "closing_control")
+        self.assertFalse(session.cash_register_balance_end_real)
 
-    def test_snapshot_can_close_depends_on_role(self):
-        """can_close and blocking_reasons match what the server will enforce."""
+    def test_snapshot_can_close_is_not_role_dependent(self):
+        """can_close and blocking_reasons match what the server enforces, for every role."""
         session = self._create_session(opening=1000.0)
         self._create_cash_move(session, 100.0)
         self._create_cash_move(session, -50.0)
         self._statement_line(session, 25.0)
         session.invalidate_recordset()
 
-        cashier_view = self._snapshot(session.with_user(self.cashier))
-        manager_view = self._snapshot(session.with_user(self.manager))
-
-        self.assertFalse(cashier_view["can_close"])
-        self.assertTrue(cashier_view["blocking_reasons"])
-        self.assertTrue(manager_view["can_close"])
-        self.assertEqual(manager_view["blocking_reasons"], [])
-        # The warning is still reported, so the UI can show it without blocking.
-        self.assertTrue(manager_view["warnings"])
+        for user in (self.cashier, self.manager):
+            view = self._snapshot(session.with_user(user))
+            self.assertFalse(view["can_close"])
+            self.assertTrue(view["blocking_reasons"])
+            self.assertTrue(view["warnings"])
+            self.assertTrue(session.with_user(user)._cannot_close_session())
 
     def test_structural_block_is_not_role_dependent(self):
         """Closed and rescue sessions block every role identically."""
@@ -1090,3 +1087,53 @@ class TestClosingValidation(TransactionCase):
         parent.invalidate_recordset()
 
         self.assertTrue(self._snapshot(parent)["pending_rescue"])
+
+    # ==================================================================
+    # Opening balance audit (restaurado de 17)
+    # ==================================================================
+
+    def _close_with_counted(self, session, counted):
+        """Leave a closed predecessor with the given counted cash."""
+        session.write({"cash_register_balance_end_real": counted, "state": "closed"})
+
+    def test_expected_opening_balance_is_captured_at_open(self):
+        """The new session remembers the previous closing count."""
+        previous = self._create_session(opening=1000.0)
+        self._close_with_counted(previous, 1234.0)
+
+        session = self.env["pos.session"].create({"config_id": self.pos_config.id})
+
+        self.assertEqual(session.state, "opening_control")
+        self.assertAlmostEqual(session.expected_opening_balance, 1234.0, places=2)
+        self.assertAlmostEqual(session.cash_register_balance_start, 1234.0, places=2)
+
+    def test_opening_over_authorized_difference_is_refused(self):
+        previous = self._create_session(opening=1000.0)
+        self._close_with_counted(previous, 1000.0)
+        session = self.env["pos.session"].create({"config_id": self.pos_config.id})
+
+        with self.assertRaises(UserError) as error:
+            session.with_user(self.manager).set_opening_control(1500.0, "")
+        self.assertIn("continuidad", str(error.exception).lower())
+        self.assertEqual(session.state, "opening_control")
+
+    def test_opening_within_authorized_difference_opens(self):
+        previous = self._create_session(opening=1000.0)
+        self._close_with_counted(previous, 1000.0)
+        session = self.env["pos.session"].create({"config_id": self.pos_config.id})
+
+        session.set_opening_control(1005.0, "")
+
+        self.assertEqual(session.state, "opened")
+        self.assertAlmostEqual(session.cash_register_balance_start, 1005.0, places=2)
+        self.assertAlmostEqual(session.expected_opening_balance, 1000.0, places=2)
+
+    def test_opening_audit_off_without_maximum_difference(self):
+        self.pos_config.set_maximum_difference = False
+        previous = self._create_session(opening=1000.0)
+        self._close_with_counted(previous, 1000.0)
+        session = self.env["pos.session"].create({"config_id": self.pos_config.id})
+
+        session.set_opening_control(5000.0, "")
+
+        self.assertEqual(session.state, "opened")

@@ -9,34 +9,15 @@ la propina: usa el mismo producto de propina y el mismo método del núcleo (<co
 línea de propina y el total quedan igual que con el botón estándar.</p>
 <p style="margin:0 0 12px;">Cómo se calcula, según el código (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/pos_payment.js</code>):</p>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>Base: subtotal sin impuestos y sin la propina actual.</strong> Total con impuestos, menos impuestos,
-  menos la propina que ya tenga la orden. En la captura de <em>Uso</em>, dos hamburguesas suman $ 66.640
+<li style="margin-bottom:7px;"><strong>Base: subtotal sin impuestos y sin la propina actual</strong> (configurable: <em>Total con impuestos</em>).
+  Total sin impuestos de la orden menos la propina que ya tenga. En la captura de <em>Uso</em>, dos hamburguesas suman $ 66.640
   con $ 10.640 de impuestos; la base es $ 56.000 y el 10 % da $ 5.600.</li>
-<li style="margin-bottom:7px;"><strong>Redondeo a unidades enteras</strong> de la moneda (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Math.round</code>). En pesos colombianos no se nota; en
-  una moneda con centavos, la propina pierde los decimales.</li>
+<li style="margin-bottom:7px;"><strong>Redondeo a unidades enteras</strong> por defecto (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent_decimals</code> = 0), como en la 17.</li>
 <li style="margin-bottom:7px;"><strong>Un solo valor de propina por orden.</strong> Pulsar otro porcentaje reemplaza el anterior; no se suman.</li>
+<li style="margin-bottom:7px;"><strong>No toca las líneas de pago</strong>, igual que en la 17: si ya hay efectivo cargado, el cambio baja en el
+  valor de la propina; si falta plata, la orden muestra el saldo pendiente.</li>
 </ul>
 <div><span style="display:inline-block;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:999px;padding:2px 12px;font-size:12px;font-weight:600;margin:0 0 6px;">Odoo 19.0</span></div>
-<h2>Instalación</h2>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Dependencias</h2>
-<ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale</code> (Odoo 19 Community). No hay otras dependencias ni librerías de Python adicionales.</li>
-</ul>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Pasos de instalación</h2>
-<p style="margin:0 0 12px;">Instalar <em>POS Tip Percentage</em> desde <em>Aplicaciones</em>. El módulo agrega cuatro campos a la
-configuración del punto de venta, un ajuste en <em>Punto de venta › Configuración › Ajustes</em> y un
-archivo JavaScript y una plantilla al POS. No crea menús, modelos ni permisos. Después de instalar o
-actualizar, <strong>volver a entrar al POS</strong> desde el backend para que cargue los archivos nuevos.</p>
-<h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Migración desde Odoo 17</h2>
-<ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;">Los campos conservan su nombre técnico en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">iface_tippercent</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent1</code>,
-  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent2</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent3</code>), así que los porcentajes configurados en la 17 se mantienen sin
-  script de datos.</li>
-<li style="margin-bottom:7px;">La 17 traía restos de un modelo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.tip</code> que ya no se usaba: un controlador <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">/pos/tip/name</code> y una
-  línea de permisos. En la 19 se quitaron; el modelo ya estaba comentado en la 17.</li>
-<li style="margin-bottom:7px;">En la 17 la casilla estaba dentro del ajuste <em>Propinas</em>. En la 19 es un ajuste aparte, justo
-  después de <em>Propinas</em>, y solo se ve con <em>Propinas</em> activado.</li>
-</ul>
 <h2>Configuración</h2>
 <p style="margin:0 0 12px;">Ir a <em>Punto de venta › Configuración › Ajustes</em>, elegir el punto de venta en la parte superior y
 buscar el bloque <strong>Pago</strong>. El ajuste del módulo está justo después del ajuste <strong>Propinas</strong> de Odoo.</p>
@@ -50,14 +31,17 @@ buscar el bloque <strong>Pago</strong>. El ajuste del módulo está justo despu�
 <li style="margin-bottom:7px;"><strong>Tip % (Option 1)</strong>, <strong>(Option 2)</strong> y <strong>(Option 3)</strong> (campos <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent1</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent2</code> y
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent3</code>). Opcionales; 0 por defecto. Cada porcentaje distinto de 0 es un botón en la
   pantalla de pago. Un porcentaje en 0 no muestra botón.</li>
+<li style="margin-bottom:7px;"><strong>Base del calculo</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent_base</code>). <em>Total sin impuestos</em> (por defecto, igual que en
+  la 17) o <em>Total con impuestos</em>. En ambos casos se descuenta la propina ya cargada.</li>
+<li style="margin-bottom:7px;"><strong>Decimales</strong> (campo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent_decimals</code>, 0 a 6). 0 por defecto: redondea a la unidad, igual que
+  en la 17.</li>
 </ul>
 <p style="margin:0 0 12px;">A tener en cuenta:</p>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>Con el módulo instalado, <em>Propinas</em> solo no alcanza.</strong> El módulo reemplaza el botón estándar
-  <strong>Propina</strong> de la pantalla de pago. Si <em>Propinas</em> está activado pero <em>Add buttons with percentage
-  for tip</em> no, la pantalla de pago queda <strong>sin ningún botón de propina</strong>.</li>
-<li style="margin-bottom:7px;">Si la casilla está marcada y los tres porcentajes están en 0, se ve un único botón <strong>Propina</strong> que
-  abre el teclado de Odoo, como el estándar.</li>
+<li style="margin-bottom:7px;">El botón estándar <strong>Propina</strong> de Odoo (teclado para escribir el valor) se oculta solo cuando la
+  casilla del módulo está marcada y hay al menos un porcentaje distinto de 0. En cualquier otro caso
+  se ve el botón estándar. En la 17, con <em>Propinas</em> activado y la casilla desmarcada, no quedaba
+  ningún botón de propina; en staging las 16 cajas con <em>Propinas</em> tienen también la casilla marcada.</li>
 <li style="margin-bottom:7px;">Al desmarcar <em>Propinas</em> en Ajustes, Odoo deja vacío el producto de propina y los botones del
   módulo desaparecen, aunque su casilla siga marcada.</li>
 <li style="margin-bottom:7px;">La configuración es <strong>por punto de venta</strong>. Hay que repetirla en cada tienda.</li>
@@ -71,8 +55,8 @@ buscar el bloque <strong>Pago</strong>. El ajuste del módulo está justo despu�
 <strong>Propina N %</strong>, uno por cada porcentaje configurado.</p>
 <div class="lc-fig"><img alt="Pantalla de pago con los tres botones de porcentaje" src="02_botones_pago.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pantalla de pago con los tres botones de porcentaje</p></div>
 <p style="margin:0 0 12px;">Pulsar el porcentaje que pide el cliente. El POS agrega la propina a la orden y el total a pagar
-sube en ese valor. El botón elegido queda resaltado y, desde ese momento, cada botón muestra cuánto
-sería la propina con su porcentaje, para comparar antes de cambiar.</p>
+sube en ese valor. El botón elegido queda resaltado; cada botón muestra cuánto sería la propina con
+su porcentaje.</p>
 <div class="lc-fig"><img alt="Propina del 10 % aplicada: botón resaltado, valor de cada opción y total con propina" src="03_propina_aplicada.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Propina del 10 % aplicada: botón resaltado, valor de cada opción y total con propina</p></div>
 <p style="margin:0 0 12px;">Después se elige el método de pago y se valida como siempre. La propina es una línea más de la
 orden, con el producto de propina, y se ve al volver a la pantalla de productos con <strong>Regresar</strong>.</p>
@@ -83,14 +67,15 @@ orden, con el producto de propina, y se ve al volver a la pantalla de productos 
   sola línea de propina. En la prueba: 10 % ($ 5.600), luego 20 % ($ 11.200), luego 5 % ($ 2.800).</li>
 <li style="margin-bottom:7px;"><strong>Pulsar dos veces el mismo botón</strong> no suma nada: la propina se calcula sin la anterior y da el
   mismo valor.</li>
-<li style="margin-bottom:7px;"><strong>Con una línea de pago ya cargada.</strong> Si la línea seleccionada es de efectivo u otro método no
-  electrónico, o un pago electrónico todavía pendiente, su monto se ajusta por la diferencia de
-  propina. En la captura, la línea de efectivo tenía el total con 20 % ($ 77.840) y bajó a
-  $ 69.440 al cambiar a 5 %. Un pago electrónico ya enviado no se toca.</li>
-</ul>
-<div class="lc-fig"><img alt="Cambio de 20 % a 5 % con una línea de efectivo cargada: la línea se ajusta sola" src="04_ajuste_pago.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Cambio de 20 % a 5 % con una línea de efectivo cargada: la línea se ajusta sola</p></div>
-<ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>Orden sin productos o porcentaje que da 0</strong>: el botón no hace nada.</li>
+<li style="margin-bottom:7px;">
+<p style="margin:0 0 12px;"><strong>Con una línea de pago ya cargada.</strong> El botón no modifica la línea de pago (como en la 17). Si
+  el cliente entregó más efectivo que el total, el cambio baja en el valor de la propina; si la
+  línea quedó corta, la orden muestra el saldo pendiente y el cajero ajusta el monto. Ejemplo:
+  total $ 10.000, efectivo $ 20.000, propina 10 % ($ 1.000): pago $ 20.000 y cambio $ 9.000.</p>
+</li>
+<li style="margin-bottom:7px;">
+<p style="margin:0 0 12px;"><strong>Orden sin productos o porcentaje que da 0</strong>: el botón no hace nada.</p>
+</li>
 <li style="margin-bottom:7px;"><strong>Quitar la propina.</strong> El módulo no trae un botón para quitarla. Hay que borrar la línea del
   producto de propina en la pantalla de productos.</li>
 <li style="margin-bottom:7px;"><strong>Propina con un valor libre.</strong> Mientras haya algún porcentaje configurado, la pantalla de pago no
@@ -105,21 +90,15 @@ orden, con el producto de propina, y se ve al volver a la pantalla de productos 
 <li style="margin-bottom:7px;"><strong>Falta uno de los botones.</strong> Ese porcentaje está en 0.</li>
 <li style="margin-bottom:7px;"><strong>La propina parece menor de lo esperado.</strong> Se calcula sobre el subtotal <strong>sin impuestos</strong>, no
   sobre el total que ve el cliente.</li>
-<li style="margin-bottom:7px;"><strong>Los botones no muestran el valor.</strong> Es normal antes de aplicar la primera propina: los valores
-  aparecen cuando la orden ya tiene propina.</li>
 </ul>
 <h2>Limitaciones y pendientes</h2>
 <div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>Oculta el botón estándar de propina.</strong> La plantilla reemplaza el botón <em>Propina</em> de Odoo, y los
-  botones nuevos solo salen con la casilla del módulo marcada. Con el módulo instalado y la casilla
-  desmarcada, no hay forma de agregar propina desde la pantalla de pago. Es el mismo comportamiento
-  de la 17.</li>
-<li style="margin-bottom:7px;"><strong>Redondeo a enteros.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Math.round</code> quita los decimales de la propina. Correcto para pesos
-  colombianos; en una moneda con centavos no lo sería.</li>
+<li style="margin-bottom:7px;"><strong>Oculta el botón estándar de propina</strong> cuando hay porcentajes configurados: no se puede escribir
+  un valor libre en esas cajas.</li>
+<li style="margin-bottom:7px;"><strong>Redondeo a enteros</strong> por defecto; se ajusta con <em>Decimales</em>.</li>
 <li style="margin-bottom:7px;"><strong>Resaltado por monto.</strong> Un botón se resalta si la propina de la orden es igual a su valor. Si
   dos porcentajes dan el mismo monto (por ejemplo, en órdenes muy chicas), se resaltan los dos.</li>
-<li style="margin-bottom:7px;">Los valores de cada botón solo se muestran cuando la orden ya tiene propina.</li>
 <li style="margin-bottom:7px;">Los textos del ajuste (<em>Add buttons with percentage for tip</em>, <em>Tip % (Option 1)</em>...) están en
   inglés y el módulo no trae traducciones. En el POS el botón sale como <em>Propina</em> porque usa la
   palabra <em>Tip</em>, que ya traduce Odoo.</li>
@@ -130,17 +109,16 @@ orden, con el producto de propina, y se ve al volver a la pantalla de productos 
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Componentes</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/pos_order.py</code>: pese al nombre, hereda <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> y agrega <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">iface_tippercent</code>,
-  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent1</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent2</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent3</code>.</li>
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent1</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent2</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent3</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent_base</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">tip_percent_decimals</code>.</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">models/res_config_settings.py</code>: los campos relacionados en Ajustes, con prefijo <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_</code> porque
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">res.config.settings</code> es compartido por todos los módulos.</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/pos_order.xml</code>: el ajuste, insertado después de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setting[@id='iface_tipproduct']</code> y
   visible solo con <em>Propinas</em> activado.</li>
-<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/xml/pos_payment.xml</code>: hereda <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.PaymentScreenButtons</code> y reemplaza el
-  botón <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">addTip</code> por los botones de porcentaje (o por un botón <em>Propina</em> equivalente al estándar si
-  los tres porcentajes están en 0).</li>
-<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/pos_payment.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PaymentScreen</code> con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">addTip1..3</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getTipX</code>
-  (cálculo), <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">shouldHighlight</code> (resaltado) y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">addTipPercent</code>, que llama a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">this.pos.setTip()</code> del
-  núcleo y ajusta la línea de pago seleccionada.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/xml/pos_payment.xml</code>: hereda <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">point_of_sale.PaymentScreenButtons</code>, oculta el botón
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">addTip</code> cuando hay porcentajes y agrega los botones de porcentaje a continuación.</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/pos_payment.js</code>: parche de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PaymentScreen</code> con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">addTip1..3</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getTipBase</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">roundTip</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getTipX</code> (cálculo), <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">shouldHighlight</code> (resaltado) y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">addTipPercent</code>, que solo llama a
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">this.pos.setTip()</code> del núcleo.</li>
 <li style="margin-bottom:7px;">Los campos llegan al POS sin cargador propio: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.config</code> no define <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">_load_pos_data_fields</code> y el
   POS lee todos sus campos.</li>
 </ul>
@@ -148,13 +126,11 @@ orden, con el producto de propina, y se ve al volver a la pantalla de productos 
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><strong>Depende del botón del núcleo.</strong> El XPath busca <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">//button[@t-on-click='addTip']</code> en
   <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">PaymentScreenButtons</code>. Si Odoo cambia ese botón, la herencia falla al cargar el POS.</li>
-<li style="margin-bottom:7px;"><strong>API del núcleo usada</strong>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order.priceIncl</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order.amountTaxes</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order.getTip()</code>,
-  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.setTip()</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">paymentLine.isElectronic()</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getPaymentStatus()</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getAmount()</code> y
-  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">setAmount()</code>. En la 17 se llamaban <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">get_total_with_tax</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">get_total_tax</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">get_tip</code> y
-  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">set_tip</code>.</li>
-<li style="margin-bottom:7px;"><strong>Diferencia con la 17.</strong> En la 17 el módulo ponía la propina en 0 y la volvía a calcular, sin
-  tocar las líneas de pago. En la 19 copia el comportamiento del botón estándar <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">addTip</code>: ajusta la
-  línea de pago seleccionada por la diferencia. El valor de la propina calculado es el mismo.</li>
+<li style="margin-bottom:7px;"><strong>API del núcleo usada</strong>: <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order.priceIncl</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">order.priceExcl</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">line.prices</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.setTip()</code>,
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos.currency.round/isZero/equal</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">roundDecimals</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">@web/core/utils/numbers</code>.</li>
+<li style="margin-bottom:7px;"><strong>Igual que en la 17, no toca las líneas de pago.</strong> La versión anterior de la 19 copiaba el botón
+  estándar <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">addTip</code> y sumaba la propina a la línea seleccionada sin descontar el cambio: con
+  efectivo y cambio, el pago registrado superaba lo recibido (POS-TIP-PERCENT-FE-0001).</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">getTip()</code> devuelve la propina sin impuestos; la base resta la propina sin impuestos del subtotal.
   Si el producto de propina tuviera impuestos, el cálculo seguiría siendo sobre la base sin
   impuestos de los demás productos.</li>
@@ -162,6 +138,6 @@ orden, con el producto de propina, y se ve al volver a la pantalla de productos 
 <div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Roaya</b><ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">Roaya (autor original)</li>
 <li style="margin-bottom:7px;">Libertario Coffee</li>
-<li style="margin-bottom:7px;">Miguel Bolivar (migración a Odoo 19)</li>
+<li style="margin-bottom:7px;">Cristian Mira (migración a Odoo 19)</li>
 </ul></div>
 </div>

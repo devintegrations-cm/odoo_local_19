@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="product_template_form_inherit_plant" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.plant.coffee</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Planta" name="plant_coffee">
+                    <group>
+                        <group string="Cómo lo cuenta la planta">
+                            <field name="plant_kind_id" options="{'no_create': True}"/>
+                            <field name="plant_coffee_line_id"/>
+                            <field name="plant_net_grams"/>
+                            <field name="plant_grind"/>
+                            <field name="plant_in_sheet"/>
+                            <field name="plant_manual"/>
+                        </group>
+                        <group string="Referencias equivalentes">
+                            <field name="plant_master_id" options="{'no_create': True}"/>
+                            <field name="plant_variant_count" invisible="not plant_variant_count"/>
+                            <button name="action_plant_open_variants" type="object" string="Ver referencias que suman aquí" class="btn-link" icon="fa-clone" invisible="not plant_variant_count"/>
+                            <div class="text-muted" colspan="2">Las filas de la hoja y el plan de tostión salen de estos campos: línea × gramos × molienda. Una referencia con maestra toma los valores de la maestra y suma en su fila.</div>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Ficha del café">
+                            <field name="plant_coffee_variety"/>
+                            <field name="plant_coffee_origin"/>
+                            <field name="plant_coffee_process"/>
+                            <field name="plant_roast_profile"/>
+                        </group>
+                        <group string="Lo que ve la planta">
+                            <field name="plant_coffee_summary"/>
+                            <div class="text-muted" colspan="2">Si estos campos están vacíos, el producto toma la ficha del café de su lista de materiales (la bolsa hereda del café tostado a granel).</div>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

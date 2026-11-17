@@ -4,7 +4,7 @@ POS API Credibanco
 
 ..
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   !! Generado a partir de los fragmentos de readme/      !!
+   !! Generado por .claude/scripts/gen_readme.py          !!
    !! Los cambios se sobrescriben: editar readme/*.md     !!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -139,9 +139,11 @@ Lo que **no** se configura:
   (``pos_api_credibanco.trx.<id>``) que se crea sola al primer cobro. El POS reserva bloques de 25
   para poder seguir cobrando si pierde el servidor.
 - **Impuestos**. El servidor clasifica los impuestos de venta por el nombre de su **grupo**: los que
-  empiezan por ``IVA`` van a la posición 41 y los que empiezan por ``INC`` (el "IAC" del datáfono) a la
-  82. Las retenciones y los impuestos negativos no viajan. Si el pedido tiene impuestos pero
-  ninguno es IVA ni INC, el cobro se rechaza con el nombre de los grupos encontrados.
+  empiezan por ``IVA`` van a la posición 41 y los que empiezan por ``INC`` o ``Impoconsumo`` (el "IAC"
+  del datáfono) a la 82. En la base de Libertario eso reproduce lo que enviaba Odoo 17: IVA 19 % y
+  5 % en la 41 e *Impoconsumo 8%* en la 82. Las retenciones y los impuestos negativos no viajan. Si
+  el pedido tiene impuestos pero ninguno es IVA, INC ni Impoconsumo, el cobro se rechaza con el
+  nombre de los grupos encontrados.
 - **Propina**. Se toma del producto de propina del punto de venta (*Ajustes › Propinas*).
 
 Los cambios se ven en el POS después de volver a entrar a la sesión.
@@ -167,23 +169,27 @@ Al pulsar **Enviar a Datafono**:
   *Cancelar* no envía nada; *Continuar* envía la venta al datáfono.
 - El cliente pasa la tarjeta y aprueba en el datáfono. Mientras tanto la línea muestra *Solicitud
   enviada*.
-- Si el datáfono aprueba, la línea queda pagada con el **monto que cobró el terminal** (valor total
-  más la propina que devuelve en la posición 80), el número de aprobación y el identificador de la
+- Si el datáfono aprueba, la línea queda pagada con el **monto que cobró el terminal** (posición 40
+  de la respuesta, como en Odoo 17), el número de aprobación y el identificador de la
   transacción. En el recibo sale *Aprob.:* seguido del número de aprobación. Si con eso el pedido queda pagado y el punto de
   venta tiene activo *Validar órdenes de forma automática* (opción estándar de *Ajustes*, activa por defecto), el
   pedido se valida solo.
 - Si el datáfono rechaza, se muestra el motivo según su código (02 rechazada, 05 problema de
-  comunicación, 06 error de trama, 09 a 12 errores de formato, 13 tiempo agotado, 99 puerto
-  ocupado). La línea queda en *Transacción cancelada* y se puede volver a enviar.
+  comunicación, 06 error de trama, 09 a 12 errores de formato, 99 puerto ocupado). La línea queda
+  en *Transacción cancelada* y se puede volver a enviar. El código 13 (tiempo agotado en el
+  datáfono) no es un rechazo: la venta queda pendiente de recuperar, como se explica abajo.
 
-**Propina**: si el pedido tiene propina (producto de propina del POS) y la línea cubre el pedido
-entero, el TOTAL se envía sin la propina y la propina viaja aparte en la posición 81.
+**Propina**: si el pedido tiene propina (producto de propina del POS), viaja aparte en la posición
+81 y el TOTAL (40) es el monto de la línea menos esa propina, así que el datáfono cobra exactamente
+el monto de la línea. En un pago parcial la propina se prorratea por la parte del pedido que cubre
+el cobro (pedido de 110.000 con 10.000 de propina, dos pagos de 55.000: cada uno envía 50.000 + 5.000).
+El pago que cubre el pedido completo lleva la propina completa. Igual que en Odoo 17.
 
 Venta sin respuesta y recuperación
 ----------------------------------
 
 Si el datáfono no contesta dentro de la espera configurada, se corta la conexión o responde con el
-código 03 (sin respuesta final), la venta **puede haber quedado aprobada** en el terminal. Por eso:
+código 03 (sin respuesta final) o 13 (tiempo agotado), la venta **puede haber quedado aprobada** en el terminal. Por eso:
 
 - El POS guarda en la línea la venta enviada. Sin respuesta, avisa *Sin respuesta del datáfono*;
   con el código 03 abre directamente el diálogo **Recuperar** (en el datáfono: TECLA 3 y luego
@@ -243,7 +249,7 @@ Solución de problemas
 - **"El número de caja excede el protocolo".** La sesión y el cajero forman un número de más de 10
   caracteres. No se puede cobrar con el datáfono en esa sesión; avisar a IT.
 - **"Impuestos no reconocidos".** Algún producto tiene impuestos de un grupo que no empieza por
-  ``IVA`` ni ``INC``. Corregir el grupo del impuesto en contabilidad.
+  ``IVA``, ``INC`` ni ``Impoconsumo``. Corregir el grupo del impuesto en contabilidad.
 - **"Sin números de transacción disponibles".** Se agotó el bloque reservado y no hay conexión con
   el servidor. Esperar a recuperar la conexión; no se repiten números.
 - **"Falta el cajero"** o **"Sesión no disponible".** Iniciar sesión con un empleado o recargar el
@@ -261,9 +267,10 @@ Limitaciones conocidas
   datáfono (respuestas completas con franquicia, recibo y terminal), pero la anulación, la
   recuperación y el cobro con propina no están validados de punta a punta con el terminal. Hay que
   probarlos en cada tienda antes de habilitar el método.
-- **Propina cobrada.** El monto de la línea aprobada es la posición 40 (valor total) más la 80
-  (propina). Si el 40 del datáfono ya incluye la propina, se contaría dos veces. En 17 se sumaban
-  el 40 y el 81, que la respuesta de compra no trae. Confirmar con una compra real con propina.
+- **Propina cobrada.** El monto de la línea aprobada es la posición 40, como en Odoo 17 (que sumaba
+  la 81, ausente en la respuesta de compra). La 80 es *Compra Neta*, no la propina, y en los pagos
+  Credibanco de producción siempre vale 0. Falta confirmar con un voucher real que la 40 de la
+  respuesta incluye la propina enviada en la 81.
 - **POS por https.** Con https el navegador usa ``wss://``, y el puente actual no tiene TLS: ningún
   cobro conecta. En 17 la URL era siempre ``ws://``. Hoy el POS tiene que abrirse por http en la red
   local, o el puente necesita TLS.
@@ -282,8 +289,8 @@ Limitaciones conocidas
   mismo puente podrían cruzarlas.
 - **Puente sin autenticación** en la red local, y escribe en su salida estándar lo que recibe y lo
   que responde el datáfono (incluidos datos de la tarjeta).
-- **Impuestos mixtos.** Si el pedido tiene al menos un impuesto IVA o INC, los impuestos de otros
-  grupos no se informan y el cobro sigue sin aviso.
+- **Impuestos mixtos.** Si el pedido tiene al menos un impuesto IVA, INC o Impoconsumo, los
+  impuestos de otros grupos (p. ej. *Redem*) no se informan y el cobro sigue sin aviso, como en 17.
 - **Cajero (83).** Viaja el primer nombre del cajero, recortado a 12 caracteres. Falta confirmar
   qué espera el banco para la conciliación.
 - Los códigos de error de E/S del puente (``MSG_CODE_1``, ``MSG_CODE_2``) no están mapeados porque no
@@ -327,8 +334,10 @@ Componentes
 Notas para mantenimiento
 ------------------------
 
-- **La trama es la certificada.** El número de caja (42 = sesión + cajero), el orden de los campos
-  y el LRC reproducen lo que enviaba Odoo 17. No se rellenan ni se recortan valores: el puente
+- **La trama es la certificada.** El número de caja (42 = sesión + cajero), el orden de los campos,
+  el ``0`` de la posición 84 y el LRC reproducen lo que enviaba Odoo 17. El número de transacción
+  (53) sí cambió: sale de una secuencia por método de pago (``000001``…) y no de sesión + pedido +
+  línea. No se rellenan ni se recortan valores: el puente
   rellena cada campo a su longitud (``fields.ini``) y un valor que no cabe se rechaza con mensaje.
 - **``sendPaymentReversal`` devuelve ``false`` a propósito** aunque la anulación se apruebe. Con ``true``
   el núcleo dejaría la línea en 0 con estado *reversed*, y al cierre no habría asiento que
@@ -350,7 +359,7 @@ Notas para mantenimiento
 Changelog
 =========
 
-19.0.1.0.1
+19.0.1.0.2
 ----------
 
 - Corregido: **Agregar información** en la ficha del pago no abría y mostraba «¡Vaya! Ocurrió un
@@ -359,8 +368,18 @@ Changelog
   (``selection=cargar_opciones()``) a una función (``selection=_field_options``). Odoo 19 llama a esa
   función pasándole el modelo como argumento, y la función no lo aceptaba. Ahora recibe el modelo y
   lo ignora. Sin este arreglo no hay forma de completar a mano el desglose de un voucher, cosa que
-  en 17 sí se podía (evidencia CRE4 de QA en staging).
+  en 17 sí se podía (evidencia CRE4 de QA en staging). No cambia el cobro con el datáfono.
 - Tests de regresión: el asistente ofrece los conceptos del datáfono y agrega la fila al pago.
+
+19.0.1.0.1
+----------
+
+- Propina prorrateada en pagos parciales: posición 40 + 81 = monto de la línea, como en 17.
+- La posición 84 vuelve a ``0`` (trama certificada de 17).
+- Monto aprobado = posición 40; la 80 es *Compra Neta*, no propina.
+- Código 13 (tiempo agotado del datáfono) deja la venta pendiente de recuperar en vez de permitir
+  otro cobro.
+- El grupo *Impoconsumo* (impuesto 61, el IAC de 17) se clasifica como IAC.
 
 19.0.1.0.0
 ----------

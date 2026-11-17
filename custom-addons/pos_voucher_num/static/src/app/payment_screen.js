@@ -9,6 +9,12 @@ import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
 // Solo letras y numeros, maximo 11 caracteres.
 const VOUCHER_RE = /^[a-zA-Z0-9]{1,11}$/;
 
+// Se exporta para que el pago rapido (order_payment_validation.js) aplique la
+// misma regla.
+export function isValidVoucherNumber(value) {
+    return typeof value === "string" && VOUCHER_RE.test(value);
+}
+
 patch(PaymentScreen.prototype, {
     /**
      * Si el metodo de pago pide numero de aprobacion, lo pregunta ANTES de crear
@@ -57,6 +63,6 @@ patch(PaymentScreen.prototype, {
     },
 
     isValidVoucherNumber(value) {
-        return typeof value === "string" && VOUCHER_RE.test(value);
+        return isValidVoucherNumber(value);
     },
 });

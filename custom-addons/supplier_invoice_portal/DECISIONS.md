@@ -1267,3 +1267,27 @@ Tests `test_instructions_email_adjunta_reporte_y_guia`,
 `test_instructions_email_envio_lleva_los_dos_pdf`,
 `test_instructions_email_sin_guia_en_disco` y
 `test_converted_price_is_not_rounded_to_the_currency`.
+
+## 75. Guardas de servidor de la auditoria de staging (K3)
+
+Auditoria Fase 3 del 2026-11-13.
+
+- **RADIAN por RPC.** `action_spr_generate_radian_events` es publico y crea los
+  eventos con `sudo` (#72); el boton tenia `groups="account.group_account_invoice"`
+  pero el metodo no lo comprobaba, y la regla de portal de `account.move`
+  (`account_invoice_rule_portal`) deja leer la factura de proveedor publicada al
+  propio proveedor (`partner_id child_of` su comercial). Ahora el
+  metodo exige el mismo grupo (`AccessError`), salvo con `env.su` (tests,
+  scripts). Si el grupo correcto es otro (p. ej. el de Jorels) o si la
+  aceptacion expresa 033 debe ir aparte, lo decide el usuario (D10).
+- **Direcciones del portal.** En 19 `/my/address/submit` (y el checkout de
+  `website_sale`) pasan por `_validate_address_values` para cualquier direccion.
+  La obligatoriedad de #53 ("un campo que no llega cuenta como vacio") hacia
+  fallar la creacion o edicion de direcciones desde `/my/addresses`, que no
+  traen esos campos. Ahora solo se valida lo del modulo si el envio edita el
+  contacto del usuario conectado y trae al menos un campo del modulo
+  (`_spr_is_account_form`). Quitar a mano todos los campos deja el
+  comportamiento de 17: no se valida ni se escribe nada del modulo.
+
+Tests `test_radian_action_requires_the_invoicing_group` y
+`test_other_addresses_are_not_blocked`.

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- Discuss channel where every new store request is announced (inbox, chat sound, mobile push when configured) -->
+    <record id="channel_plant_requests" model="discuss.channel">
+        <field name="name">Planta · solicitudes de tiendas</field>
+        <field name="channel_type">channel</field>
+        <field name="description">Cada solicitud nueva de una tienda a la planta se anuncia aquí. Únete para recibir el aviso en Conversaciones y en el celular.</field>
+    </record>
+    <record id="param_channel_id" model="ir.config_parameter">
+        <field name="key">plant_request_board.channel_id</field>
+        <field name="value" ref="channel_plant_requests"/>
+    </record>
+</odoo>

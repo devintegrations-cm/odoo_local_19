@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- STG19-VIEWS-0002: el reporte de factura de Jorels 19 reemplaza layout_document_title
+         (l10n_co_edi_jorels/report/report_invoice.xml:112) y account_debit_note, con la misma prioridad (16) y un id
+         mayor en la base de producción, busca //t[@name='invoice_title'] dentro de ese título: la combinación falla
+         y la vista de Jorels no se puede activar. Con prioridad 17 la de nota débito se aplica antes y el reporte
+         valida (probado en staging 41847186). Jorels no declara priority en su <template>, así que actualizarlo no
+         deshace este cambio (odoo/tools/convert.py:505). -->
+    <record id="l10n_co_edi_jorels.report_invoice_document_custom" model="ir.ui.view">
+        <field name="priority">17</field>
+    </record>
+</odoo>

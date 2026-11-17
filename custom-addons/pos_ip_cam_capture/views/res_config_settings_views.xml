@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="view_res_config_settings_view_form_inh_leal_cnt">
+            <field name="name">res.config.settings.view.form.inherit.ip.camera</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <block id="pos_inventory_section" position="after">
+                    <block title="External Devices" help="Configure external connections for POS" id="pos_ip_camera_settings">
+                        <setting id="pos_ip_camera" string="IP Camera" help="Configure IP camera connection for POS">
+                            <field name="pos_enable_local_ip_camera"/>
+                            <label for="pos_enable_local_ip_camera" string="Enable Local IP Camera Connection" class="o_light_label me-2"/>
+                            <i class="fa fa-info-circle me-1" title="Enable connection with IP camera to capture images on payment" data-bs-toggle="tooltip"/>
+                            <div class="content-group" invisible="not pos_enable_local_ip_camera">
+                                <div class="mt16" invisible="pos_enable_local_ip_camera == False">
+                                    <label for="pos_camera_url" string="Camera URL" class="o_light_label"/>
+                                    <field name="pos_camera_url" placeholder="rtsp://{usr}:{pas}@{ip}:{port}"/>
+                                    <div class="text-muted">
+                                        Format to map credentials, e.g. rtsp://{usr}:{pas}@{ip}:{port}
+                                    </div>
+                                </div>
+                                <div class="row mt16" invisible="pos_enable_local_ip_camera == False">
+                                    <div class="col-6">
+                                        <label for="pos_camera_ip" string="Camera IP" class="o_light_label"/>
+                                        <field name="pos_camera_ip" placeholder="192.168.1.100"/>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="pos_camera_port" string="Camera Port" class="o_light_label"/>
+                                        <field name="pos_camera_port" placeholder="554"/>
+                                    </div>
+                                </div>
+                                <div class="row mt16" invisible="pos_enable_local_ip_camera == False">
+                                    <div class="col-6">
+                                        <label for="pos_camera_user" string="Username" class="o_light_label"/>
+                                        <field name="pos_camera_user"/>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="pos_camera_password" string="Password" class="o_light_label"/>
+                                        <field name="pos_camera_password" password="True"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </block>
+            </field>
+        </record>
+    </data>
+</odoo>

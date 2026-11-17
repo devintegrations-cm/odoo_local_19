@@ -1,2 +1,2 @@
 - Libertario Coffee
-- Miguel Bolivar (migración a Odoo 19)
+- Cristian Mira (migración a Odoo 19)

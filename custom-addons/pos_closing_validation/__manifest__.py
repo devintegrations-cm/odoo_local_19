@@ -1,6 +1,6 @@
 {
     "name": "Pos Closing Validation",
-    "version": "19.0.1.0.1",
+    "version": "19.0.1.1.1",
     "category": "Sales/Point of Sale",
     "summary": "Controls POS cash movements and session closing",
     "description": """
@@ -22,8 +22,10 @@ Extends the standard Odoo Point of Sale cash control workflow with:
 * Transactional closing with a bounded row-level lock to prevent race
   conditions and hanging terminals.
 * Enhanced closing popup with an explicit expected cash summary.
-* Internal consistency checks that block a cashier but only warn a manager, so
-  a false positive cannot trap a store at closing time.
+* Opening balance continuity audit between sessions (expected opening balance
+  stored on the session and checked against the counted opening cash).
+* Internal consistency checks that block the closing for every role, as in
+  Odoo 17.
 """,
     "author": "Miguel Bolivar, Libertario Coffee",
     "website": "https://www.libertariocoffee.com",

@@ -10,7 +10,11 @@
   reactivan desde el menú global o desde *Configurar bloques*.
 - **El contador de Ajustes cuenta solo los activos**, aunque la etiqueta dice *Bloques
   configurados*.
-- La frecuencia se reinicia en cada sesión de caja (usa `sequence_number`).
+- La frecuencia ya no se reinicia en cada sesión de caja: en Odoo 19 `sequence_number` lo asigna
+  el servidor con la secuencia del punto de venta (`order_seq_id`), que sigue corriendo entre turnos.
+  En 17 era un contador por sesión. La proporción (uno de cada N) se mantiene.
+- Un pedido que se imprime antes de sincronizar (caja sin conexión) todavía no tiene número y
+  siempre lleva el bloque.
 - Las etiquetas de la interfaz están en español dentro del código y no hay `i18n/`.
 - No hay vista previa del bloque en el formulario: el resultado se ve en el POS.
 - Falta `static/description/icon.png`: en *Aplicaciones* se ve el ícono genérico de Odoo.

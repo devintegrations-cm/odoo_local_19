@@ -3,15 +3,12 @@
 - **El control vive en el navegador.** No hay validación en el servidor: `ordered_quantities` es
   escribible y quien envíe la orden por RPC puede cambiar cantidades o borrar líneas. Si el POS no
   terminó de cargar, el módulo deja pasar la acción.
-- **Pago marca líneas no enviadas.** El parche de `PosStore.pay()` guarda las cantidades ordenadas
-  antes de que `pos_restaurant` pregunte si se envía el pedido, así que *Descartar* no lo evita. En
-  Odoo 17 el botón de pago llamaba a `order.pay()` y no marcaba líneas: es un cambio de
-  comportamiento de la migración.
 - **Flujos de Odoo que no pasan por el control.** El módulo intercepta `setQuantity`,
-  `removeOrderline` y `updateQuantityNumber`. No quedan restringidos: *Transferir / Fusionar* mesas
-  (si la línea se suma a otra existente, la cantidad ordenada de origen no se suma), *Cancelar orden*
-  y *Liberar la mesa* (eliminan la orden entera; para eso está `pos_del_order`) ni la división de
-  cuenta.
+  `removeOrderline` y `updateQuantityNumber`. *Cancelar orden* y *Liberar la mesa* eliminan la orden
+  entera y los controla `pos_del_order`. *Unir / separar mesas* y la división de cuenta reacomodan
+  cantidades sin pedir permiso (es una operación interna), pero conservan lo enviado a cocina: al unir
+  se suma, al separar se reparte y al dividir la cuenta cada orden queda con su cantidad como
+  ordenada.
 - **La cantidad ordenada no baja con una reducción autorizada.** Queda en el valor anterior hasta el
   próximo envío o pago.
 - **Sin "Iniciar sesión como empleado" la regla no aplica.** `getCashier()` devuelve el usuario
@@ -35,11 +32,17 @@
 - `views/res_config_settings_views.xml`: la fila de Ajustes, dentro del bloque
   `multiple_employee_session` de `pos_hr`.
 - `views/pos_order_view.xml`: la columna opcional *Ordered Quantities* en las líneas de la orden.
-- `static/src/js/models.js`: parches de `PosOrderline.setQuantity()`, `PosOrder.removeOrderline()`
-  y `OrderSummary.updateQuantityNumber()`, y la regla `isCapableToDeletePosOrderLines()`.
-- `static/src/js/pos_store.js`: parche de `PosStore.submitOrder()` y `PosStore.pay()` que guarda las
-  cantidades ordenadas, y expone el store a los modelos (`posRestrictState`).
-- `static/src/js/split_bill_screen.js`: parche de `SplitBillScreen.createSplittedOrder()`.
+- `static/src/js/models.js`: parches de `PosOrderline.setQuantity()` (solo bloquea reducciones),
+  `PosOrderline.merge()` (suma lo enviado de la línea absorbida), `PosOrder.removeOrderline()` y
+  `OrderSummary.updateQuantityNumber()`, y la regla `isCapableToDeletePosOrderLines()`, que lee la
+  lista de `config.raw`.
+- `static/src/js/pos_store.js`: parche de `PosStore.sendOrderInPreparationUpdateLastChange()`, por
+  donde pasan el botón *Enviar* y el aviso "la orden no se envió" de *Pago*; guarda las cantidades
+  ordenadas (sin la propina). Parches de `mergeOrders()`, `restoreOrdersToOriginalTable()` y
+  `handlePreparationHistory()` para unir y separar mesas. Expone el store a los modelos
+  (`posRestrictState`).
+- `static/src/js/split_bill_screen.js`: parche de `SplitBillScreen.createSplittedOrder()`, que vuelve
+  a sincronizar las dos órdenes para que lo ordenado llegue al servidor.
 - `static/src/js/orderline.js`, `static/src/xml/orderline.xml`, `static/src/css/orderline.scss`: el
   distintivo *En preparación* con los botones de restar y sumar.
 
@@ -52,7 +55,8 @@
   `PosStore.disallowLineQuantityChange()` devuelve `true`; en Odoo 19 Community devuelve `false` y
   ningún módulo de Community lo cambia. Queda como defensa si se instala uno que lo active.
 - **Cambio respecto de Odoo 17.** El envío a cocina pasó de `ActionpadWidget.submitOrder()` a
-  `PosStore.submitOrder()`, la división de `proceed()` a `createSplittedOrder()`, y el aviso de
+  `PosStore.sendOrderInPreparationUpdateLastChange()` (en 19 también envía el aviso de *Pago*; en
+  retail no se llama, igual que en 17 el botón de pago no marcaba líneas), la división de `proceed()` a `createSplittedOrder()`, y el aviso de
   `ErrorPopup` a `AlertDialog`. En 19 `setQuantity` devuelve el error y quien la llama muestra el
   diálogo; el borrado con ⌫ va directo a `removeOrderline`, por eso hay dos parches.
 - **El identificador de la vista de Ajustes** (`res_config_settings_view_form_inh_pos_del_order_17`)

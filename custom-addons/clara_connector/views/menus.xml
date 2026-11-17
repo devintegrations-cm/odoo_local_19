@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- "Clara / Lectura" sees the whole dashboard; only "Clara / Administrador" sees the configuration -->
+    <menuitem id="menu_clara_root" name="Clara" web_icon="clara_connector,static/description/icon.png" sequence="50" groups="clara_purchase_bridge.group_clara_reader"/>
+
+    <menuitem id="menu_clara_dashboard" name="Dashboard" parent="menu_clara_root" sequence="10"/>
+    <menuitem id="menu_clara_cards" name="Tarjetas" parent="menu_clara_dashboard" action="action_clara_cards" sequence="10"/>
+    <menuitem id="menu_clara_transactions" name="Transacciones" parent="menu_clara_dashboard" action="action_clara_transactions" sequence="20"/>
+    <menuitem id="menu_clara_traceability" name="Trazabilidad" parent="menu_clara_dashboard" action="action_clara_traceability" sequence="30"/>
+
+    <menuitem id="menu_clara_sync_logs" name="Sincronizaciones" parent="menu_clara_root" action="action_clara_sync_logs" sequence="20"/>
+
+    <menuitem id="menu_clara_configuration" name="Configuración" parent="menu_clara_root" sequence="100" groups="clara_purchase_bridge.group_clara_admin"/>
+    <menuitem id="menu_clara_settings" name="Ajustes" parent="menu_clara_configuration" action="action_clara_config_settings" sequence="10"/>
+    <menuitem id="menu_clara_analytic_rules" name="Analítico por titular Clara" parent="menu_clara_configuration" action="clara_purchase_bridge.action_clara_analytic_rule" sequence="20"/>
+</odoo>

@@ -16,6 +16,9 @@ export const TRANSACTION = {
 
 export const CODE_APPROVED = "00";
 export const CODE_NO_FINAL_ANSWER = "03";
+// The terminal gave up waiting (messages.ini): the sale may or may not have been
+// approved, so it is handled as a pending sale, never as a rejection.
+export const CODE_TERMINAL_TIMEOUT = "13";
 
 /**
  * Maximum length of each message position.
@@ -57,7 +60,9 @@ export const ANSWER = {
     AUTHORIZATION_CODE: "1",
     TRANSACTION_ID: "2",
     TOTAL: "40",
-    TIP: "80",
+    // "Compra Neta" in Credibanco's field list (fields_credibanco.json of Odoo
+    // 17). It is NOT the tip: the tip only travels in the request (81).
+    NET_PURCHASE: "80",
     TERMINAL_ID: "42",
     REFERENCE: "43",
     TRANSACTION_NUMBER: "53",
@@ -275,16 +280,23 @@ export function taxBreakdown(taxMap, perLineTaxes) {
 }
 
 /**
- * Amount actually charged: terminal total plus what the customer left as tip on
- * the device.  The terminal is the authority here, not the cashier's entry.
+ * Amount actually charged, as the terminal reports it: position 40.
+ *
+ * Contract of Odoo 17 (origin/main payment_screen.js): the line took
+ * `parseFloat(r[40] + r[81])`, and since a sale answer never carries 81
+ * (OUTPUT_FIELDS_01) that was exactly position 40 ("40 = valueOrder + taxes +
+ * tip", per the 17 comment). Position 80 is "Compra Neta", not a tip: adding it
+ * would book roughly twice what was charged the day the bridge fills it (in the
+ * 67 924 Credibanco payments of production it is always 0, so this keeps 17's
+ * amounts and stays safe if that changes). POS-API-CREDIBANCO-INT-0001.
  */
 export function getChargedAmount(values) {
-    const total = Number(values[ANSWER.TOTAL]);
-    const tip = Number(values[ANSWER.TIP] || 0);
-    if (!Number.isFinite(total)) {
+    const raw = values[ANSWER.TOTAL];
+    if (raw === undefined || raw === null || String(raw).trim() === "") {
         return null;
     }
-    return total + (Number.isFinite(tip) ? tip : 0);
+    const total = Number(raw);
+    return Number.isFinite(total) ? total : null;
 }
 
 /**

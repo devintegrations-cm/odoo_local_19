@@ -170,6 +170,14 @@ el popup sin agregar el pago.
 
    Popup con los datos del huésped antes de agregar el pago
 
+Al confirmar, los datos quedan visibles debajo de la línea de pago, con las etiquetas configuradas,
+para revisarlos antes de validar. También se ven después de recargar el POS.
+
+.. figure:: ../static/description/10_dato_bajo_linea.png
+   :alt: Línea de pago con el dato del popup debajo
+
+   Línea de pago con el dato del popup debajo
+
 Al confirmar, el POS busca órdenes de **hoy** con la misma restricción y algún valor igual (sin
 distinguir mayúsculas). Si encuentra alguna, muestra el aviso con el número y la hora de cada
 orden. **Registrar igualmente** sigue con el pago; **Cancelar** lo descarta. El aviso no bloquea:
@@ -314,6 +322,9 @@ Componentes
   modelo no está cargado en el POS).
 - ``static/src/js/payment_restriction_popup.js`` y ``.xml``: el popup, un componente sobre ``Dialog`` que
   se abre con ``makeAwaitable``.
+- ``static/src/js/payment_line_restriction_data.js`` y ``.xml``: los datos del popup debajo de la línea
+  de pago (``restrictionDataDisplay`` en ``PaymentScreenPaymentLines``). En 19 el dato vive solo en el
+  pedido, así que se muestra bajo la línea cuyo método corresponde a ``order.restriction_id``.
 - ``views/pos_config_views.xml``: el bloque de *Ajustes*, las vistas de la restricción y el menú de
   configuración. ``views/pos_hotel_report_views.xml``: la pestaña de la orden y los informes.
 - ``data/pos_order_server_actions.xml``: la acción *Crear factura agrupada*.
@@ -339,6 +350,35 @@ Notas para mantenimiento
   factura agrupada deja de funcionar. Revisar en particular la versión 19 del módulo de fidelización
   de Jorels que usa STG.
 
+Changelog
+=========
+
+19.0.1.0.2
+----------
+
+- Corregido: los informes **Consumo de productos** y **Reporte mensual** de *Punto de venta ›
+  Informes › Convenios y restricciones* no abrían («¡Vaya! Ocurrió un error», evidencias PR13 y
+  PR13B de QA en staging). Los filtros *Esta semana* y *Este mes* usaban
+  ``context_today().replace(day=1)`` y ``context_today().weekday()``, que el evaluador de dominios del
+  navegador no soporta (tampoco el de 17: en producción el informe ya fallaba). Se reemplazan por
+  ``relativedelta(day=1)`` y ``relativedelta(weekday=0)``, que dan el mismo rango: el mes desde el día
+  1 y la semana de lunes a lunes.
+
+19.0.1.0.1
+----------
+
+- Corregido: los datos capturados en el popup (p. ej. «Habitación: 101») no se mostraban debajo de
+  la línea de pago, como en 17 (evidencia PR6B de QA en staging, hallazgo
+  POS-PAYMENT-METHOD-RESTRICT-FE-0002). La plantilla ``payment_line_restriction_data.xml`` no se
+  había migrado. Se porta a 19 leyendo el dato del pedido (``restriction_data`` y ``restriction_id``),
+  porque en 19 ya no se guarda en la línea de pago. Solo cambia la pantalla: el dato ya se guardaba
+  en la orden.
+
+19.0.1.0.0
+----------
+
+- Migración a Odoo 19.
+
 Credits
 =======
 
@@ -351,4 +391,4 @@ Contributors
 ------------
 
 - Libertario Coffee
-- Miguel Bolivar (migración a Odoo 19)
+- Cristian Mira (migración a Odoo 19)

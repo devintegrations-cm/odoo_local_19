@@ -198,6 +198,20 @@ class TestPosLoader(TestPosReceiptCustomBlock):
         self.assertNotIn(archived.id, loaded_ids, 'un bloque archivado no debe imprimirse')
         self.assertNotIn(others.id, loaded_ids, 'cada tienda carga solo su configuración')
 
+    def test_archived_and_moved_blocks_are_cleaned_from_the_pos_cache(self):
+        """El POS guarda los bloques en IndexedDB: los que dejan de aplicar deben
+        salir en `filter_local_data` o se seguirían imprimiendo."""
+        mine = self._block(block_type='text', content='mío')
+        archived = self._block(block_type='text', content='archivado')
+        moved = self._block(block_type='text', content='movido')
+        archived.active = False
+        moved.config_id = self.other_config
+
+        candidates = mine | archived | moved
+        unrelevant = set(candidates._unrelevant_records(self.config))
+
+        self.assertEqual(unrelevant, {archived.id, moved.id})
+
     def test_loader_respects_sequence(self):
         second = self._block(block_type='text', content='b', sequence=20)
         first = self._block(block_type='text', content='a', sequence=10)

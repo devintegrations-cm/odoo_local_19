@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_face_details_user,access.face.details.user,model_face_details,base.group_user,1,0,0,0
+access_face_details_manager,access.face.details.manager,model_face_details,point_of_sale.group_pos_manager,1,1,1,1

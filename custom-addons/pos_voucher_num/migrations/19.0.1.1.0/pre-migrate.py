@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # MOD-VOUCHER: pos_voucher_num — renombre vaucher -> voucher
 # Objetivo: corregir errata historica sin perder 621k registros staging
-# Patron idempotente tomado de pos_obligatory_invoice/migrations/19.0.1.0.0/pre-migrate.py
+# Patron idempotente tomado de obligatory_invoice_msg/migrations/19.0.1.0.0/pre-migrate.py
 import logging
 
 _logger = logging.getLogger(__name__)

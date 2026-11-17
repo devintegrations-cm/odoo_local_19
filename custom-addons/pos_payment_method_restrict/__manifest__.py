@@ -1,6 +1,6 @@
 {
     'name': 'POS Payment Method Restrict',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.2',
     'category': 'Point of Sale',
     'summary': 'Restringe métodos de pago del POS por lista blanca de clientes',
     'description': """
@@ -34,6 +34,8 @@
             'pos_payment_method_restrict/static/src/js/payment_restriction_popup.js',
             'pos_payment_method_restrict/static/src/xml/payment_restriction_popup.xml',
             'pos_payment_method_restrict/static/src/js/payment_method_restrict.js',
+            'pos_payment_method_restrict/static/src/js/payment_line_restriction_data.js',
+            'pos_payment_method_restrict/static/src/xml/payment_line_restriction_data.xml',
         ],
     },
     'installable': True,

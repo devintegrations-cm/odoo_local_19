@@ -49,6 +49,9 @@
   modelo no está cargado en el POS).
 - `static/src/js/payment_restriction_popup.js` y `.xml`: el popup, un componente sobre `Dialog` que
   se abre con `makeAwaitable`.
+- `static/src/js/payment_line_restriction_data.js` y `.xml`: los datos del popup debajo de la línea
+  de pago (`restrictionDataDisplay` en `PaymentScreenPaymentLines`). En 19 el dato vive solo en el
+  pedido, así que se muestra bajo la línea cuyo método corresponde a `order.restriction_id`.
 - `views/pos_config_views.xml`: el bloque de *Ajustes*, las vistas de la restricción y el menú de
   configuración. `views/pos_hotel_report_views.xml`: la pestaña de la orden y los informes.
 - `data/pos_order_server_actions.xml`: la acción *Crear factura agrupada*.

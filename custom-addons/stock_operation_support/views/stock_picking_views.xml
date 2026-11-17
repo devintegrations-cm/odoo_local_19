@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_picking_form_sos" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.sos</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <!-- El boton que pidio el usuario: siempre disponible salvo en una
+                 operacion cancelada. No condiciona la validacion de la
+                 operacion: este modulo solo advierte. -->
+            <xpath expr="//header" position="inside">
+                <button name="action_add_operation_support" type="object"
+                        string="Agregar soporte de operacion"
+                        invisible="state == 'cancel'"
+                        groups="stock_operation_support.group_sos_user"/>
+            </xpath>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_operation_supports" type="object"
+                        class="oe_stat_button" icon="fa-file-image-o"
+                        invisible="support_count == 0"
+                        groups="stock_operation_support.group_sos_user">
+                    <field name="support_count" widget="statinfo" string="Soportes"/>
+                </button>
+            </xpath>
+
+            <!-- Aviso en la cabecera cuando el soporte no respalda la operacion. -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning" role="alert"
+                     invisible="support_state not in ('warning', 'rejected')"
+                     groups="stock_operation_support.group_sos_user">
+                    <field name="support_state" readonly="1" nolabel="1"/>
+                    Revise el soporte de la operacion antes de validarla.
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="support_count" invisible="1"/>
+                <field name="support_state" invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,30 @@
+<section class="oe_container oe_dark">
+    <div class="col-md-12">
+        <h2 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>POS IP CAMERA CAPTURE</b></h2>
+    </div>
+    <div class="col-md-12" style="text-align: left;">
+        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Description</b></h3>
+        <p style="font-size: 18px;">
+            The Odoo module allows users to enable and configure an IP camera to capture an image when the Payment Button is clicked.
+        </p>
+        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Configuration</b></h3>
+        <p style="font-size: 18px;">
+            Configuration can be accessed through Point of Sale > Settings > External Device, 
+            where a checkbox enables users to toggle and configure the IP camera.
+        </p>
+        <div class="oe_row oe_spaced">
+            <div class="oe_span12">
+                <div class="oe_demo oe_picture oe_screenshot">
+                    <img src="config.png" style="height: 400px;">
+                </div>
+            </div>
+        </div>
+        <h3 class="oe_slogan" style="font-size: 35px; color: #6f37f0;"><b>Notes</b></h3>
+        <ul style="font-size: 18px;"> <!-- Agregar lista sin orden -->
+            <li>If a Point of Sale session is active, a page reload is necessary to apply any changes made to the configuration.</li>
+            <li>Follow the URL pattern according to the protocol to be used, e.g., rtsp://{usr}:{pas}@{ip}:{port}, for specifying user, password, IP camera, and port.</li>
+            <li>The IP camera must be connected to the same LAN.</li>
+            <li>Make sure the Python script WebSocket is running when you use this module.</li>
+        </ul>
+    </div>
+</section>

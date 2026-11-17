@@ -40,9 +40,12 @@ mantiene solo para los avisos propios de Odoo (por ejemplo, órdenes en borrador
 ## Casos especiales
 
 - **Responsable del Punto de Venta**: las revisiones de consistencia (movimientos por encima del
-  límite, órdenes pagadas sin pagos, rescates pendientes) no lo bloquean. Si cierra con alguna
-  activa, queda una nota *Validación de caja superada por un responsable* en el historial de la
-  sesión. La diferencia autorizada sí lo bloquea.
+  límite, órdenes pagadas sin pagos, rescates pendientes) y la diferencia autorizada lo bloquean
+  igual que al cajero, como en Odoo 17.
+- **Apertura**: si *Diferencia máxima* está activa, la sesión nueva guarda el saldo contado al
+  cerrar la anterior (*Saldo de apertura esperado*). Si el efectivo de apertura que se digita se
+  aparta de ese valor más que la diferencia autorizada, la caja no se abre y aparece el aviso
+  *Inconsistencia de continuidad de caja*.
 - **Quién ve el aviso de diferencia**: la ventana de cierre de Odoo ya compara el conteo con la
   diferencia autorizada. A un usuario que no es responsable, Odoo le muestra su propio aviso y no
   lo deja continuar; a un responsable le ofrece seguir de todos modos. En ese caso el servidor
@@ -67,14 +70,17 @@ mantiene solo para los avisos propios de Odoo (por ejemplo, órdenes en borrador
   movimiento.
 - **"Existe una inconsistencia en los movimientos de efectivo"**: la sesión tiene más movimientos
   que el límite, normalmente porque el límite se bajó con la sesión abierta o por movimientos
-  sincronizados después de un corte. Un responsable puede cerrar la sesión; queda registrado en el
-  historial.
+  sincronizados después de un corte. La sesión no se cierra desde el POS hasta corregirlo (por
+  ejemplo, un responsable elimina el movimiento sobrante o sube el límite).
+- **"Inconsistencia de continuidad de caja"** al abrir: el efectivo de apertura no coincide con el
+  conteo del cierre anterior. Volver a contar; si la diferencia es real, la debe revisar un
+  responsable antes de abrir.
 - **"La diferencia de efectivo supera la diferencia máxima autorizada"** (o el mensaje
   configurado): volver a contar con *Cancelar*, o revisar si falta registrar una orden. Si la
   diferencia es real, la regla no se salta con un rol: hay que corregir el conteo o ajustar la
   diferencia autorizada.
 - **"Hay N órdenes pagadas sin pagos registrados"**: una orden pagada con total distinto de cero
-  no tiene líneas de pago. Revisarla antes de cerrar o pedir a un responsable que cierre.
+  no tiene líneas de pago. Revisarla y corregirla antes de cerrar.
 - **"No se pudo registrar el movimiento... Otro terminal está utilizando la caja"**: otra terminal
   está cerrando o moviendo caja. Comprobar el conteo que trae el mensaje antes de repetir el
   movimiento.

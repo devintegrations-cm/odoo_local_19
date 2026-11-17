@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="plant_request_board.PlantSheet">
+        <div class="o_action plant-xls">
+            <div class="plant-xls-bar">
+                <div class="plant-xls-title">
+                    <strong><t t-esc="d ? d.title : ''"/></strong>
+                    <small t-if="d"> · actualizado <t t-esc="d.generated"/></small>
+                </div>
+                <div class="plant-xls-actions">
+                    <select t-if="plants.length > 1" class="form-select form-select-sm" t-on-change="(ev) => this.setPlant(ev.target.value)" title="Planta">
+                        <option value="" t-att-selected="!state.plantId">Todas las plantas</option>
+                        <option t-foreach="plants" t-as="p" t-key="p.id" t-att-value="p.id" t-att-selected="state.plantId === p.id"><t t-esc="p.name"/></option>
+                    </select>
+                    <select class="form-select form-select-sm" t-on-change="(ev) => this.setScope(ev.target.value)" title="Qué solicitudes suman en la hoja">
+                        <option t-foreach="scopes" t-as="sc" t-key="sc[0]" t-att-value="sc[0]" t-att-selected="state.scope === sc[0]"><t t-esc="sc[1]"/></option>
+                    </select>
+                    <button class="btn btn-light btn-sm" t-on-click="load" title="Actualizar"><i class="fa fa-refresh"/></button>
+                    <button class="btn btn-light btn-sm" t-on-click="openProducts" title="Productos de planta: tipo, línea, gramos, molienda y referencia maestra"><i class="fa fa-cubes"/> Productos</button>
+                    <button class="btn btn-light btn-sm" t-on-click="openRows" title="Kits y excepciones de la hoja"><i class="fa fa-cog"/> Kits</button>
+                    <button class="btn btn-light btn-sm" t-on-click="openPivot" title="Tabla dinámica de Odoo"><i class="fa fa-table"/></button>
+                    <a class="btn btn-success btn-sm" t-att-href="exportUrl()" target="_blank"><i class="fa fa-file-excel-o"/> Descargar Excel</a>
+                </div>
+            </div>
+
+            <div class="plant-xls-body">
+                <div t-if="state.loading" class="plant-xls-empty">Cargando…</div>
+                <t t-else=""><t t-call="plant_request_board.PlantSheetOrders"/></t>
+            </div>
+
+            <div class="plant-xls-tabs">
+                <t t-foreach="sheets" t-as="s" t-key="s[0]">
+                    <button t-attf-class="plant-xls-tab #{state.sheet === s[0] ? 'active' : ''}" t-on-click="() => this.setSheet(s[0])"><t t-esc="s[1]"/></button>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- PEDIDOS TIENDAS / OTROS PEDIDOS / ATTENZA -->
+    <t t-name="plant_request_board.PlantSheetOrders">
+        <table class="xls">
+            <thead>
+                <tr class="xls-dates">
+                    <th class="x-item x-yellow">FECHA DE PEDIDO</th>
+                    <th t-foreach="columns" t-as="col" t-key="col.key" class="x-yellow x-date"><t t-esc="col.date or ''"/></th>
+                    <th t-att-colspan="rightCols" class="x-yellow"/>
+                </tr>
+                <tr class="xls-head">
+                    <th class="x-item x-cyan">ITEM</th>
+                    <th t-foreach="columns" t-as="col" t-key="col.key" t-attf-class="x-head x-col #{col.picking_id ? 'x-link' : ''} #{col.stage ? 'x-stage-' + col.stage : ''}" t-attf-style="background-color: #{col.color or '#2F5496'};" t-att-title="stageTitle(col)" t-on-click="() => this.openOrder(col)"><t t-esc="col.name"/><span t-if="col.stage_label" t-attf-class="x-stage-tag plant-badge-#{col.stage}"><t t-esc="col.stage_label"/></span></th>
+                    <th t-if="showTotal" class="x-head x-right">TOTAL BOLSAS</th>
+                    <t t-if="d.has_inventory">
+                        <th class="x-head x-right">INVENTARIO</th>
+                        <th class="x-head x-right">POR FABRICAR</th>
+                    </t>
+                    <th class="x-head x-right">TOSTAR</th>
+                    <th class="x-head x-right x-net">TOTAL NETO X TOSTAR</th>
+                    <t t-if="d.has_boxes">
+                        <th class="x-head x-right">CAJAS</th>
+                        <th class="x-head x-right">lotes</th>
+                        <th class="x-head x-right">fecha vencimiento</th>
+                    </t>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="d.groups" t-as="g" t-key="g.line + '_' + g_index">
+                    <tr t-foreach="g.rows" t-as="row" t-key="row.id" t-attf-class="#{row.is_kit ? 'x-kit' : ''}">
+                        <td t-attf-class="x-item #{row.indent ? 'x-indent' : ''}" t-att-style="rowStyle(row)" t-att-title="row.products ? row.products + ' productos de Odoo' : 'Sin productos vinculados'">
+                            <t t-esc="row.name"/>
+                        </td>
+                        <td t-foreach="columns" t-as="col" t-key="col.key" class="x-num"><t t-esc="n(row.cells[col.key], 2)"/><i t-if="row.checks and row.checks[col.key]" t-attf-class="x-check fa #{checkIcon(row.checks[col.key])}" t-att-title="checkTitle(row.checks[col.key])" t-on-click.stop="() => this.toggleChecks(row.checks[col.key])"/></td>
+                        <td t-if="showTotal" class="x-num x-c-total"><t t-esc="n(row.total, 2, true)"/></td>
+                        <t t-if="d.has_inventory">
+                            <td t-attf-class="x-num x-input #{row.inventory_manual ? 'x-manual' : ''} #{row.negative ? 'x-negative' : ''}" t-on-click="() => this.editInventory(row)" t-att-title="inventoryTitle(row)">
+                                <input t-if="state.editing === row.id" class="x-edit" type="text" t-att-value="row.inventory_manual ? row.inventory : ''" t-on-blur="(ev) => this.saveInventory(row, ev)" t-on-keydown="(ev) => this.onInventoryKey(row, ev)" autofocus="autofocus"/>
+                                <t t-else=""><i t-if="row.negative" class="fa fa-exclamation-triangle x-warn" title="Inventario negativo en Odoo"/> <t t-esc="n(row.inventory, 2, true)"/><div t-if="row.inventory_detail" class="x-detail">granel <t t-esc="n(row.inventory_detail.bulk_kg, 1, true)"/> kg + <t t-esc="n(row.inventory_detail.bags, 0, true)"/> bolsas</div></t>
+                            </td>
+                            <td class="x-num x-c-make"><t t-esc="n(row.to_make, 2, true)"/></td>
+                        </t>
+                        <td class="x-num x-calc"><t t-esc="row.grams ? n(row.kg, 3, true) : ''"/></td>
+                        <td t-if="row_first" t-att-rowspan="g.rows.length" class="x-num x-net x-merged" t-attf-style="background-color: #{g.net_color};"><t t-esc="n(g.kg, 3, true)"/></td>
+                        <t t-if="d.has_boxes">
+                            <td class="x-num"><t t-esc="row.boxes or ''"/></td>
+                            <td class="x-text"><t t-esc="row.lots"/></td>
+                            <td class="x-text"><t t-esc="row.expiry"/></td>
+                        </t>
+                        <td t-if="row.note" class="x-mark"><t t-esc="row.note"/></td>
+                    </tr>
+                </t>
+                <tr class="x-total x-total-yellow">
+                    <td class="x-item">TOTAL</td>
+                    <td t-foreach="columns" t-as="col" t-key="col.key"/>
+                    <td t-if="showTotal" class="x-num"><t t-esc="n(d.totals.total, 2, true)"/></td>
+                    <t t-if="d.has_inventory"><td/><td class="x-num"><t t-esc="n(d.totals.to_make, 2, true)"/></td></t>
+                    <td/>
+                    <td class="x-num x-net"><t t-esc="n(d.totals.kg, 3, true)"/></td>
+                    <t t-if="d.has_boxes"><td/><td/><td/></t>
+                </tr>
+                <t t-if="d.ready.length">
+                    <tr class="x-gap"><td t-att-colspan="columns.length + 1 + rightCols"/></tr>
+                    <tr class="x-band"><td class="x-item x-cyan-band"/><td t-att-colspan="columns.length" class="x-blank"/><td t-if="showTotal" class="x-cyan-band"/><td t-att-colspan="rightCols - (showTotal ? 1 : 0)" class="x-blank"/></tr>
+                    <tr t-foreach="d.ready" t-as="row" t-key="row.id">
+                        <td class="x-item" t-att-style="rowStyle(row)"><t t-esc="row.name"/></td>
+                        <td t-foreach="columns" t-as="col" t-key="col.key" class="x-num"><t t-esc="n(row.cells[col.key])"/><i t-if="row.checks and row.checks[col.key]" t-attf-class="x-check fa #{checkIcon(row.checks[col.key])}" t-att-title="checkTitle(row.checks[col.key])" t-on-click.stop="() => this.toggleChecks(row.checks[col.key])"/></td>
+                        <td t-if="showTotal" class="x-num x-c-total"><t t-esc="n(row.total, 0, true)"/></td>
+                        <td t-att-colspan="rightCols - (showTotal ? 1 : 0)" class="x-blank"/>
+                    </tr>
+                    <tr class="x-band"><td class="x-item x-blank"/><td t-att-colspan="columns.length" class="x-cyan-band"/><td t-if="showTotal" class="x-cyan-band"/><td t-att-colspan="rightCols - (showTotal ? 1 : 0)" class="x-blank"/></tr>
+                </t>
+            </tbody>
+        </table>
+
+        <!-- supplies ordered by the stores: their own unit, never kg -->
+        <div t-if="d.supplies.length" class="plant-xls-block">
+            <table class="xls xls-small">
+                <tr><th class="x-head x-item">INSUMOS PEDIDOS</th><th t-foreach="columns" t-as="col" t-key="col.key" class="x-head x-col"><t t-esc="col.name"/></th><th class="x-head">TOTAL</th><th class="x-head">UNIDAD</th><th class="x-head">EN PLANTA</th><th class="x-head">POR COMPRAR</th></tr>
+                <tr t-foreach="d.supplies" t-as="sp" t-key="sp.product_tmpl_id">
+                    <td class="x-item" t-att-title="sp.kind === 'green' ? 'Café verde pedido' : 'Insumo: se cuenta en unidades, nunca en kg'"><t t-esc="sp.name"/></td>
+                    <td t-foreach="columns" t-as="col" t-key="col.key" class="x-num"><t t-esc="n(sp.cells[col.key])"/><i t-if="sp.checks and sp.checks[col.key]" t-attf-class="x-check fa #{checkIcon(sp.checks[col.key])}" t-att-title="checkTitle(sp.checks[col.key])" t-on-click.stop="() => this.toggleChecks(sp.checks[col.key])"/></td>
+                    <td class="x-num x-c-total"><t t-esc="n(sp.total, 0, true)"/></td>
+                    <td class="x-text"><t t-esc="sp.unit"/></td>
+                    <td t-attf-class="x-num #{sp.negative ? 'x-negative' : ''}" t-att-title="sp.negative ? 'Inventario negativo en Odoo (' + n(sp.stock_raw, 0, true) + '): falta registrar producción/empaque. Se cuenta como cero.' : ''"><i t-if="sp.negative" class="fa fa-exclamation-triangle x-warn"/> <t t-esc="n(sp.stock, 0, true)"/></td>
+                    <td t-attf-class="x-num x-c-make #{sp.to_buy > 0 ? 'x-short' : ''}"><t t-esc="n(sp.to_buy, 0, true)"/></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- green coffee: shrinkage per line, cumulative by request date -->
+        <div t-if="d.green.lines.length" class="plant-xls-block">
+            <table class="xls xls-small">
+                <tr><th class="x-head x-item">CAFÉ VERDE</th><th class="x-head">MERMA</th><th class="x-head">KG A TOSTAR</th><th class="x-head">VERDE NECESARIO</th><th class="x-head">VERDE EN PLANTA</th><th class="x-head">SALDO</th><th class="x-head">ESTADO</th></tr>
+                <tr t-foreach="d.green.lines" t-as="g" t-key="g.line_id">
+                    <td class="x-item" t-att-style="rowStyle(g)"><t t-esc="g.line"/></td>
+                    <td class="x-num"><t t-esc="n(g.shrinkage_pct, 2, true)"/> %</td>
+                    <td class="x-num" t-att-title="'Pedidos pendientes: ' + n(g.need_kg, 3, true) + ' kg; tostado en planta: ' + n(g.roasted_stock_kg, 3, true) + ' kg'"><t t-esc="n(g.to_roast_kg, 3, true)"/></td>
+                    <td class="x-num"><t t-esc="n(g.green_needed_kg, 3, true)"/></td>
+                    <td t-attf-class="x-num #{g.green_raw_kg lt 0 ? 'x-negative' : ''}" t-att-title="g.green_raw_kg lt 0 ? 'Inventario negativo en Odoo (' + n(g.green_raw_kg, 2, true) + ' kg): falta registrar producción/empaque. Se cuenta como cero.' : ''"><i t-if="g.green_raw_kg lt 0" class="fa fa-exclamation-triangle x-warn"/> <t t-esc="n(g.green_stock_kg, 3, true)"/></td>
+                    <td t-attf-class="x-num x-status-#{g.status}"><t t-esc="n(g.remaining_kg, 3, true)"/></td>
+                    <td t-attf-class="x-text x-status-#{g.status}"><t t-esc="g.status === 'red' ? 'Falta café verde' : g.status === 'yellow' ? 'Por debajo del mínimo (' + n(g.minimum_kg, 1, true) + ' kg)' : 'Alcanza'"/></td>
+                </tr>
+            </table>
+            <table class="xls xls-small" t-if="d.green.requests.length">
+                <tr><th class="x-head">ALERTAS POR SOLICITUD (orden de llegada)</th><th class="x-head">FECHA</th><th class="x-head">TIENDA / CLIENTE</th><th class="x-head">LÍNEA</th><th class="x-head">TOSTAR KG</th><th class="x-head">VERDE KG</th><th class="x-head">SALDO KG</th><th class="x-head">MENSAJE</th></tr>
+                <t t-foreach="d.green.requests" t-as="rq" t-key="rq.picking_id">
+                    <tr t-foreach="rq.alerts" t-as="a" t-key="rq.picking_id + '-' + a.line_id">
+                        <td class="x-text x-link" t-on-click="() => this.openOrder({picking_id: rq.picking_id})"><t t-if="a_first" t-esc="rq.name"/></td>
+                        <td class="x-text"><t t-if="a_first" t-esc="rq.date"/></td>
+                        <td class="x-text"><t t-if="a_first" t-esc="rq.counterparty"/></td>
+                        <td class="x-item" t-att-style="rowStyle(a)"><t t-esc="a.line"/></td>
+                        <td class="x-num"><t t-esc="n(a.to_roast_kg, 3, true)"/></td>
+                        <td class="x-num"><t t-esc="n(a.green_needed_kg, 3, true)"/></td>
+                        <td t-attf-class="x-num x-status-#{a.status}"><t t-esc="n(a.remaining_kg, 3, true)"/></td>
+                        <td t-attf-class="x-text x-status-#{a.status}"><t t-esc="a.message"/></td>
+                    </tr>
+                </t>
+            </table>
+        </div>
+
+        <!-- supplies of the bills of materials of what has to be made -->
+        <div t-if="d.bom_supplies.length" class="plant-xls-block">
+            <table class="xls xls-small">
+                <tr><th class="x-head x-item">INSUMOS POR FABRICAR (BoM)</th><th class="x-head">NECESARIO</th><th class="x-head">UNIDAD</th><th class="x-head">EN PLANTA</th><th class="x-head">FALTAN</th><th class="x-head">PARA</th><th class="x-head">ESTADO</th></tr>
+                <tr t-foreach="d.bom_supplies" t-as="b" t-key="b.product_id">
+                    <td class="x-item"><t t-esc="b.name"/></td>
+                    <td class="x-num"><t t-esc="n(b.needed, 2, true)"/></td>
+                    <td class="x-text"><t t-esc="b.unit"/></td>
+                    <td t-attf-class="x-num #{b.negative ? 'x-negative' : ''}" t-att-title="b.negative ? 'Inventario negativo en Odoo (' + n(b.stock_raw, 2, true) + '): falta registrar producción/empaque. Se cuenta como cero.' : ''"><i t-if="b.negative" class="fa fa-exclamation-triangle x-warn"/> <t t-esc="n(b.stock, 2, true)"/></td>
+                    <td t-attf-class="x-num x-status-#{b.status}"><t t-esc="n(b.missing, 2, true)"/></td>
+                    <td class="x-text"><t t-esc="b.for"/></td>
+                    <td t-attf-class="x-text x-status-#{b.status}"><t t-esc="b.status === 'red' ? 'Falta' : b.status === 'yellow' ? 'Por debajo del mínimo' : 'Alcanza'"/></td>
+                </tr>
+            </table>
+        </div>
+        <div t-elif="!d.bom_available" class="plant-xls-note"><span class="text-muted"><i class="fa fa-info-circle"/> Insumos por fabricar: sin listas de materiales en Odoo (el módulo de fabricación no está instalado).</span></div>
+
+        <div class="plant-xls-note">
+            <span><b>TOTAL NETO X TOSTAR de esta pestaña:</b> <t t-esc="n(d.totals.kg, 3, true)"/> kg.</span>
+            <span t-if="d.plan_kg !== null and d.plan_kg !== undefined" title="El plan junta todos los canales y descuenta el inventario de la planta en todos, por referencia maestra; la hoja descuenta inventario solo en PEDIDOS TIENDAS, reúne en cada fila el inventario de todas sus referencias y explota los kits. En ambos el inventario negativo cuenta como cero."> <b>Plan de tostión</b> para los mismos pedidos abiertos, todos los canales: <t t-esc="n(d.plan_kg, 3, true)"/> kg.</span>
+            <span t-if="d.negative_rows" class="x-warn-text"><i class="fa fa-exclamation-triangle"/> <t t-esc="d.negative_rows"/> filas con inventario negativo en Odoo: falta registrar producción/empaque; se cuentan como cero.</span>
+        </div>
+        <div t-if="d.unmapped.length" class="plant-xls-unmapped">
+            <strong><i class="fa fa-exclamation-triangle"/> Pedido pero fuera de la hoja</strong>
+            <span>Estos productos están en pedidos abiertos y no suman en ninguna fila: no están marcados «Cuenta en consolidado» o su fila está archivada. Revísalos en Planta › Productos de planta.</span>
+            <table class="xls xls-small">
+                <tr><th class="x-head x-item">Producto</th><th class="x-head">Unidad</th><th t-foreach="columns" t-as="col" t-key="col.key" class="x-head x-col"><t t-esc="col.name"/></th><th class="x-head">TOTAL</th></tr>
+                <tr t-foreach="d.unmapped" t-as="u" t-key="u.product_id">
+                    <td class="x-item"><t t-esc="u.name"/></td><td class="x-text"><t t-esc="u.unit"/></td>
+                    <td t-foreach="columns" t-as="col" t-key="col.key" class="x-num"><t t-esc="n(u.cells[col.key], 2)"/></td>
+                    <td class="x-num x-calc"><t t-esc="n(u.total, 2, true)"/></td>
+                </tr>
+            </table>
+        </div>
+    </t>
+
+</templates>

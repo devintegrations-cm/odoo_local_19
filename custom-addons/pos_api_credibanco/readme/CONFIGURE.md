@@ -34,9 +34,11 @@ Lo que **no** se configura:
   (`pos_api_credibanco.trx.<id>`) que se crea sola al primer cobro. El POS reserva bloques de 25
   para poder seguir cobrando si pierde el servidor.
 - **Impuestos**. El servidor clasifica los impuestos de venta por el nombre de su **grupo**: los que
-  empiezan por `IVA` van a la posición 41 y los que empiezan por `INC` (el "IAC" del datáfono) a la
-  82. Las retenciones y los impuestos negativos no viajan. Si el pedido tiene impuestos pero
-  ninguno es IVA ni INC, el cobro se rechaza con el nombre de los grupos encontrados.
+  empiezan por `IVA` van a la posición 41 y los que empiezan por `INC` o `Impoconsumo` (el "IAC"
+  del datáfono) a la 82. En la base de Libertario eso reproduce lo que enviaba Odoo 17: IVA 19 % y
+  5 % en la 41 e *Impoconsumo 8%* en la 82. Las retenciones y los impuestos negativos no viajan. Si
+  el pedido tiene impuestos pero ninguno es IVA, INC ni Impoconsumo, el cobro se rechaza con el
+  nombre de los grupos encontrados.
 - **Propina**. Se toma del producto de propina del punto de venta (*Ajustes › Propinas*).
 
 Los cambios se ven en el POS después de volver a entrar a la sesión.

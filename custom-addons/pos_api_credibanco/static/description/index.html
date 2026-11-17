@@ -98,9 +98,11 @@ crear ni borrar. Abrir el método que va a cobrar con el datáfono.</p>
   (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_api_credibanco.trx.&lt;id&gt;</code>) que se crea sola al primer cobro. El POS reserva bloques de 25
   para poder seguir cobrando si pierde el servidor.</li>
 <li style="margin-bottom:7px;"><strong>Impuestos</strong>. El servidor clasifica los impuestos de venta por el nombre de su <strong>grupo</strong>: los que
-  empiezan por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">IVA</code> van a la posición 41 y los que empiezan por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code> (el "IAC" del datáfono) a la
-  82. Las retenciones y los impuestos negativos no viajan. Si el pedido tiene impuestos pero
-  ninguno es IVA ni INC, el cobro se rechaza con el nombre de los grupos encontrados.</li>
+  empiezan por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">IVA</code> van a la posición 41 y los que empiezan por <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code> o <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Impoconsumo</code> (el "IAC"
+  del datáfono) a la 82. En la base de Libertario eso reproduce lo que enviaba Odoo 17: IVA 19 % y
+  5 % en la 41 e <em>Impoconsumo 8%</em> en la 82. Las retenciones y los impuestos negativos no viajan. Si
+  el pedido tiene impuestos pero ninguno es IVA, INC ni Impoconsumo, el cobro se rechaza con el
+  nombre de los grupos encontrados.</li>
 <li style="margin-bottom:7px;"><strong>Propina</strong>. Se toma del producto de propina del punto de venta (<em>Ajustes › Propinas</em>).</li>
 </ul>
 <p style="margin:0 0 12px;">Los cambios se ven en el POS después de volver a entrar a la sesión.</p>
@@ -116,20 +118,24 @@ con el teclado (pago parcial) antes de enviar.</p>
   <em>Cancelar</em> no envía nada; <em>Continuar</em> envía la venta al datáfono.</li>
 <li style="margin-bottom:7px;">El cliente pasa la tarjeta y aprueba en el datáfono. Mientras tanto la línea muestra <em>Solicitud
   enviada</em>.</li>
-<li style="margin-bottom:7px;">Si el datáfono aprueba, la línea queda pagada con el <strong>monto que cobró el terminal</strong> (valor total
-  más la propina que devuelve en la posición 80), el número de aprobación y el identificador de la
+<li style="margin-bottom:7px;">Si el datáfono aprueba, la línea queda pagada con el <strong>monto que cobró el terminal</strong> (posición 40
+  de la respuesta, como en Odoo 17), el número de aprobación y el identificador de la
   transacción. En el recibo sale <em>Aprob.:</em> seguido del número de aprobación. Si con eso el pedido queda pagado y el punto de
   venta tiene activo <em>Validar órdenes de forma automática</em> (opción estándar de <em>Ajustes</em>, activa por defecto), el
   pedido se valida solo.</li>
 <li style="margin-bottom:7px;">Si el datáfono rechaza, se muestra el motivo según su código (02 rechazada, 05 problema de
-  comunicación, 06 error de trama, 09 a 12 errores de formato, 13 tiempo agotado, 99 puerto
-  ocupado). La línea queda en <em>Transacción cancelada</em> y se puede volver a enviar.</li>
+  comunicación, 06 error de trama, 09 a 12 errores de formato, 99 puerto ocupado). La línea queda
+  en <em>Transacción cancelada</em> y se puede volver a enviar. El código 13 (tiempo agotado en el
+  datáfono) no es un rechazo: la venta queda pendiente de recuperar, como se explica abajo.</li>
 </ul>
-<p style="margin:0 0 12px;"><strong>Propina</strong>: si el pedido tiene propina (producto de propina del POS) y la línea cubre el pedido
-entero, el TOTAL se envía sin la propina y la propina viaja aparte en la posición 81.</p>
+<p style="margin:0 0 12px;"><strong>Propina</strong>: si el pedido tiene propina (producto de propina del POS), viaja aparte en la posición
+81 y el TOTAL (40) es el monto de la línea menos esa propina, así que el datáfono cobra exactamente
+el monto de la línea. En un pago parcial la propina se prorratea por la parte del pedido que cubre
+el cobro (pedido de 110.000 con 10.000 de propina, dos pagos de 55.000: cada uno envía 50.000 + 5.000).
+El pago que cubre el pedido completo lleva la propina completa. Igual que en Odoo 17.</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Venta sin respuesta y recuperación</h2>
 <p style="margin:0 0 12px;">Si el datáfono no contesta dentro de la espera configurada, se corta la conexión o responde con el
-código 03 (sin respuesta final), la venta <strong>puede haber quedado aprobada</strong> en el terminal. Por eso:</p>
+código 03 (sin respuesta final) o 13 (tiempo agotado), la venta <strong>puede haber quedado aprobada</strong> en el terminal. Por eso:</p>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">El POS guarda en la línea la venta enviada. Sin respuesta, avisa <em>Sin respuesta del datáfono</em>;
   con el código 03 abre directamente el diálogo <strong>Recuperar</strong> (en el datáfono: TECLA 3 y luego
@@ -173,7 +179,7 @@ concepto a mano con <strong>Agregar información</strong>.</p>
 <li style="margin-bottom:7px;"><strong>"El número de caja excede el protocolo".</strong> La sesión y el cajero forman un número de más de 10
   caracteres. No se puede cobrar con el datáfono en esa sesión; avisar a IT.</li>
 <li style="margin-bottom:7px;"><strong>"Impuestos no reconocidos".</strong> Algún producto tiene impuestos de un grupo que no empieza por
-  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">IVA</code> ni <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code>. Corregir el grupo del impuesto en contabilidad.</li>
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">IVA</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">INC</code> ni <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">Impoconsumo</code>. Corregir el grupo del impuesto en contabilidad.</li>
 <li style="margin-bottom:7px;"><strong>"Sin números de transacción disponibles".</strong> Se agotó el bloque reservado y no hay conexión con
   el servidor. Esperar a recuperar la conexión; no se repiten números.</li>
 <li style="margin-bottom:7px;"><strong>"Falta el cajero"</strong> o <strong>"Sesión no disponible".</strong> Iniciar sesión con un empleado o recargar el
@@ -188,9 +194,10 @@ concepto a mano con <strong>Agregar información</strong>.</p>
   datáfono (respuestas completas con franquicia, recibo y terminal), pero la anulación, la
   recuperación y el cobro con propina no están validados de punta a punta con el terminal. Hay que
   probarlos en cada tienda antes de habilitar el método.</li>
-<li style="margin-bottom:7px;"><strong>Propina cobrada.</strong> El monto de la línea aprobada es la posición 40 (valor total) más la 80
-  (propina). Si el 40 del datáfono ya incluye la propina, se contaría dos veces. En 17 se sumaban
-  el 40 y el 81, que la respuesta de compra no trae. Confirmar con una compra real con propina.</li>
+<li style="margin-bottom:7px;"><strong>Propina cobrada.</strong> El monto de la línea aprobada es la posición 40, como en Odoo 17 (que sumaba
+  la 81, ausente en la respuesta de compra). La 80 es <em>Compra Neta</em>, no la propina, y en los pagos
+  Credibanco de producción siempre vale 0. Falta confirmar con un voucher real que la 40 de la
+  respuesta incluye la propina enviada en la 81.</li>
 <li style="margin-bottom:7px;"><strong>POS por https.</strong> Con https el navegador usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">wss://</code>, y el puente actual no tiene TLS: ningún
   cobro conecta. En 17 la URL era siempre <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">ws://</code>. Hoy el POS tiene que abrirse por http en la red
   local, o el puente necesita TLS.</li>
@@ -209,8 +216,8 @@ concepto a mano con <strong>Agregar información</strong>.</p>
   mismo puente podrían cruzarlas.</li>
 <li style="margin-bottom:7px;"><strong>Puente sin autenticación</strong> en la red local, y escribe en su salida estándar lo que recibe y lo
   que responde el datáfono (incluidos datos de la tarjeta).</li>
-<li style="margin-bottom:7px;"><strong>Impuestos mixtos.</strong> Si el pedido tiene al menos un impuesto IVA o INC, los impuestos de otros
-  grupos no se informan y el cobro sigue sin aviso.</li>
+<li style="margin-bottom:7px;"><strong>Impuestos mixtos.</strong> Si el pedido tiene al menos un impuesto IVA, INC o Impoconsumo, los
+  impuestos de otros grupos (p. ej. <em>Redem</em>) no se informan y el cobro sigue sin aviso, como en 17.</li>
 <li style="margin-bottom:7px;"><strong>Cajero (83).</strong> Viaja el primer nombre del cajero, recortado a 12 caracteres. Falta confirmar
   qué espera el banco para la conciliación.</li>
 <li style="margin-bottom:7px;">Los códigos de error de E/S del puente (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">MSG_CODE_1</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">MSG_CODE_2</code>) no están mapeados porque no
@@ -252,8 +259,10 @@ concepto a mano con <strong>Agregar información</strong>.</p>
 </ul>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>La trama es la certificada.</strong> El número de caja (42 = sesión + cajero), el orden de los campos
-  y el LRC reproducen lo que enviaba Odoo 17. No se rellenan ni se recortan valores: el puente
+<li style="margin-bottom:7px;"><strong>La trama es la certificada.</strong> El número de caja (42 = sesión + cajero), el orden de los campos,
+  el <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">0</code> de la posición 84 y el LRC reproducen lo que enviaba Odoo 17. El número de transacción
+  (53) sí cambió: sale de una secuencia por método de pago (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">000001</code>…) y no de sesión + pedido +
+  línea. No se rellenan ni se recortan valores: el puente
   rellena cada campo a su longitud (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">fields.ini</code>) y un valor que no cabe se rechaza con mensaje.</li>
 <li style="margin-bottom:7px;"><strong><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">sendPaymentReversal</code> devuelve <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">false</code> a propósito</strong> aunque la anulación se apruebe. Con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">true</code>
   el núcleo dejaría la línea en 0 con estado <em>reversed</em>, y al cierre no habría asiento que

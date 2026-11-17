@@ -1,2 +1,1 @@
 - Osmar Toloza \<<desarrollo@libertariocoffee.com>\>
-- Miguel Bolivar

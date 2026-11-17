@@ -3,7 +3,7 @@
     "name": "Portal de facturas de proveedor",
     "summary": "Los proveedores solicitan el pago de sus facturas electronicas DIAN "
                "asociandolas a una orden de compra",
-    "version": "19.0.1.3.0",
+    "version": "19.0.1.3.1",
     "category": "Inventory/Purchase",
     "license": "LGPL-3",
     "author": "Libertario Coffee Roasters",

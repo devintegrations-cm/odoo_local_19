@@ -3,6 +3,12 @@
 Ir a **Telegram Alerts › Configuration** y abrir la conexión *Alertas Costos* (o crear una con
 **Nuevo**). Todos los campos son obligatorios y ninguno tiene valor por defecto en el formulario.
 
+Solo los usuarios con **Administración / Ajustes** ven el menú y pueden leer o cambiar la conexión
+(incluido el token). Las acciones de producto y las alertas de `purchase_cost_validator` siguen
+enviando para cualquier usuario que las ejecute. En una instalación nueva la conexión se crea con
+token y chats `PENDIENTE_CONFIGURAR`: hay que poner los reales en esta pantalla. Si Telegram
+rechaza o no responde, el error indica el conector y el código HTTP, nunca el token.
+
 ![Telegram Alerts › Configuration: campos de la conexión (token y chats difuminados)](../static/description/01_configuracion.png)
 
 - **Custom ID** (`identifier`). Obligatorio. Es la clave con la que las acciones encuentran la

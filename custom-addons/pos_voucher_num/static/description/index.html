@@ -32,25 +32,39 @@ método, cada una con su propio voucher:</p>
 <div class="lc-fig"><img alt="Líneas de pago del POS mostrando el número de voucher junto al importe" src="03_pos_lineas.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Líneas de pago del POS mostrando el número de voucher junto al importe</p></div>
 <p style="margin:0 0 12px;">Una vez validado el pedido, el número se consulta en <em>Punto de Venta &gt;
 Pedidos</em>, pestaña <strong>«Payments»</strong>, columna <strong>«Voucher Number»</strong>. El mismo campo
-está en el formulario del pago del POS (<em>Punto de Venta &gt; Pedidos &gt; Pagos</em>) y
-como columna opcional en la conciliación bancaria:</p>
+está en el formulario del pago del POS (<em>Punto de Venta &gt; Pedidos &gt; Pagos</em>):</p>
 <div class="lc-fig"><img alt="Pedido del POS en el backend con la columna Voucher Number" src="04_backend_pedido.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Pedido del POS en el backend con la columna Voucher Number</p></div>
 <h2>Limitaciones y pendientes</h2>
 <div class="lc-warn"><ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;">El campo se renombró de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">vaucher_num</code> (errata heredada) a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">voucher_num</code> en 19.0.1.1.0 con migración <strong>RENAME</strong> atómico; los payloads legacy se mapean con log <strong>WARNING</strong> y la compatibilidad se retira en 19.0.1.2.0.</li>
-<li style="margin-bottom:7px;"><strong>Depende de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account_accountant</code> (Odoo Enterprise)</strong>: el módulo extiende una
-  vista de la conciliación bancaria. Sin Enterprise no se instala.</li>
+<li style="margin-bottom:7px;">El campo se renombró de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">vaucher_num</code> (errata heredada) a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">voucher_num</code> en la
+  versión 19.0.1.1.0 mediante migración <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">RENAME</code> atómico. La migración
+  19.0.1.1.0 mantiene una compatibilidad temporal que acepta payloads legacy
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">vaucher_num</code> y los mapea a <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">voucher_num</code> con un log <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">WARNING</code>; se retirará
+  en 19.0.1.2.0 junto con el DROP de las columnas huérfanas, cuando ningún
+  POS con assets antiguos siga en uso. El script de 19.0.1.2.0 solo borra una
+  columna vieja si no le queda ningún dato sin copiar.</li>
+<li style="margin-bottom:7px;"><strong>Pago rápido de Odoo 19</strong> (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">use_fast_payment</code>): no pasa por la pantalla de
+  pago, así que el voucher se pide al validar
+  (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">OrderPaymentValidation.askBeforeValidation</code>). Si se cancela o el número no
+  es válido, el pedido no se valida y la línea creada por el pago rápido se
+  quita. Desde la pantalla de pago las líneas ya traen el voucher y no se
+  pregunta dos veces.</li>
+<li style="margin-bottom:7px;"><strong>El voucher no se copia al apunte contable</strong>, igual que en la 17: los campos
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">voucher_num_account</code>, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_payment_id</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">super_voucher</code> de
+  <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account.move.line</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_vouchers_nums</code> de <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">account.move</code> guardan el
+  histórico, pero ningún código los llena (0 en los últimos 300 000 apuntes de
+  la copia de producción).</li>
+<li style="margin-bottom:7px;">La vista de la conciliación bancaria (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">views/account_move_line_list.xml</code>)
+  está fuera del manifiesto, como en la 17.</li>
 <li style="margin-bottom:7px;">El núcleo <strong>no permite guardar</strong> la casilla del método de pago con una sesión
   de POS abierta: hay que cerrar la caja para poder cambiarla.</li>
 <li style="margin-bottom:7px;">Falta <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/description/icon.png</code>. El módulo se publica sin icono propio.</li>
 <li style="margin-bottom:7px;">La validación acepta hasta 11 caracteres alfanuméricos, sin espacios ni
   signos. El límite no es configurable.</li>
 <li style="margin-bottom:7px;">Probado sobre Odoo 19.0. No es compatible con versiones anteriores.</li>
-<li style="margin-bottom:7px;">El módulo se instala automáticamente (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">auto_install</code>) cuando están presentes
-  sus dependencias.</li>
+<li style="margin-bottom:7px;">No es <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">auto_install</code>: se instala a mano.</li>
 </ul></div>
 <div style="margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280;"><b>Osmar Toloza</b><ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;">Osmar Toloza \&lt;<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#100;&#101;&#115;&#97;&#114;&#114;&#111;&#108;&#108;&#111;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;" style="color:#4338ca;">&#100;&#101;&#115;&#97;&#114;&#114;&#111;&#108;&#108;&#111;&#64;&#108;&#105;&#98;&#101;&#114;&#116;&#97;&#114;&#105;&#111;&#99;&#111;&#102;&#102;&#101;&#101;&#46;&#99;&#111;&#109;</a>&gt;</li>
-<li style="margin-bottom:7px;">Miguel Bolivar</li>
 </ul></div>
 </div>

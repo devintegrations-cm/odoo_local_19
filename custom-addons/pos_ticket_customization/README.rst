@@ -4,7 +4,7 @@ POS - Información adicional en el ticket
 
 ..
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   !! Generado a partir de los fragmentos de readme/      !!
+   !! Generado por .claude/scripts/gen_readme.py          !!
    !! Los cambios se sobrescriben: editar readme/*.md     !!
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -135,7 +135,8 @@ Los grupos de campos cambian según el tipo elegido.
 - **Importe mínimo** (por defecto 0): el bloque solo sale si el total con impuestos del pedido es
   igual o mayor. 0 significa sin mínimo.
 - **Cada N pedidos** (obligatorio, por defecto 1) y **Desplazamiento** (por defecto 0): con 1 sale en
-  todos los pedidos; con 10, en los pedidos 10, 20, 30… de la sesión de caja. El desplazamiento
+  todos los pedidos; con 10, en los pedidos 10, 20, 30… de la secuencia del punto de venta (no se
+  reinicia al abrir caja). El desplazamiento
   corre el ciclo (con 10 y desplazamiento 5, sale en 5, 15, 25…) y debe estar entre 0 y N − 1.
 
 Para el QR de reseña, el *Contenido* puede ser el Place ID de Google o una URL completa: si empieza
@@ -193,8 +194,8 @@ QR de propina cuya leyenda usa ``{order_name}`` y un texto legal.
 Casos especiales
 ----------------
 
-- **Reimpresión**: la frecuencia se calcula con el número de pedido dentro de la sesión de caja,
-  que se guarda con el pedido. Una reimpresión muestra los mismos bloques que el ticket original.
+- **Reimpresión**: la frecuencia se calcula con el número de pedido del punto de venta, que asigna
+  el servidor y se guarda con el pedido. Una reimpresión muestra los mismos bloques que el ticket original.
 - **Sin conexión**: los códigos que no dependen del pedido se descargan al abrir la sesión y quedan
   en memoria. Los que llevan marcadores se generan al imprimir; si en ese momento no hay conexión,
   el bloque imprime la información en texto (SSID y clave del WiFi, la URL, el teléfono…).
@@ -210,8 +211,10 @@ Solución de problemas
 - **Un bloque no aparece en el ticket.** Revisar que esté activo, que la fecha de hoy esté dentro
   de la vigencia, que el total alcance el importe mínimo y que *Cada N pedidos* sea 1 (o que le
   toque a ese pedido). Después de cambiar algo, recargar el POS.
-- **Un bloque con *Cada N pedidos* no sale nunca.** El conteo se reinicia en cada sesión de caja: si
-  la tienda hace menos de N pedidos por turno, el bloque no llega a imprimirse. Bajar N.
+- **Un bloque con *Cada N pedidos* no sale en un turno.** El conteo sigue la secuencia del punto de
+  venta y no se reinicia al abrir caja: sale uno de cada N pedidos, repartidos entre turnos.
+- **Un bloque archivado sigue saliendo.** Volver a entrar al POS desde el backend (*Continuar
+  vendiendo* / *Abrir caja*): al cargar la sesión el POS borra de su memoria los bloques archivados.
 - **Aparece ``{algo}`` literal en el ticket.** El marcador está mal escrito; ver la lista en
   *Configuración*.
 - **Sale el texto en lugar del código.** El código no se pudo generar (sin conexión con el
@@ -236,7 +239,11 @@ Limitaciones conocidas
   reactivan desde el menú global o desde *Configurar bloques*.
 - **El contador de Ajustes cuenta solo los activos**, aunque la etiqueta dice *Bloques
   configurados*.
-- La frecuencia se reinicia en cada sesión de caja (usa ``sequence_number``).
+- La frecuencia ya no se reinicia en cada sesión de caja: en Odoo 19 ``sequence_number`` lo asigna
+  el servidor con la secuencia del punto de venta (``order_seq_id``), que sigue corriendo entre turnos.
+  En 17 era un contador por sesión. La proporción (uno de cada N) se mantiene.
+- Un pedido que se imprime antes de sincronizar (caja sin conexión) todavía no tiene número y
+  siempre lleva el bloque.
 - Las etiquetas de la interfaz están en español dentro del código y no hay ``i18n/``.
 - No hay vista previa del bloque en el formulario: el resultado se ve en el POS.
 - Falta ``static/description/icon.png``: en *Aplicaciones* se ve el ícono genérico de Odoo.
@@ -306,4 +313,4 @@ Contributors
 ------------
 
 - Libertario Coffee
-- Miguel Bolivar (migración a Odoo 19)
+- Cristian Mira (migración a Odoo 19)

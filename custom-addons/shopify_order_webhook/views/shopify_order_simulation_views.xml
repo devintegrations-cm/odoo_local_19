@@ -1,0 +1,16 @@
+<odoo>
+  <record id="shopify_order_simulation_view_form" model="ir.ui.view">
+    <field name="name">shopify.order.simulation.form</field>
+    <field name="model">shopify.order.simulation</field>
+    <field name="arch" type="xml">
+      <form string="Simulación de órdenes Shopify">
+        <sheet>
+          <field name="result_html" widget="html" readonly="1" nolabel="1"/>
+        </sheet>
+        <footer>
+          <button string="Cerrar" class="btn-primary" special="cancel"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

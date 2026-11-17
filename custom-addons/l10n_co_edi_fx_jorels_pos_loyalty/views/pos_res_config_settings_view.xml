@@ -1,0 +1,16 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="view_res_config_settings_view_form_inh_obg_msg">
+            <field name="name">res.config.setings.inherit.form</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <block id="pos_accounting_section" position="inside">
+                    <setting id="pos_enable_obligatory_invoice_setting" string="Enable Obligatory Invoice" help="Always enable the obligatory invoice buttons in POS Payment Screen">
+                        <field name="pos_enable_obligatory_invoice"/>
+                    </setting>
+                </block>
+            </field>
+        </record>
+    </data>
+</odoo>

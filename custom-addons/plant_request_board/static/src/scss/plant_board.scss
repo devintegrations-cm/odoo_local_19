@@ -1,0 +1,43 @@
+/* Plant request cards: one row per product, quantity first; the same layout for every block. */
+.plant-card { font-size: 12px; line-height: 1.35; }
+.plant-group { margin-top: 6px; padding-top: 4px; border-top: 1px dashed rgba(0, 0, 0, .12); }
+.plant-group-title { font-weight: 600; color: #4c4c4c; margin-bottom: 2px; }
+.plant-group-title .fa { width: 14px; text-align: center; color: #7a7a7a; }
+.plant-count { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 9px; background: rgba(0, 0, 0, .08); font-size: 11px; text-align: center; margin-left: 2px; }
+.plant-lines { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.plant-lines td { padding: 2px 0; vertical-align: top; }
+.plant-qty { width: 56px; text-align: right; padding-right: 8px !important; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.plant-name { white-space: normal; word-break: break-word; }
+.plant-sheet { color: #6b6b6b; font-size: 11px; font-weight: 400; line-height: 1.25; }
+.plant-more { color: #7a7a7a; font-style: italic; margin-top: 2px; }
+/* Coffee to prepare: the roasting work, highlighted as a block */
+.plant-prepare .plant-group-title { color: #8a3b12; }
+.plant-prepare .plant-group-title .fa { color: #d2691e; }
+.plant-prepare .plant-lines { background: #fdf3e7; border-radius: 6px; }
+.plant-prepare .plant-lines td { padding: 3px 0; }
+.plant-prepare .plant-name > span { font-weight: 600; color: #5a2a0a; }
+.plant-prepare .plant-qty { color: #5a2a0a; }
+/* Board: same width for every card and column */
+.o_kanban_renderer .o_kanban_group:has(.plant-card) { width: 340px; min-width: 340px; }
+.o_kanban_renderer .o_kanban_record:has(.plant-card) { width: 100%; }
+.plant-channel { font-weight: 600; color: #4c4c4c; }
+
+// stages: the same colours in the kanban, the list and the sheet
+.plant-badge-new { background: #FFC000; color: #000; }
+.plant-badge-preparing { background: #2F5496; color: #fff; }
+.plant-badge-ready { background: #00B050; color: #fff; }
+.plant-badge-delivered { background: #A6A6A6; color: #fff; }
+.plant-badge-cancelled { background: #C00000; color: #fff; }
+.oe_kanban_card.plant-stage-new { border-left: 4px solid #FFC000; }
+.oe_kanban_card.plant-stage-preparing { border-left: 4px solid #2F5496; }
+.oe_kanban_card.plant-stage-ready { border-left: 4px solid #00B050; }
+.oe_kanban_card.plant-stage-delivered { border-left: 4px solid #A6A6A6; opacity: 0.8; }
+.oe_kanban_card.plant-stage-cancelled { border-left: 4px solid #C00000; opacity: 0.7; }
+.plant-progress .progress { background: #E7E6E6; }
+
+// green coffee alert: enough / below the minimum / missing
+.plant-green-box { margin-top: 2px; }
+.plant-green { padding: 1px 6px; border-radius: 4px; margin-bottom: 2px; font-size: 11px; }
+.plant-green-green { background: #E2F0D9; color: #375623; }
+.plant-green-yellow { background: #FFF2CC; color: #7F6000; }
+.plant-green-red { background: #FCE4D6; color: #C00000; font-weight: bold; }

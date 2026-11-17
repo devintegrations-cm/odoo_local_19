@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Read-only trail of the orders booked from Clara by earlier versions -->
+    <record id="purchase_order_form_inherit_clara" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.clara</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Clara" name="clara" invisible="not clara_transaction_uuid">
+                    <group>
+                        <group>
+                            <field name="clara_transaction_uuid"/>
+                            <field name="clara_transaction_date"/>
+                            <field name="clara_cardholder"/>
+                            <field name="clara_cardholder_email"/>
+                            <field name="clara_card_last4"/>
+                            <field name="clara_cardholder_uuid"/>
+                            <field name="clara_merchant"/>
+                        </group>
+                        <group>
+                            <field name="clara_amount"/>
+                            <field name="clara_decision"/>
+                            <field name="clara_receipt_count"/>
+                            <field name="clara_analytic_rule_id"/>
+                        </group>
+                    </group>
+                    <field name="clara_description" placeholder="Descripción escrita en Clara"/>
+                    <field name="clara_decision_reason" placeholder="Motivo de la decisión"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_tree_inherit_clara" model="ir.ui.view">
+        <field name="name">purchase.order.tree.inherit.clara</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="clara_decision" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_search_inherit_clara" model="ir.ui.view">
+        <field name="name">purchase.order.search.inherit.clara</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_search"/>
+        <field name="arch" type="xml">
+            <filter name="invoiced" position="after">
+                <separator/>
+                <filter name="from_clara" string="Desde Clara" domain="[('clara_transaction_uuid', '!=', False)]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

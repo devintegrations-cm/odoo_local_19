@@ -10,7 +10,7 @@ el por WebSocket, igual que con el dispositivo real.
     python3 credibanco_fake_terminal.py --port 8080 --outcome approved
 
 Suites de resultados (`--outcome`):
-    approved      respuesta 00, cobro aprobado (con propina en el campo 81)
+    approved      respuesta 00, cobro aprobado (40 = TOTAL + PROPINA enviados, 80 = 0)
     rejected      respuesta 02, el cliente declina
     no-answer     no contesta: sirve para ver el timeout y la recuperacion
     recover-then  primera venta queda "03" y la recuperacion la aprueba
@@ -80,20 +80,21 @@ def build_answer(code, total="0", iva="0", tip="0", iac="0", terminal_id="",
     device's own reference.
 
     Note there is no 81 (tip) nor 82 (IAC) in any answer: they are request-only.
-    Position 80 is filled with the tip on purpose -- whether the real device puts
-    the tip there or reports the final total in 40 is exactly what is still
-    unconfirmed, and this makes the difference visible in development.
+    Position 40 echoes total + tip ("40 = valueOrder + taxes + tip", comment of
+    the Odoo 17 module) and position 80 ("Compra Neta") is always "0", which is
+    what the 67 924 Credibanco payments stored in production show. Neither is
+    confirmed against a real voucher: the POS books position 40 only, as 17 did.
     """
     values = {
         "0": code,
         "1": auth,
         "2": tx,
-        "40": str(total),
+        "40": str(_amount(total) + _amount(tip)),
         "41": str(iva),
         "42": str(terminal_id),
         "43": str(reference),
         "53": str(transaction_number),
-        "80": str(tip),
+        "80": "0",
         "81": str(tip),
         "82": str(iac),
         "83": str(cashier),
@@ -102,6 +103,13 @@ def build_answer(code, total="0", iva="0", tip="0", iac="0", terminal_id="",
     for position in OUTPUT_FIELDS.get(operation, OUTPUT_FIELDS["01"]):
         answer[str(position)] = values.get(str(position), "")
     return json.dumps(answer)
+
+
+def _amount(value):
+    try:
+        return int(str(value or "0").strip() or "0")
+    except ValueError:
+        return 0
 
 
 # Codes used by this simulator for the cases the protocol has no dedicated one.
@@ -343,7 +351,8 @@ def selftest():
     def packet(trama):
         return "dataf001_" + trama + compute_lrc(trama)
 
-    sale_trama = "01,25000,3991,12905,000042,2000,2500,Juan,,"
+    # Odoo 17 contract: 84 travels as "0" (`...,<cajero>,0,` + LRC).
+    sale_trama = "01,25000,3991,12905,000042,2000,2500,Juan,0,"
     terminal = Terminal("approved", "dataf001")
     answer = json.loads(terminal.respond(packet(sale_trama)))
 
@@ -351,15 +360,15 @@ def selftest():
     # the positions of OUTPUT_FIELDS_01 (no 81, no 82): an array-shaped answer
     # would be a shape no real device produces.
     assert answer["0"] == "00", answer
-    assert answer["40"] == "25000" and answer["41"] == "3991", answer
+    assert answer["40"] == "27000" and answer["41"] == "3991", answer
     assert answer["42"] == "12905" and answer["53"] == "000042", answer
     assert answer["83"] == "Juan" and answer["43"], answer
     assert "81" not in answer and "82" not in answer, sorted(answer)
-    assert answer["80"] == "2000", answer
+    assert answer["80"] == "0", answer
 
     name, fields, checksum, trama = split_packet(packet(sale_trama))
     assert name == "dataf001" and compute_lrc(trama) == checksum
-    assert fields[1] == "25000", fields
+    assert fields[1] == "25000" and fields[8] == "0", fields
 
     # The same (42, 53) twice must be refused, not approved twice.
     duplicate = json.loads(terminal.respond(packet(sale_trama)))
@@ -391,7 +400,7 @@ def selftest():
     pend = json.loads(recovering.respond(packet("00,12905,000042,")))
     assert pend["0"] == "03", pend
     done = json.loads(recovering.respond(packet("00,12905,000042,")))
-    assert done["0"] == "00" and done["40"] == "25000", done
+    assert done["0"] == "00" and done["40"] == "27000", done
 
     print("selftest OK: respuestas por posicion, eco de referencias, duplicados y "
           "recuperacion/anulacion")

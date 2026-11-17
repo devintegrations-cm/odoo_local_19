@@ -18,7 +18,7 @@ Tesoreria: notificacion de pagos a proveedores.
     'author': "Osmar Toloza",
     'website': "desarrollo@libertariocoffee.com",
     'category': 'Accounting',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'depends': ['base','account','purchase','contacts'],
     'license': 'OPL-1',
     'sequence':10,
@@ -52,5 +52,5 @@ Tesoreria: notificacion de pagos a proveedores.
     #},
     #'installable': True,
     #'application': True,
-    'auto_install': True,
+    'auto_install': False,
 }

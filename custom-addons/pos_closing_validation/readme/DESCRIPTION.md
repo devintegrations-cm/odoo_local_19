@@ -15,8 +15,10 @@ Al cerrar la caja:
 - Bloquea el cierre cuando la diferencia entre el efectivo contado y el esperado supera la
   **diferencia máxima autorizada** de Odoo, para cualquier rol, con un mensaje configurable.
 - Revisa la consistencia de la sesión (movimientos por encima del límite, órdenes pagadas sin pagos,
-  sesiones de rescate pendientes): bloquea al cajero y solo advierte al responsable, que puede
-  cerrar dejando constancia en el historial de la sesión.
+  sesiones de rescate pendientes) y bloquea el cierre para cualquier rol, como en Odoo 17.
+- Audita la continuidad del saldo de apertura: guarda el saldo esperado (conteo del cierre
+  anterior) y no deja abrir la caja si el efectivo digitado se aparta más que la diferencia
+  autorizada.
 - Toma un bloqueo acotado sobre la sesión para que dos terminales no cierren ni muevan caja a la vez
   sin que ninguna quede colgada.
 

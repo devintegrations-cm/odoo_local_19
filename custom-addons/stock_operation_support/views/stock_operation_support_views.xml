@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_stock_operation_support_form" model="ir.ui.view">
+        <field name="name">stock.operation.support.form</field>
+        <field name="model">stock.operation.support</field>
+        <field name="arch" type="xml">
+            <form string="Soporte de operacion">
+                <header>
+                    <button name="action_validate" type="object" string="Validar"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_validate" type="object" string="Revalidar"
+                            invisible="state == 'draft'"/>
+                    <button name="action_reread" type="object"
+                            string="Volver a leer la foto"
+                            invisible="state == 'draft'"
+                            confirm="Se reemplazan los datos del formulario por lo que lea la IA. Solo se conservan las lineas emparejadas a mano. ¿Continuar?"/>
+                    <button name="action_reset_to_draft" type="object"
+                            string="Volver a borrador" invisible="state == 'draft'"
+                            groups="stock_operation_support.group_sos_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,approved,warning,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_picking" type="object"
+                                class="oe_stat_button" icon="fa-truck">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Operacion</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Operacion">
+                            <field name="picking_id"
+                                   options="{'no_create': True}"
+                                   readonly="state != 'draft'"/>
+                            <field name="picking_code"/>
+                            <field name="picking_state"/>
+                            <field name="partner_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Comprobante">
+                            <field name="attachment_id" options="{'no_create': True}"
+                                   readonly="state != 'draft'"/>
+                            <field name="support_file" filename="support_filename"
+                                   readonly="state != 'draft'"/>
+                            <field name="support_filename" invisible="1"/>
+                            <field name="document_type"/>
+                            <field name="remission_ref"/>
+                            <field name="remission_date"/>
+                            <field name="vision_confidence" widget="percentage"
+                                   readonly="1"/>
+                            <field name="vision_provider" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <field name="party_check_enabled" invisible="1"/>
+                    <field name="signature_check_enabled" invisible="1"/>
+
+                    <group>
+                        <group string="Quien entrega" invisible="not party_check_enabled">
+                            <field name="sender_nit"/>
+                            <field name="sender_name"/>
+                        </group>
+                        <group string="Quien recibe" invisible="not party_check_enabled">
+                            <field name="receiver_nit"/>
+                            <field name="receiver_name"/>
+                        </group>
+                    </group>
+
+                    <group string="Firmas" invisible="not signature_check_enabled">
+                        <group>
+                            <field name="signature_sender_ok"/>
+                            <field name="signature_sender_name"/>
+                            <field name="signature_sender_confidence" widget="percentage"
+                                   readonly="1" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="signature_receiver_ok"/>
+                            <field name="signature_receiver_name"/>
+                            <field name="signature_receiver_confidence" widget="percentage"
+                                   readonly="1" force_save="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Lineas" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="code"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="unit"/>
+                                    <field name="is_service" optional="show"/>
+                                    <field name="move_id"
+                                           invisible="is_service"
+                                           options="{'no_create': True}"/>
+                                    <field name="product_id" optional="hide"/>
+                                    <field name="uom_factor" optional="show"/>
+                                    <field name="quantity_converted" readonly="1"/>
+                                    <field name="uom_status" readonly="1" optional="show"
+                                           decoration-warning="uom_status in ('unknown', 'ai_unverified')"/>
+                                    <field name="uom_note" readonly="1" optional="hide"/>
+                                    <field name="picking_quantity" readonly="1"/>
+                                    <field name="quantity_basis" readonly="1" optional="show"/>
+                                    <field name="quantity_diff" readonly="1"
+                                           decoration-danger="quantity_diff != 0"/>
+                                    <field name="match_method" readonly="1"/>
+                                    <field name="match_confidence" readonly="1" optional="hide"/>
+                                    <field name="match_note" readonly="1" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Validacion" name="validation">
+                            <field name="validation_summary" readonly="1"/>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="notes" placeholder="Observaciones internas..."/>
+                        </page>
+                        <page string="Tecnico" name="technical"
+                              groups="stock_operation_support.group_sos_manager">
+                            <group>
+                                <field name="extracted_json" readonly="1" widget="text"/>
+                                <field name="validation_json" readonly="1" widget="text"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stock_operation_support_tree" model="ir.ui.view">
+        <field name="name">stock.operation.support.tree</field>
+        <field name="model">stock.operation.support</field>
+        <field name="arch" type="xml">
+            <list string="Soportes de operacion"
+                  decoration-danger="state == 'rejected'"
+                  decoration-warning="state == 'warning'"
+                  decoration-success="state == 'approved'">
+                <field name="name"/>
+                <field name="picking_id"/>
+                <field name="picking_code"/>
+                <field name="partner_id"/>
+                <field name="remission_ref"/>
+                <field name="remission_date"/>
+                <field name="signature_sender_ok" optional="show"/>
+                <field name="signature_receiver_ok" optional="show"/>
+                <field name="vision_confidence" widget="percentage" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state == 'rejected'"
+                       decoration-warning="state == 'warning'"
+                       decoration-success="state == 'approved'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_operation_support_search" model="ir.ui.view">
+        <field name="name">stock.operation.support.search</field>
+        <field name="model">stock.operation.support</field>
+        <field name="arch" type="xml">
+            <search string="Soportes de operacion">
+                <field name="name"/>
+                <field name="picking_id"/>
+                <field name="partner_id"/>
+                <field name="remission_ref"/>
+                <filter name="filter_draft" string="Sin validar"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_rejected" string="Con errores"
+                        domain="[('state', '=', 'rejected')]"/>
+                <filter name="filter_warning" string="Con observaciones"
+                        domain="[('state', '=', 'warning')]"/>
+                <filter name="filter_approved" string="Aprobados"
+                        domain="[('state', '=', 'approved')]"/>
+                <separator/>
+                <filter name="filter_no_signature" string="Sin alguna firma"
+                        domain="['|', ('signature_sender_ok', '=', False),
+                                      ('signature_receiver_ok', '=', False)]"/>
+                <group>
+                    <filter name="group_state" string="Estado"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_picking_code" string="Tipo de operacion"
+                            context="{'group_by': 'picking_code'}"/>
+                    <filter name="group_partner" string="Contacto"
+                            context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_stock_operation_support" model="ir.actions.act_window">
+        <field name="name">Soportes de operacion</field>
+        <field name="res_model">stock.operation.support</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_stock_operation_support_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Todavia no hay soportes de operacion
+            </p>
+            <p>
+                Un soporte es la remision firmada que respalda una operacion de
+                inventario. Se agrega desde la operacion, con el boton
+                <b>Agregar soporte de operacion</b>.
+            </p>
+        </field>
+    </record>
+
+</odoo>

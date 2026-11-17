@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================== -->
+    <!--  Paperformat: 140 × 216 mm (media carta vertical recortada)    -->
+    <!--  3 etiquetas de 70 mm de alto apiladas en posición absoluta.   -->
+    <!-- ============================================================== -->
+    <record id="paperformat_shopify_delivery_label" model="report.paperformat">
+        <field name="name">Etiqueta Shopify (3 × 70mm / hoja 140×216mm)</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field>
+        <field name="page_width">140</field>
+        <field name="page_height">216</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">2</field>
+        <field name="margin_bottom">2</field>
+        <field name="margin_left">3</field>
+        <field name="margin_right">3</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- ============================================================== -->
+    <!--  Template QWeb                                                  -->
+    <!--  Agrupa docs en lotes de 3; cada lote = una página del PDF.    -->
+    <!--  Las etiquetas se ubican con position:absolute en 0/70/140mm   -->
+    <!--  para garantizar exactamente 3 por página sin depender del     -->
+    <!--  box-model de padding ni del flujo natural del documento.      -->
+    <!-- ============================================================== -->
+    <template id="report_shopify_delivery_label">
+        <t t-call="web.basic_layout">
+            <!-- Leer configuración de la compañía; usar valores por defecto si no están definidos -->
+            <t t-set="cfg_company" t-value="docs[0].company_id if docs else env.company"/>
+            <t t-set="cfg_rows"    t-value="cfg_company.shopify_label_rows or 3"/>
+            <t t-set="cfg_cols"    t-value="cfg_company.shopify_label_cols or 1"/>
+            <t t-set="cfg_ph"      t-value="cfg_company.shopify_label_page_height or 216"/>
+            <t t-set="cfg_bsize"   t-value="cfg_rows * cfg_cols"/>
+            <!-- Altura del contenedor = página − márgenes top/bottom (2+2=4 mm) -->
+            <t t-set="cfg_cont_h"  t-value="cfg_ph - 4"/>
+            <!-- Altura de cada etiqueta = contenedor / filas -->
+            <t t-set="cfg_lh"      t-value="cfg_cont_h // cfg_rows"/>
+            <!-- Ancho de cada etiqueta como % del contenedor -->
+            <t t-set="cfg_lw_pct"  t-value="round(100.0 / cfg_cols, 4)"/>
+
+            <t t-set="batches" t-value="[docs[i:i+cfg_bsize] for i in range(0, len(docs), cfg_bsize)]"/>
+            <t t-foreach="batches" t-as="batch">
+
+                <!-- Contenedor de altura fija = cfg_cont_h mm -->
+                <div t-attf-style="position: relative; height: #{cfg_cont_h}mm; overflow: hidden;
+                                   margin: 0; padding: 0; page-break-after: always;">
+                    <t t-foreach="batch" t-as="o">
+                        <t t-set="row_idx" t-value="o_index // cfg_cols"/>
+                        <t t-set="col_idx" t-value="o_index % cfg_cols"/>
+
+                        <!-- Etiqueta en posición absoluta (row_idx × lh, col_idx × lw%) -->
+                        <div t-attf-style="
+                                position: absolute;
+                                top: #{row_idx * cfg_lh}mm;
+                                left: #{col_idx * cfg_lw_pct}%;
+                                height: #{cfg_lh}mm;
+                                width: #{cfg_lw_pct}%;
+                                overflow: hidden;
+                                box-sizing: border-box;
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 9px;
+                                color: #2b2b2b;
+                                line-height: 1.4;
+                                padding: 5px 0 4px 0;
+                                border-bottom: 1.5px dashed #aaa;
+                                #{'border-right: 1.5px dashed #aaa;' if col_idx &lt; cfg_cols - 1 else ''}">
+
+                            <!-- Encabezado: logo + empresa / título -->
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px;">
+                                <tr>
+                                    <td style="vertical-align: middle; width: 60%; text-align: center;">
+                                        <img t-if="o.company_id.logo"
+                                             t-att-src="image_data_uri(o.company_id.logo)"
+                                             style="display: block; margin: 0 auto; max-height: 30px; max-width: 130px; object-fit: contain;"/>
+                                        <div style="font-size: 8px; color: #777; margin-top: 2px; text-align: center;">
+                                            <span t-field="o.company_id.name"/>
+                                        </div>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: right;">
+                                        <span style="display: inline-block; background-color: #1f4e8f; color: #ffffff;
+                                                     font-weight: bold; font-size: 9px; padding: 3px 6px; border-radius: 3px;">
+                                            🚚 ORDEN DE ENTREGA
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div style="border-top: 2px solid #1f4e8f; margin-bottom: 5px;"/>
+
+                            <!-- Datos de la orden -->
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
+                                <tr>
+                                    <td style="color: #777; vertical-align: top; white-space: nowrap; padding: 2px 4px 2px 0; width: 28%;">Ref. externa</td>
+                                    <td style="font-weight: bold; vertical-align: top; padding: 2px 0;">
+                                        <span t-esc="o.sale_id.client_order_ref or '—'"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #777; vertical-align: top; white-space: nowrap; padding: 2px 4px 2px 0;">Cliente</td>
+                                    <td style="font-weight: bold; vertical-align: top; padding: 2px 0;">
+                                        <span t-esc="o.partner_id.name or '—'"/>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Dirección de entrega -->
+                            <div style="border: 1px solid #d9d9d9; border-radius: 3px; padding: 6px 7px;
+                                        background-color: #fafafa; min-height: 30mm;">
+                                <div style="font-size: 7.5px; font-weight: bold; color: #1f4e8f; text-transform: uppercase;
+                                            letter-spacing: 0.5px; margin-bottom: 3px;">
+                                    Dirección de entrega
+                                </div>
+                                <div style="font-weight: bold; font-size: 10px; margin-bottom: 1px;">
+                                    <span t-field="o.partner_id.name"/>
+                                </div>
+                                <div style="line-height: 1.5;">
+                                    <t t-if="o.partner_id.street"><span t-field="o.partner_id.street"/><br/></t>
+                                    <t t-if="o.partner_id.street2"><span t-field="o.partner_id.street2"/><br/></t>
+                                    <t t-set="locality" t-value="', '.join([p for p in [o.partner_id.city, o.partner_id.state_id.name, o.partner_id.zip] if p])"/>
+                                    <t t-if="locality"><span t-esc="locality"/><br/></t>
+                                    <t t-if="o.partner_id.country_id"><span t-field="o.partner_id.country_id.name"/></t>
+                                </div>
+                                <div t-if="o.partner_id.phone" style="margin-top: 3px;">
+                                    📞 <span style="font-weight: bold;" t-field="o.partner_id.phone"/>
+                                </div>
+                            </div>
+                        </div><!-- /etiqueta -->
+                    </t>
+                </div><!-- /contenedor batch -->
+            </t>
+        </t>
+    </template>
+
+    <!-- ============================================================== -->
+    <!--  Acción de reporte enlazada a stock.picking                    -->
+    <!-- ============================================================== -->
+    <record id="action_report_shopify_delivery_label" model="ir.actions.report">
+        <field name="name">Etiqueta de envío Shopify</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">shopify_order_webhook.report_shopify_delivery_label</field>
+        <field name="report_file">shopify_order_webhook.report_shopify_delivery_label</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_shopify_delivery_label"/>
+    </record>
+
+    <!-- ============================================================== -->
+    <!--  Acción de servidor (menú ⚙️ Acción)                           -->
+    <!-- ============================================================== -->
+    <record id="action_server_shopify_delivery_label" model="ir.actions.server">
+        <field name="name">Imprimir etiqueta de envío Shopify</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">action = env.ref('shopify_order_webhook.action_report_shopify_delivery_label').report_action(records)</field>
+    </record>
+
+</odoo>

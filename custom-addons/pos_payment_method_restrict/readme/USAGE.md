@@ -18,6 +18,11 @@ el popup sin agregar el pago.
 
 ![Popup con los datos del huésped antes de agregar el pago](../static/description/05_popup_datos.png)
 
+Al confirmar, los datos quedan visibles debajo de la línea de pago, con las etiquetas configuradas,
+para revisarlos antes de validar. También se ven después de recargar el POS.
+
+![Línea de pago con el dato del popup debajo](../static/description/10_dato_bajo_linea.png)
+
 Al confirmar, el POS busca órdenes de **hoy** con la misma restricción y algún valor igual (sin
 distinguir mayúsculas). Si encuentra alguna, muestra el aviso con el número y la hora de cada
 orden. **Registrar igualmente** sigue con el pago; **Cancelar** lo descarta. El aviso no bloquea:

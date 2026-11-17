@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Definir la vista de lista (list view) para face.details -->
+    <record id="view_face_details_tree" model="ir.ui.view">
+        <field name="name">face.details.tree</field>
+        <field name="model">face.details</field>
+        <field name="arch" type="xml">
+            <list>
+                <!-- Campos principales para mostrar en la vista de lista -->
+                <field name="pos_order_uid" required="1"/>
+                <field name="gender_value" required="1"/>
+                <field name="age_range_low" required="1"/>
+                <field name="age_range_high" required="1"/>
+                
+                <!-- Otros campos ocultos por defecto -->
+                <field name="bounding_box_width" optional="hide"/>
+                <field name="bounding_box_height" optional="hide"/>
+                <field name="bounding_box_left" optional="hide"/>
+                <field name="bounding_box_top" optional="hide"/>
+                <field name="orientation_correction" optional="hide"/>
+                <field name="pose_roll" optional="hide"/>
+                <field name="pose_yaw" optional="hide"/>
+                <field name="pose_pitch" optional="hide"/>
+                <field name="quality_brightness" optional="hide"/>
+                <field name="quality_sharpness" optional="hide"/>
+                <field name="eye_direction_yaw" optional="hide"/>
+                <field name="eye_direction_pitch" optional="hide"/>
+                <field name="eye_direction_confidence" optional="hide"/>
+                <field name="emotions_happy_value" optional="hide"/>
+                <field name="emotions_happy_confidence" optional="hide"/>
+                <field name="emotions_sad_value" optional="hide"/>
+                <field name="emotions_sad_confidence" optional="hide"/>
+                <field name="emotions_angry_value" optional="hide"/>
+                <field name="emotions_angry_confidence" optional="hide"/>
+                <field name="emotions_confused_value" optional="hide"/>
+                <field name="emotions_confused_confidence" optional="hide"/>
+                <field name="emotions_disgusted_value" optional="hide"/>
+                <field name="emotions_disgusted_confidence" optional="hide"/>
+                <field name="emotions_surprised_value" optional="hide"/>
+                <field name="emotions_surprised_confidence" optional="hide"/>
+                <field name="emotions_calm_value" optional="hide"/>
+                <field name="emotions_calm_confidence" optional="hide"/>
+                <field name="emotions_unknown_value" optional="hide"/>
+                <field name="emotions_unknown_confidence" optional="hide"/>
+                <field name="emotions_fear_value" optional="hide"/>
+                <field name="emotions_fear_confidence" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Definir la vista de formulario (form view) para face.details -->
+    <record id="view_face_details_form" model="ir.ui.view">
+        <field name="name">face.details.form</field>
+        <field name="model">face.details</field>
+        <field name="arch" type="xml">
+            <form>
+                <!-- Grupo 1: Información general del análisis facial -->
+                <group>
+                    <group>
+                        <field name="pos_order_uid" required="1"/>
+                        <field name="bounding_box_width" required="1"/>
+                        <field name="bounding_box_height" required="1"/>
+                        <field name="bounding_box_left"/>
+                        <field name="bounding_box_top"/>
+                    </group>
+                    <group>
+                        <field name="age_range_low" required="1"/>
+                        <field name="age_range_high" required="1"/>
+                        <field name="gender_value"/>
+                        <field name="orientation_correction"/>
+                    </group>
+                </group>
+
+                <!-- Grupo 2: Información sobre la pose y la calidad de la imagen -->
+                <group>
+                    <group>
+                        <field name="pose_roll"/>
+                        <field name="pose_yaw"/>
+                        <field name="pose_pitch"/>
+                    </group>
+                    <group>
+                        <field name="quality_brightness"/>
+                        <field name="quality_sharpness"/>
+                    </group>
+                </group>
+
+                <!-- Grupo 3: Dirección de los ojos -->
+                <group>
+                    <field name="eye_direction_yaw"/>
+                    <field name="eye_direction_pitch"/>
+                    <field name="eye_direction_confidence"/>
+                </group>
+
+                <!-- Grupo 4: Información sobre emociones -->
+                <group>
+                    <field name="emotions_happy_value"/>
+                    <field name="emotions_happy_confidence"/>
+                    <field name="emotions_sad_value"/>
+                    <field name="emotions_sad_confidence"/>
+                    <field name="emotions_angry_value"/>
+                    <field name="emotions_angry_confidence"/>
+                    <field name="emotions_confused_value"/>
+                    <field name="emotions_confused_confidence"/>
+                    <field name="emotions_disgusted_value"/>
+                    <field name="emotions_disgusted_confidence"/>
+                    <field name="emotions_surprised_value"/>
+                    <field name="emotions_surprised_confidence"/>
+                    <field name="emotions_calm_value"/>
+                    <field name="emotions_calm_confidence"/>
+                    <field name="emotions_unknown_value"/>
+                    <field name="emotions_unknown_confidence"/>
+                    <field name="emotions_fear_value"/>
+                    <field name="emotions_fear_confidence"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Definir la acción para face.details -->
+    <record id="action_face_details" model="ir.actions.act_window">
+        <field name="name">Face Details</field>
+        <field name="res_model">face.details</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_face_details_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                FACES DETAILS
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú principal para Face Details -->
+    <menuitem
+        id="menu_face_details"
+        name="Face Details"
+        parent="point_of_sale.menu_point_of_sale" 
+        action="action_face_details"
+        groups="point_of_sale.group_pos_manager"
+        sequence="500"
+    />
+</odoo>

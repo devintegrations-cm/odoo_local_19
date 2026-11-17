@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="module_category_sos" model="ir.module.category">
+        <field name="name">Soporte de operaciones de inventario</field>
+        <field name="description">Remisiones firmadas que respaldan las operaciones de inventario</field>
+        <field name="sequence">25</field>
+    </record>
+
+    <!-- En 19 los grupos se agrupan por privilegio, y es el privilegio el que
+         cuelga de la categoria. La categoria conserva su xmlid. -->
+    <record id="res_groups_privilege_sos" model="res.groups.privilege">
+        <field name="name">Soporte de operaciones de inventario</field>
+        <field name="category_id" ref="module_category_sos"/>
+    </record>
+
+    <record id="group_sos_user" model="res.groups">
+        <field name="name">Operario</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_sos"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        <field name="comment">Puede adjuntar el comprobante de una operacion y validarlo.</field>
+    </record>
+
+    <record id="group_sos_manager" model="res.groups">
+        <field name="name">Responsable</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_sos"/>
+        <field name="implied_ids" eval="[(4, ref('group_sos_user'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        <field name="comment">Ademas de validar, puede configurar el modulo, borrar soportes y ver el JSON tecnico.</field>
+    </record>
+
+    <!-- Quien maneja el inventario queda con el rol que le corresponde sin
+         tener que asignarlo a mano. -->
+    <record id="stock.group_stock_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_sos_user'))]"/>
+    </record>
+
+    <record id="stock.group_stock_manager" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_sos_manager'))]"/>
+    </record>
+
+    <record id="rule_sos_support_company" model="ir.rule">
+        <field name="name">Soporte de operacion: multi-compania</field>
+        <field name="model_id" ref="model_stock_operation_support"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        <field name="global" eval="True"/>
+    </record>
+
+    <record id="rule_sos_support_line_company" model="ir.rule">
+        <field name="name">Linea del soporte: multi-compania</field>
+        <field name="model_id" ref="model_stock_operation_support_line"/>
+        <field name="domain_force">['|', ('support_id.company_id', '=', False), ('support_id.company_id', 'in', company_ids)]</field>
+        <field name="global" eval="True"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- Initial values. Unticking a boolean setting deletes its parameter, so the code reads "missing" as off. -->
+    <record id="param_gross_factor" model="ir.config_parameter"><field name="key">purchase_cost_validator.gross_factor</field><field name="value">2.0</field></record>
+    <record id="param_hold_receipt" model="ir.config_parameter"><field name="key">purchase_cost_validator.hold_receipt</field><field name="value">False</field></record>
+</odoo>

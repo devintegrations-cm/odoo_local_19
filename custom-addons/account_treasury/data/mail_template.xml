@@ -10,6 +10,10 @@
         	<field name="email_from">{{ (object.company_id.email) }}</field>
         	<!--   Recipient email     	-->
         	<field name="email_to">{{ (object.partner_id.email) }}</field>
+        	<!-- Odoo 19: use_default_to vale True por defecto (en 17 no tenia default) y reemplaza email_to por los
+        	     destinatarios por defecto del pago (el proveedor), tambien en el aviso interno a solicitantes, que
+        	     llegan por email_values. Se fija en False para conservar los destinatarios de 17 (K3, igual que MX/CR). -->
+        	<field name="use_default_to" eval="False"/>
         	<field name="auto_delete" eval="False"/>
         	<field name="body_html" type="html">
             	<div>
