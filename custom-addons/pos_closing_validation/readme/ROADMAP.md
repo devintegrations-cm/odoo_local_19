@@ -1,11 +1,5 @@
 ## Limitaciones conocidas
 
-- **La fila "Movimientos de efectivo X/N" no aparece en la ventana de cierre si el punto de venta
-  usa `pos_hr`.** `closing_popup_extension.xml` la inserta después del desglose de entradas/salidas
-  del bloque estándar, pero con `pos_hr` activo en el punto de venta Odoo oculta ese bloque y dibuja
-  una copia propia. Comprobado en el POS local, que tiene `pos_hr` activo: la plantilla heredada
-  contiene la fila, pero no se muestra. Por eso no hay captura de la ventana de cierre. Verificar en
-  STG qué tiendas tienen `pos_hr` activo.
 - **La lista de movimientos no se puede abrir desde el POS.** `cash_move_popup.xml` elimina el
   botón *Detalles* de la ventana de entrada/salida de efectivo, y en Odoo 19 esa lista solo se abre
   desde ese botón. En consecuencia, `cash_move_list_popup_patch.js`, que oculta el borrado a los
@@ -49,8 +43,9 @@
   del movimiento.
 - `static/src/js/cash_move_list_popup_patch.js`: oculta el borrado a quien no es responsable (ver
   *Limitaciones conocidas*).
-- `static/src/xml/closing_popup_extension.xml`: la fila de movimientos en la ventana de cierre (ver
-  *Limitaciones conocidas*).
+- `static/src/xml/closing_popup_extension.xml`: la fila de movimientos en la ventana de cierre. Se
+  inserta en el bloque estándar de efectivo y en el que dibuja `pos_hr` cuando el punto de venta usa
+  empleados (`pos_hr` oculta el estándar); por eso `pos_hr` está en `depends`.
 
 ## Notas para mantenimiento
 

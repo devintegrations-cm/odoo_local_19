@@ -15,19 +15,40 @@
         The data comes from the snapshot cached by pos_store_patch.js before the
         popup opens; when it is missing the row is simply not rendered.
     -->
+    <t t-name="pos_closing_validation.CashMoveCounterRow">
+        <div t-if="pos.closingValidationInfo &amp;&amp; pos.closingValidationInfo.cash_move_limit"
+             class="d-flex align-items-center justify-content-between text-muted border-start ps-2"
+             t-att-class="{ 'text-danger fw-bold': pos.closingValidationInfo.cash_move_count &gt; pos.closingValidationInfo.cash_move_limit }">
+            <span>Movimientos de efectivo</span>
+            <span>
+                <t t-esc="pos.closingValidationInfo.cash_move_count"/>/<t t-esc="pos.closingValidationInfo.cash_move_limit"/>
+            </span>
+        </div>
+    </t>
+
+    <!--
+        The row is inserted in both cash blocks of the popup:
+
+        * the standard ``payment-methods-overview`` block, used when the POS
+          does not log in with employees;
+        * the block pos_hr draws instead when ``module_pos_hr`` is on.  pos_hr
+          hides the standard block with a t-if, so a row placed only there is
+          never shown on a POS with employees (all active stores use pos_hr).
+
+        Only one of the two blocks is rendered at a time, so the row appears
+        once.  pos_hr is a manifest dependency so its extension is applied
+        before this one and the second xpath always finds its node.
+    -->
     <t t-name="pos_closing_validation.ClosePosPopupExtension"
        t-inherit="point_of_sale.ClosePosPopup"
        t-inherit-mode="extension">
 
-        <xpath expr="//PaymentMethodBreakdown" position="after">
-            <div t-if="pos.closingValidationInfo &amp;&amp; pos.closingValidationInfo.cash_move_limit"
-                 class="d-flex align-items-center justify-content-between text-muted border-start ps-2"
-                 t-att-class="{ 'text-danger fw-bold': pos.closingValidationInfo.cash_move_count &gt; pos.closingValidationInfo.cash_move_limit }">
-                <span>Movimientos de efectivo</span>
-                <span>
-                    <t t-esc="pos.closingValidationInfo.cash_move_count"/>/<t t-esc="pos.closingValidationInfo.cash_move_limit"/>
-                </span>
-            </div>
+        <xpath expr="//div[hasclass('payment-methods-overview')]//PaymentMethodBreakdown" position="after">
+            <t t-call="pos_closing_validation.CashMoveCounterRow"/>
+        </xpath>
+
+        <xpath expr="//PaymentMethodBreakdown[@transactions='props.default_cash_details.moves_per_employee']" position="after">
+            <t t-call="pos_closing_validation.CashMoveCounterRow"/>
         </xpath>
 
     </t>

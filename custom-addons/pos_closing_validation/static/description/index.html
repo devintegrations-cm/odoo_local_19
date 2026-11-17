@@ -165,12 +165,6 @@ mantiene solo para los avisos propios de Odoo (por ejemplo, órdenes en borrador
 <h2>Limitaciones y pendientes</h2>
 <div class="lc-warn"><h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Limitaciones conocidas</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
-<li style="margin-bottom:7px;"><strong>La fila "Movimientos de efectivo X/N" no aparece en la ventana de cierre si el punto de venta
-  usa <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code>.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">closing_popup_extension.xml</code> la inserta después del desglose de entradas/salidas
-  del bloque estándar, pero con <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo en el punto de venta Odoo oculta ese bloque y dibuja
-  una copia propia. Comprobado en el POS local, que tiene <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo: la plantilla heredada
-  contiene la fila, pero no se muestra. Por eso no hay captura de la ventana de cierre. Verificar en
-  STG qué tiendas tienen <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> activo.</li>
 <li style="margin-bottom:7px;"><strong>La lista de movimientos no se puede abrir desde el POS.</strong> <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_move_popup.xml</code> elimina el
   botón <em>Detalles</em> de la ventana de entrada/salida de efectivo, y en Odoo 19 esa lista solo se abre
   desde ese botón. En consecuencia, <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">cash_move_list_popup_patch.js</code>, que oculta el borrado a los
@@ -214,8 +208,9 @@ mantiene solo para los avisos propios de Odoo (por ejemplo, órdenes en borrador
   del movimiento.</li>
 <li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/js/cash_move_list_popup_patch.js</code>: oculta el borrado a quien no es responsable (ver
   <em>Limitaciones conocidas</em>).</li>
-<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/xml/closing_popup_extension.xml</code>: la fila de movimientos en la ventana de cierre (ver
-  <em>Limitaciones conocidas</em>).</li>
+<li style="margin-bottom:7px;"><code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">static/src/xml/closing_popup_extension.xml</code>: la fila de movimientos en la ventana de cierre. Se
+  inserta en el bloque estándar de efectivo y en el que dibuja <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> cuando el punto de venta usa
+  empleados (<code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> oculta el estándar); por eso <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">pos_hr</code> está en <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">depends</code>.</li>
 </ul>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Notas para mantenimiento</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">

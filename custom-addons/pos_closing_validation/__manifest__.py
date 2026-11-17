@@ -1,6 +1,6 @@
 {
     "name": "Pos Closing Validation",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "category": "Sales/Point of Sale",
     "summary": "Controls POS cash movements and session closing",
     "description": """
@@ -30,6 +30,7 @@ Extends the standard Odoo Point of Sale cash control workflow with:
     "license": "LGPL-3",
     "depends": [
         "point_of_sale",
+        "pos_hr",
     ],
     "data": [
         "views/pos_config_views.xml",
