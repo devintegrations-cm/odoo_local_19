@@ -192,6 +192,15 @@ En la plataforma (STG primero, producción después):
      corregido, 1 pendientes (se espera 1: HSBC res_bank_1010, sin código en
      el XML)`.
 
+   - `19.0.1.0.5 post-migrate: 1 vistas de res.partner.bank (Studio u
+     otras) con type_of_account antes del cambio`, luego `vista 5868 (Odoo
+     Studio: res.partner.bank.tree customization): type_of_account ->
+     co_account_type` y `... después del cambio: 0 (se espera 0)`. Es la
+     columna «Tipo de cuenta» que Studio agregó en 17 a la lista de cuentas
+     bancarias; sin este cambio, crear o editar un cliente desde el POS falla
+     con `"res.partner.bank"."type_of_account" field is undefined`
+     (evidencias PM9/PM9b).
+
    Aclaración: el XML define los **mismos 68 bancos** que ya existen en
    producción (los 135 `<record>` son esos 68 del bloque de bancos más 67
    que solo cargan el código); el upgrade **no crea bancos nuevos**. El
@@ -237,6 +246,11 @@ SELECT (l.payment_account_id IS NOT NULL) AS con_cuenta, count(*)
  GROUP BY 1;
 -- Se espera: con_cuenta = 22, sin cuenta (con_cuenta = false) = 1
 -- (línea base de 17: comparar contra esta consulta tras el upgrade)
+
+-- Vistas que aún usan el nombre viejo del campo (se espera: 0). Si no da 0,
+-- el POS no puede crear/editar clientes (PM9/PM9b).
+SELECT id, name FROM ir_ui_view
+ WHERE model = 'res.partner.bank' AND arch_db::text LIKE '%type_of_account%';
 
 -- NBSP residual (se espera: 0)
 SELECT count(*) FROM res_partner_bank WHERE acc_number ~ ('[' || chr(160) || ' ]+$');
