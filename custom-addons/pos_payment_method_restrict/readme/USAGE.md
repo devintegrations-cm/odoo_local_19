@@ -77,7 +77,8 @@ tiene tres informes de órdenes con restricción:
 
 ![Reportes › Convenios y restricciones › Órdenes del día](../static/description/09_informe_convenios.png)
 
-Hoy *Reporte mensual* y *Consumo de productos* dan error al abrirse (ver *Limitaciones conocidas*).
+*Órdenes del día* abre con el filtro *Hoy*; *Reporte mensual* y *Consumo de productos*, con *Este
+mes*. En la búsqueda también están *Esta semana* (de lunes a lunes) y se pueden quitar o cambiar.
 
 ## Solución de problemas
 

@@ -247,7 +247,8 @@ tiene tres informes de órdenes con restricción:
 
    Reportes › Convenios y restricciones › Órdenes del día
 
-Hoy *Reporte mensual* y *Consumo de productos* dan error al abrirse (ver *Limitaciones conocidas*).
+*Órdenes del día* abre con el filtro *Hoy*; *Reporte mensual* y *Consumo de productos*, con *Este
+mes*. En la búsqueda también están *Esta semana* (de lunes a lunes) y se pueden quitar o cambiar.
 
 Solución de problemas
 ---------------------
@@ -282,11 +283,6 @@ Limitaciones conocidas
   del POS tiene resolución DIAN.** Con Jorels 19 ya no hay un diario electrónico aparte en el punto
   de venta: la factura agrupada usa el diario de facturas del POS, y es electrónica si ese diario lo
   es. Verificar en STG antes de producción.
-- **Los filtros *Esta semana* y *Este mes* de los informes dan error**, y por eso *Reporte mensual* y
-  *Consumo de productos*, que abren con *Este mes*, muestran "Ocurrió un error" al entrar. Sus
-  dominios usan ``context_today().replace(day=1)`` y ``context_today().weekday()``, que el evaluador de
-  dominios del navegador no soporta. En el Odoo 17 de referencia los dominios son los mismos y ese
-  evaluador tampoco tiene esos métodos, así que el error viene de antes de la migración.
 - **Horas y "hoy" en UTC.** El aviso de duplicado compara con la fecha del servidor y muestra la
   hora en UTC: una orden de las 2:02 p. m. en Colombia sale como 19:02. El filtro *Hoy* de los
   informes arma el rango sin convertir de zona horaria, así que probablemente también corta el día

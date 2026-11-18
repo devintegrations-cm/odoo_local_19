@@ -145,7 +145,8 @@ tiene tres informes de órdenes con restricción:</p>
 <li style="margin-bottom:7px;"><strong>Consumo de productos</strong>: las líneas de esas órdenes, agrupadas por producto.</li>
 </ul>
 <div class="lc-fig"><img alt="Reportes › Convenios y restricciones › Órdenes del día" src="09_informe_convenios.png" / style="display:block;max-width:100%;height:auto;margin:16px auto 6px;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);"><p class="lc-cap" style="margin:0 0 24px;font-size:13px;font-style:italic;color:#6b7280;text-align:center;">Reportes › Convenios y restricciones › Órdenes del día</p></div>
-<p style="margin:0 0 12px;">Hoy <em>Reporte mensual</em> y <em>Consumo de productos</em> dan error al abrirse (ver <em>Limitaciones conocidas</em>).</p>
+<p style="margin:0 0 12px;"><em>Órdenes del día</em> abre con el filtro <em>Hoy</em>; <em>Reporte mensual</em> y <em>Consumo de productos</em>, con <em>Este
+mes</em>. En la búsqueda también están <em>Esta semana</em> (de lunes a lunes) y se pueden quitar o cambiar.</p>
 <h2 style="font-size:19px;font-weight:600;color:#111827;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;">Solución de problemas</h2>
 <ul style="margin:0 0 14px;padding-left:22px;">
 <li style="margin-bottom:7px;"><strong>El cliente ve todos los métodos, o un método restringido no desaparece.</strong> Revisar que la
@@ -175,11 +176,6 @@ tiene tres informes de órdenes con restricción:</p>
   del POS tiene resolución DIAN.</strong> Con Jorels 19 ya no hay un diario electrónico aparte en el punto
   de venta: la factura agrupada usa el diario de facturas del POS, y es electrónica si ese diario lo
   es. Verificar en STG antes de producción.</li>
-<li style="margin-bottom:7px;"><strong>Los filtros <em>Esta semana</em> y <em>Este mes</em> de los informes dan error</strong>, y por eso <em>Reporte mensual</em> y
-  <em>Consumo de productos</em>, que abren con <em>Este mes</em>, muestran "Ocurrió un error" al entrar. Sus
-  dominios usan <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">context_today().replace(day=1)</code> y <code style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:4px;padding:1px 5px;font-size:13px;color:#b91c1c;">context_today().weekday()</code>, que el evaluador de
-  dominios del navegador no soporta. En el Odoo 17 de referencia los dominios son los mismos y ese
-  evaluador tampoco tiene esos métodos, así que el error viene de antes de la migración.</li>
 <li style="margin-bottom:7px;"><strong>Horas y "hoy" en UTC.</strong> El aviso de duplicado compara con la fecha del servidor y muestra la
   hora en UTC: una orden de las 2:02 p. m. en Colombia sale como 19:02. El filtro <em>Hoy</em> de los
   informes arma el rango sin convertir de zona horaria, así que probablemente también corta el día
