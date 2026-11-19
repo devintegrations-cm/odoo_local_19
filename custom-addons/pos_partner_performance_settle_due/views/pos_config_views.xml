@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="pos_config_view_form_partner_due" model="ir.ui.view">
+        <field name="name">pos.config.form.partner.due</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='configuration']//div[hasclass('o_settings_container')]" position="inside">
+                <setting string="No calcular la deuda de los clientes"
+                         help="El POS no calcula lo que debe cada cliente: carga más rápida de clientes y de la caja. La lista de clientes no muestra 'Total adeudado' ni las opciones de liquidar; la deuda se consulta en Contabilidad.">
+                    <field name="skip_partner_due"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

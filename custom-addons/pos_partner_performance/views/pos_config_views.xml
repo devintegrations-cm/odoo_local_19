@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="pos_config_view_form_partner_performance" model="ir.ui.view">
+        <field name="name">pos.config.form.partner.performance</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='configuration']//div[hasclass('o_settings_container')]" position="inside">
+                <setting string="Clientes frecuentes de esta caja"
+                         help="Al abrir la caja se cargan primero los clientes con más órdenes en esta caja en los últimos días indicados. Desmarcado: ranking estándar de Odoo (todas las órdenes de todas las tiendas, más lento).">
+                    <field name="frequent_partners_by_store"/>
+                    <div class="mt-2" invisible="not frequent_partners_by_store">
+                        <label for="frequent_partners_days" class="me-2"/>
+                        <field name="frequent_partners_days" class="oe_inline"/>
+                        <div class="text-muted small">0 = ranking estándar de Odoo.</div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
