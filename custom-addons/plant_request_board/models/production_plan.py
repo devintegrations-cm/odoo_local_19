@@ -127,6 +127,9 @@ class PlantProductionPlan(models.TransientModel):
                        "referencias de la fila y explota los kits. En ambos el inventario negativo cuenta como cero."))
         return "\n".join(lines)
 
-    @api.model
     def action_compare_with_sheet(self):
+        """Header button of the plan's list (display="always"). Not @api.model: on Odoo 19 the web client sends
+        the selected ids (an empty list when nothing is selected) and call_kw only drops them for a method that
+        is not @api.model, so the decorator turned the click into "takes 1 positional argument but 2 were given".
+        The comparison does not depend on the selected rows."""
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {"type": "info", "title": _("Plan de tostión y hoja de pedidos"), "message": self._comparison_text(), "sticky": True}}

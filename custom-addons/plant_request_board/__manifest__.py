@@ -1,6 +1,6 @@
 {
     "name": "Plant Request Board",
-    "version": "19.0.1.10.2",
+    "version": "19.0.1.10.3",
     "category": "Inventory",
     "summary": "Board for the plant with every order by channel, new-order alerts and an AI briefing per order",
     "description": """

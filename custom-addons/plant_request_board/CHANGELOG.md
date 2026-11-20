@@ -5,6 +5,12 @@ branch `feature/plant-dynamic-19`). Every version below exists in both; only ver
 (list/tree views, kanban `card`, `models.Constraint` attributes, product `is_storable`, `group_ids`, migration
 folder names). 47 automated tests, identical on both.
 
+## 1.10.3 — 2026-11-11 · Compare-with-sheet button
+- The "Comparar con la hoja" button of the plan's list header sends the selected rows, and the method was
+  marked `@api.model`, so `call_kw` passed them as an extra argument and the server returned an error.
+  The decorator is gone; the calculation of the plan and of the sheet does not change. A test now calls the
+  method through `call_kw`, the way the button does.
+
 ## 1.10.2 — 2026-11-10 · Sheet readability
 - The sheet (Consolidado) states its own text colour and font: on Odoo 19 the text of the action inherited a light
   grey and Calibri could resolve to a thin face, so the quantities, the request codes and the supplies were almost

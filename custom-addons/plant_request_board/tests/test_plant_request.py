@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from odoo.tests import TransactionCase, tagged
 from odoo.tools.pdf import PdfFileReader
+from odoo.service.model import call_kw
 
 TINY_PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 
@@ -548,6 +549,9 @@ class TestPlantRequest(TransactionCase):
         self.assertIn("PEDIDOS TIENDAS", text)
         self.assertIn("Difieren por diseño", text)
         self.assertEqual(self.env["plant.production.plan"].action_compare_with_sheet()["params"]["message"], text)
+        rows = self.env["plant.production.plan"].search(self.env["plant.production.plan"].action_open()["domain"])
+        result = call_kw(self.env["plant.production.plan"],"action_compare_with_sheet", [rows.ids], {"context": dict(self.env.context)})
+        self.assertEqual(result["params"]["message"], text)
 
     def test_request_is_read_from_the_locations_not_the_operation_type(self):
         """A store's own internal transfer or receipt whose source is a plant location is a request; a transfer
